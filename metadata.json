@@ -1,0 +1,6 @@
+{
+  "name": "KPI Monitoring Humas & IT - Pesantren Parabek",
+  "description": "Aplikasi monitoring KPI dan catatan pekerjaan harian Bagian Humas dan IT Pondok Pesantren Sumatera Thawalib Parabek.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
