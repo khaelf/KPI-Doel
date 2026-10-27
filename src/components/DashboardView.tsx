@@ -67,14 +67,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   const kpiBadge = getKpiStatusBadge(overallKpiScore);
 
-  // Recent work entries (sorted by tanggalMasuk descending)
+  // Recent work entries (sorted by tanggalMasuk descending, max 5 rows)
   const recentEntries = [...monthWorkEntries]
     .sort((a, b) => {
       const dateA = new Date(a.tanggalMasuk || a.tanggal || '').getTime();
       const dateB = new Date(b.tanggalMasuk || b.tanggal || '').getTime();
       return dateB - dateA;
     })
-    .slice(0, 6);
+    .slice(0, 5);
 
   return (
     <div className="space-y-5 sm:space-y-6 pb-6 md:pb-8">
@@ -102,85 +102,71 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* 4 Main Summary Stat Cards (Minimalist & Clean View) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      {/* 4 Main Summary Stat Cards (Ultra-Minimalist View) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {/* Total Pekerjaan */}
-        <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-slate-200/70 shadow-2xs flex flex-col justify-between">
-          <div className="flex items-center justify-between gap-1">
-            <span className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wide">
+        <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-slate-200/60 flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] sm:text-xs font-medium text-slate-500">
               Total Pekerjaan
             </span>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600 shrink-0">
-              <Briefcase className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </div>
+            <Briefcase className="w-4 h-4 text-slate-400" />
           </div>
-          <div className="mt-2">
+          <div className="mt-2 flex items-baseline gap-1.5">
             <span className="text-xl sm:text-2xl font-bold text-slate-900 font-mono tabular-nums">
               {totalPekerjaan}
             </span>
-            <span className="text-[10px] sm:text-xs text-slate-400 ml-1.5 block sm:inline">
-              tugas
-            </span>
+            <span className="text-[10px] sm:text-xs text-slate-400">tugas</span>
           </div>
         </div>
 
         {/* Pekerjaan Selesai */}
-        <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-slate-200/70 shadow-2xs flex flex-col justify-between">
-          <div className="flex items-center justify-between gap-1">
-            <span className="text-[10px] sm:text-xs font-semibold text-emerald-700 uppercase tracking-wide">
-              Pekerjaan Selesai
+        <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-slate-200/60 flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] sm:text-xs font-medium text-slate-500">
+              Selesai
             </span>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
-              <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </div>
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
           </div>
-          <div className="mt-2">
+          <div className="mt-2 flex items-baseline gap-1.5">
             <span className="text-xl sm:text-2xl font-bold text-emerald-700 font-mono tabular-nums">
               {pekerjaanSelesai}
             </span>
-            <span className="text-[10px] sm:text-xs text-emerald-600 font-semibold ml-1.5">
+            <span className="text-[10px] sm:text-xs text-emerald-600 font-medium">
               ({totalPekerjaan > 0 ? Math.round((pekerjaanSelesai / totalPekerjaan) * 100) : 0}%)
             </span>
           </div>
         </div>
 
-        {/* Pekerjaan Masih Berjalan */}
-        <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-slate-200/70 shadow-2xs flex flex-col justify-between">
-          <div className="flex items-center justify-between gap-1">
-            <span className="text-[10px] sm:text-xs font-semibold text-amber-700 uppercase tracking-wide">
-              Masih Berjalan
+        {/* Masih Berjalan / Proses */}
+        <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-slate-200/60 flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] sm:text-xs font-medium text-slate-500">
+              Dalam Proses
             </span>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
-              <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </div>
+            <Clock className="w-4 h-4 text-amber-600" />
           </div>
-          <div className="mt-2">
+          <div className="mt-2 flex items-baseline gap-1.5">
             <span className="text-xl sm:text-2xl font-bold text-amber-700 font-mono tabular-nums">
-              {pekerjaanProses + pekerjaanBelum}
+              {pekerjaanProses}
             </span>
-            <span className="text-[10px] sm:text-xs text-slate-400 ml-1.5 block sm:inline">
-              ({pekerjaanProses} proses)
-            </span>
+            <span className="text-[10px] sm:text-xs text-slate-400">tugas</span>
           </div>
         </div>
 
-        {/* Nilai KPI Bulan Ini */}
-        <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-emerald-200/80 shadow-2xs flex flex-col justify-between">
-          <div className="flex items-center justify-between gap-1">
-            <span className="text-[10px] sm:text-xs font-semibold text-emerald-800 uppercase tracking-wide">
-              Nilai KPI Bulan Ini
+        {/* Belum Dimulai (Replaces Nilai KPI per request) */}
+        <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-slate-200/60 flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] sm:text-xs font-medium text-slate-500">
+              Belum Dimulai
             </span>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-800 shrink-0">
-              <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </div>
+            <Clock className="w-4 h-4 text-slate-400" />
           </div>
-          <div className="mt-2 flex flex-wrap items-center justify-between gap-1.5">
-            <span className="text-xl sm:text-2xl font-bold text-slate-900 font-mono tabular-nums">
-              {overallKpiScore.toFixed(1)}%
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-xl sm:text-2xl font-bold text-slate-700 font-mono tabular-nums">
+              {pekerjaanBelum}
             </span>
-            <span className={`px-2 py-0.5 text-[9px] sm:text-[10px] font-bold rounded-md ${kpiBadge.badgeClass}`}>
-              {kpiBadge.label}
-            </span>
+            <span className="text-[10px] sm:text-xs text-slate-400">tugas</span>
           </div>
         </div>
       </div>
