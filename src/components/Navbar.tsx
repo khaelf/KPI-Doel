@@ -46,7 +46,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 />
               </div>
               <h1 className="text-base sm:text-lg font-bold tracking-tight text-white leading-tight">
-                KPI Irsyadul F.
+                KPI Staff Humas dan IT
               </h1>
             </div>
 

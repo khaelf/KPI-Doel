@@ -5,13 +5,10 @@ import {
   Plus,
   Edit2,
   Trash2,
-  Filter,
   ExternalLink,
   Calendar,
   SlidersHorizontal,
   ArrowUpDown,
-  ArrowDown,
-  ArrowUp,
 } from 'lucide-react';
 
 interface WorkLogViewProps {
@@ -127,13 +124,10 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
           />
         </div>
 
-        {/* Status Filter, Date Sort & Column Checkbox Selector */}
+        {/* Status Filter Buttons & Column Checkbox Selector */}
         <div className="flex flex-wrap items-center justify-between md:justify-end gap-2 w-full md:w-auto">
-          {/* Status Buttons */}
+          {/* Status Buttons (Without Status: label as requested) */}
           <div className="flex items-center gap-1.5 overflow-x-auto">
-            <span className="text-slate-500 font-medium flex items-center gap-1 shrink-0">
-              <Filter className="w-3.5 h-3.5" /> Status:
-            </span>
             {(['Semua', 'Belum dikerjakan', 'Proses', 'Selesai'] as const).map((st) => (
               <button
                 key={st}
@@ -148,20 +142,6 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
               </button>
             ))}
           </div>
-
-          {/* Date Sorting Button (Request #2) */}
-          <button
-            onClick={() => setSortOrder((prev) => (prev === 'terbaru' ? 'terlama' : 'terbaru'))}
-            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg flex items-center gap-1.5 transition-colors border border-slate-200 shrink-0"
-            title="Urutkan berdasarkan Tanggal Masuk (Terbaru / Terlama)"
-          >
-            {sortOrder === 'terbaru' ? (
-              <ArrowDown className="w-3.5 h-3.5 text-emerald-700" />
-            ) : (
-              <ArrowUp className="w-3.5 h-3.5 text-emerald-700" />
-            )}
-            <span>Urutan: {sortOrder === 'terbaru' ? 'Terbaru' : 'Terlama'}</span>
-          </button>
 
           {/* Checkbox Column Visibility Selector */}
           <div className="relative shrink-0">

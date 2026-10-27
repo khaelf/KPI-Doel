@@ -88,11 +88,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className="text-[10px] sm:text-xs font-medium text-emerald-200/80">· {monthLabel}</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
-            KPI Staff Humas & IT
+            Irsyadul Fuadi
           </h2>
-          <p className="text-xs sm:text-sm text-emerald-100/90 mt-1 max-w-2xl">
-            Sistem Pemantauan KPI & Catatan Pekerjaan Bagian Humas dan IT secara berkala dan terukur.
-          </p>
         </div>
         <div className="flex items-center gap-3 shrink-0">
           <button
@@ -105,40 +102,40 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* 4 Main Summary Stat Cards (Optimized for Mobile HP View) */}
+      {/* 4 Main Summary Stat Cards (Minimalist & Clean View) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Total Pekerjaan */}
-        <div className="bg-white rounded-xl p-3.5 sm:p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+        <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-slate-200/70 shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between gap-1">
             <span className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wide">
               Total Pekerjaan
             </span>
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-slate-100 flex items-center justify-center text-slate-700 shrink-0">
-              <Briefcase className="w-4 h-4 sm:w-5 sm:h-5" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600 shrink-0">
+              <Briefcase className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-2 sm:mt-3">
-            <span className="text-xl sm:text-3xl font-bold text-slate-900 font-mono tabular-nums">
+          <div className="mt-2">
+            <span className="text-xl sm:text-2xl font-bold text-slate-900 font-mono tabular-nums">
               {totalPekerjaan}
             </span>
-            <span className="text-[10px] sm:text-xs text-slate-500 ml-1.5 block sm:inline">
-              tugas di {monthLabel}
+            <span className="text-[10px] sm:text-xs text-slate-400 ml-1.5 block sm:inline">
+              tugas
             </span>
           </div>
         </div>
 
         {/* Pekerjaan Selesai */}
-        <div className="bg-white rounded-xl p-3.5 sm:p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+        <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-slate-200/70 shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between gap-1">
             <span className="text-[10px] sm:text-xs font-semibold text-emerald-700 uppercase tracking-wide">
               Pekerjaan Selesai
             </span>
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
-              <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+              <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-2 sm:mt-3">
-            <span className="text-xl sm:text-3xl font-bold text-emerald-700 font-mono tabular-nums">
+          <div className="mt-2">
+            <span className="text-xl sm:text-2xl font-bold text-emerald-700 font-mono tabular-nums">
               {pekerjaanSelesai}
             </span>
             <span className="text-[10px] sm:text-xs text-emerald-600 font-semibold ml-1.5">
@@ -148,40 +145,40 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         {/* Pekerjaan Masih Berjalan */}
-        <div className="bg-white rounded-xl p-3.5 sm:p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+        <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-slate-200/70 shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between gap-1">
             <span className="text-[10px] sm:text-xs font-semibold text-amber-700 uppercase tracking-wide">
               Masih Berjalan
             </span>
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
-              <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
+              <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-2 sm:mt-3">
-            <span className="text-xl sm:text-3xl font-bold text-amber-700 font-mono tabular-nums">
+          <div className="mt-2">
+            <span className="text-xl sm:text-2xl font-bold text-amber-700 font-mono tabular-nums">
               {pekerjaanProses + pekerjaanBelum}
             </span>
-            <span className="text-[10px] sm:text-xs text-slate-500 ml-1.5 block sm:inline">
-              ({pekerjaanProses} proses, {pekerjaanBelum} belum)
+            <span className="text-[10px] sm:text-xs text-slate-400 ml-1.5 block sm:inline">
+              ({pekerjaanProses} proses)
             </span>
           </div>
         </div>
 
         {/* Nilai KPI Bulan Ini */}
-        <div className="bg-white rounded-xl p-3.5 sm:p-5 border border-emerald-200 shadow-sm flex flex-col justify-between">
+        <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-emerald-200/80 shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between gap-1">
             <span className="text-[10px] sm:text-xs font-semibold text-emerald-800 uppercase tracking-wide">
               Nilai KPI Bulan Ini
             </span>
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-800 shrink-0">
-              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-800 shrink-0">
+              <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-2 sm:mt-3 flex flex-wrap items-center justify-between gap-1.5">
-            <span className="text-xl sm:text-3xl font-bold text-slate-900 font-mono tabular-nums">
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-1.5">
+            <span className="text-xl sm:text-2xl font-bold text-slate-900 font-mono tabular-nums">
               {overallKpiScore.toFixed(1)}%
             </span>
-            <span className={`px-2 py-0.5 text-[9px] sm:text-[11px] font-bold rounded-md ${kpiBadge.badgeClass}`}>
+            <span className={`px-2 py-0.5 text-[9px] sm:text-[10px] font-bold rounded-md ${kpiBadge.badgeClass}`}>
               {kpiBadge.label}
             </span>
           </div>

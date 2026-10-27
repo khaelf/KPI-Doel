@@ -14,8 +14,8 @@ export default defineConfig(() => {
         includeAssets: ['/assets/aistudio/Logo_Humas_H-04_d71e1614.png'],
         manifest: {
           id: '/',
-          name: 'KPI Irsyadul F. - Staff Humas & IT',
-          short_name: 'KPI Irsyadul F.',
+          name: 'KPI Staff Humas dan IT',
+          short_name: 'KPI Humas & IT',
           description: 'Aplikasi monitoring KPI dan catatan pekerjaan harian Bagian Humas dan IT.',
           theme_color: '#1b4332',
           background_color: '#f8f9fa',
