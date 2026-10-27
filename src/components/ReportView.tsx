@@ -105,8 +105,12 @@ export const ReportView: React.FC<ReportViewProps> = ({
       <div className="bg-white p-6 md:p-10 rounded-2xl border border-slate-200/80 shadow-sm space-y-8">
         {/* Official Kop Header */}
         <div className="border-b-2 border-slate-900 pb-4 text-center space-y-1">
-          <div className="flex items-center justify-center gap-2 text-emerald-800 font-bold text-lg sm:text-xl">
-            <Building2 className="w-6 h-6" />
+          <div className="flex items-center justify-center gap-3 text-emerald-800 font-bold text-lg sm:text-xl">
+            <img
+              src="/assets/aistudio/Logo_Humas_H-04_0242de0b.png"
+              alt="Logo Humas Parabek"
+              className="w-8 h-8 object-contain"
+            />
             <span>PONDOK PESANTREN SUMATERA THAWALIB PARABEK</span>
           </div>
           <h3 className="text-xs sm:text-sm font-semibold tracking-wide text-slate-700">
@@ -244,7 +248,6 @@ export const ReportView: React.FC<ReportViewProps> = ({
                     <th className="py-2 px-2 border-b border-r border-slate-200 text-center">Revisi</th>
                     <th className="py-2 px-3 border-b border-r border-slate-200">Bidang</th>
                     <th className="py-2 px-3 border-b border-r border-slate-200">Nama Pekerjaan</th>
-                    <th className="py-2 px-3 border-b border-r border-slate-200">Hasil Diharapkan</th>
                     <th className="py-2 px-3 border-b border-slate-200 text-right">Capaian</th>
                   </tr>
                 </thead>
@@ -268,9 +271,6 @@ export const ReportView: React.FC<ReportViewProps> = ({
                       </td>
                       <td className="py-2 px-3 border-r border-slate-200 font-medium text-slate-900">
                         {task.namaPekerjaan}
-                      </td>
-                      <td className="py-2 px-3 border-r border-slate-200 text-slate-600">
-                        {task.targetHasil}
                       </td>
                       <td className="py-2 px-3 text-right font-mono font-bold text-emerald-700 whitespace-nowrap">
                         {task.persentase}%

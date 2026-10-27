@@ -5,13 +5,13 @@ export type TaskStatus = 'Belum dikerjakan' | 'Proses' | 'Selesai';
 export interface WorkEntry {
   id: string;
   tanggalMasuk: string; // YYYY-MM-DD (Tanggal Permintaan/Masuk)
-  tanggalMulai: string; // YYYY-MM-DD (Tanggal Pengerjaan Dimulai)
-  tanggalSelesai?: string; // YYYY-MM-DD (Tanggal Selesai, opsional jika belum selesai)
-  jumlahRevisi: number; // Jumlah revisi (0, 1, 2, dst)
+  tanggalMulai?: string; // YYYY-MM-DD (Tanggal Pengerjaan Dimulai)
+  tanggalSelesai?: string; // YYYY-MM-DD (Tanggal Selesai)
+  jumlahRevisi?: number; // Jumlah revisi (0, 1, 2, dst)
   tanggal?: string; // Fallback helper YYYY-MM-DD
   bidang: Department;
   namaPekerjaan: string;
-  targetHasil: string;
+  targetHasil?: string; // Removed field, optional for backwards compatibility
   status: TaskStatus;
   persentase: number; // 0 - 100
   catatan?: string;

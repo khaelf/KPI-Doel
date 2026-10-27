@@ -56,7 +56,6 @@ export function exportToExcel(
     'Jumlah Revisi': entry.jumlahRevisi || 0,
     Bidang: entry.bidang,
     'Nama Pekerjaan': entry.namaPekerjaan,
-    'Target / Hasil Diharapkan': entry.targetHasil,
     Status: entry.status,
     'Pencapaian (%)': `${entry.persentase}%`,
     'Catatan / Dokumentasi': entry.catatan || '-',

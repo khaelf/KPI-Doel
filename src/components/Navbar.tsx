@@ -1,13 +1,12 @@
 import React from 'react';
 import { Department } from '../types/kpi';
+import { PWAInstallButton } from './PWAInstallButton';
 import {
   LayoutDashboard,
   ClipboardList,
   Target,
   FileBarChart,
   RefreshCw,
-  PlusCircle,
-  Building2,
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -38,8 +37,13 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center justify-between h-16 border-b border-emerald-800/60">
           {/* Brand Logo & Name */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-600/40 border border-emerald-400/30 flex items-center justify-center text-white shrink-0">
-              <Building2 className="w-5 h-5 text-emerald-300" />
+            {/* White solid background box for logo per request #1 & image 1 */}
+            <div className="w-10 h-10 rounded-xl bg-white p-1 flex items-center justify-center shrink-0 shadow-xs border border-emerald-300/40">
+              <img
+                src="/assets/aistudio/Logo_Humas_H-04_0242de0b.png"
+                alt="Logo Humas Parabek"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -56,8 +60,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* Quick Selectors & Controls (Removed "+ Tambah Pekerjaan" button per user request) */}
+          {/* Quick Selectors & Controls */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* PWA Install Button */}
+            <PWAInstallButton />
+
             {/* Department Filter Toggle */}
             <div className="bg-emerald-900/80 p-1 rounded-lg border border-emerald-700/50 flex items-center gap-1 text-xs">
               {(['Semua', 'Humas', 'IT'] as const).map((dept) => (

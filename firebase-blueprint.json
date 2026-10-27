@@ -29,10 +29,6 @@
           "type": "string",
           "maxLength": 500
         },
-        "targetHasil": {
-          "type": "string",
-          "maxLength": 1000
-        },
         "status": {
           "type": "string",
           "enum": ["Belum dikerjakan", "Proses", "Selesai"]
@@ -48,7 +44,7 @@
           "type": "string"
         }
       },
-      "required": ["tanggalMasuk", "tanggalMulai", "bidang", "namaPekerjaan", "targetHasil", "status", "persentase"]
+      "required": ["tanggalMasuk", "bidang", "namaPekerjaan", "status", "persentase"]
     },
     "kpiIndicator": {
       "title": "KpiIndicator",

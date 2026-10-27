@@ -318,10 +318,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <table className="w-full text-left text-xs text-slate-600">
               <thead className="bg-slate-50 text-slate-700 uppercase font-semibold text-[11px] border-b border-slate-200">
                 <tr>
-                  <th className="py-3 px-3">Tgl Masuk</th>
-                  <th className="py-3 px-3">Tgl Mulai</th>
-                  <th className="py-3 px-3">Tgl Selesai</th>
-                  <th className="py-3 px-2 text-center">Revisi</th>
+                  <th className="py-3 px-3">Tanggal Masuk</th>
                   <th className="py-3 px-3">Bidang</th>
                   <th className="py-3 px-4">Nama Pekerjaan</th>
                   <th className="py-3 px-3">Status</th>
@@ -333,19 +330,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <tr key={entry.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="py-3 px-3 font-mono text-slate-500 whitespace-nowrap">
                       {entry.tanggalMasuk || entry.tanggal}
-                    </td>
-                    <td className="py-3 px-3 font-mono text-slate-500 whitespace-nowrap">
-                      {entry.tanggalMulai || '-'}
-                    </td>
-                    <td className="py-3 px-3 font-mono whitespace-nowrap">
-                      {entry.tanggalSelesai ? (
-                        <span className="text-emerald-700 font-semibold">{entry.tanggalSelesai}</span>
-                      ) : (
-                        <span className="text-slate-400 italic">Proses</span>
-                      )}
-                    </td>
-                    <td className="py-3 px-2 text-center whitespace-nowrap font-mono font-bold text-amber-700">
-                      {entry.jumlahRevisi || 0}x
                     </td>
                     <td className="py-3 px-3 whitespace-nowrap">
                       <span

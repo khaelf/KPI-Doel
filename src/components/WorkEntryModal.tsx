@@ -26,7 +26,6 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
   const [jumlahRevisi, setJumlahRevisi] = useState<number>(0);
   const [bidang, setBidang] = useState<Department>('Humas');
   const [namaPekerjaan, setNamaPekerjaan] = useState('');
-  const [targetHasil, setTargetHasil] = useState('');
   const [status, setStatus] = useState<TaskStatus>('Proses');
   const [persentase, setPersentase] = useState<number>(50);
   const [catatan, setCatatan] = useState('');
@@ -40,7 +39,6 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
       setJumlahRevisi(editingEntry.jumlahRevisi ?? 0);
       setBidang(editingEntry.bidang);
       setNamaPekerjaan(autoCapitalizeText(editingEntry.namaPekerjaan));
-      setTargetHasil(autoCapitalizeText(editingEntry.targetHasil));
       setStatus(editingEntry.status);
       setPersentase(editingEntry.persentase);
       setCatatan(editingEntry.catatan || '');
@@ -51,7 +49,6 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
       setJumlahRevisi(0);
       setBidang(defaultDepartment);
       setNamaPekerjaan('');
-      setTargetHasil('');
       setStatus('Proses');
       setPersentase(50);
       setCatatan('');
@@ -62,7 +59,7 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!namaPekerjaan.trim() || !targetHasil.trim()) return;
+    if (!namaPekerjaan.trim()) return;
 
     onSave(
       {
@@ -73,7 +70,6 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
         tanggal: tanggalMasuk, // fallback for month filters
         bidang,
         namaPekerjaan: autoCapitalizeText(namaPekerjaan.trim()),
-        targetHasil: autoCapitalizeText(targetHasil.trim()),
         status,
         persentase: Number(persentase),
         catatan: catatan.trim(),
@@ -209,22 +205,6 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
               placeholder="Contoh: Pembuatan Banner Publikasi Milad Parabek"
               value={namaPekerjaan}
               onChange={(e) => setNamaPekerjaan(autoCapitalizeText(e.target.value))}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-            />
-          </div>
-
-          {/* Target / Hasil Diharapkan */}
-          <div>
-            <label className="block font-semibold text-slate-900 mb-1">
-              Target / Hasil yang Diharapkan <span className="text-rose-500">*</span>
-            </label>
-            <textarea
-              required
-              rows={2}
-              autoCapitalize="sentences"
-              placeholder="Contoh: Flyer digital disebar ke seluruh grup WhatsApp wali santri"
-              value={targetHasil}
-              onChange={(e) => setTargetHasil(autoCapitalizeText(e.target.value))}
               className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             />
           </div>
