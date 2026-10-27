@@ -1,8 +1,12 @@
 import { WorkEntry, KpiIndicator } from '../types/kpi';
 import { INITIAL_WORK_ENTRIES, INITIAL_KPI_INDICATORS } from '../data/initialData';
+import { firebaseDataService, testFirestoreConnection } from './firebase';
 
 const WORK_ENTRIES_KEY = 'parabek_kpi_work_entries_v1';
 const KPI_INDICATORS_KEY = 'parabek_kpi_indicators_v1';
+
+// Verify firestore connection on load
+testFirestoreConnection();
 
 export const storageService = {
   getWorkEntries(): WorkEntry[] {
@@ -10,6 +14,8 @@ export const storageService = {
       const data = localStorage.getItem(WORK_ENTRIES_KEY);
       if (!data) {
         this.saveWorkEntries(INITIAL_WORK_ENTRIES);
+        // Seed initial entries to Firestore
+        INITIAL_WORK_ENTRIES.forEach((item) => firebaseDataService.saveWorkEntry(item));
         return INITIAL_WORK_ENTRIES;
       }
       return JSON.parse(data);
@@ -36,6 +42,9 @@ export const storageService = {
     };
     entries.unshift(newEntry);
     this.saveWorkEntries(entries);
+
+    // Sync to Firestore
+    firebaseDataService.saveWorkEntry(newEntry);
     return newEntry;
   },
 
@@ -45,6 +54,9 @@ export const storageService = {
     if (index === -1) return null;
     entries[index] = { ...entries[index], ...updated };
     this.saveWorkEntries(entries);
+
+    // Sync update to Firestore
+    firebaseDataService.updateWorkEntry(id, updated);
     return entries[index];
   },
 
@@ -53,6 +65,9 @@ export const storageService = {
     const filtered = entries.filter((item) => item.id !== id);
     if (filtered.length === entries.length) return false;
     this.saveWorkEntries(filtered);
+
+    // Sync delete to Firestore
+    firebaseDataService.deleteWorkEntry(id);
     return true;
   },
 
@@ -61,6 +76,8 @@ export const storageService = {
       const data = localStorage.getItem(KPI_INDICATORS_KEY);
       if (!data) {
         this.saveKpiIndicators(INITIAL_KPI_INDICATORS);
+        // Seed initial indicators to Firestore
+        INITIAL_KPI_INDICATORS.forEach((ind) => firebaseDataService.saveKpiIndicator(ind));
         return INITIAL_KPI_INDICATORS;
       }
       return JSON.parse(data);
@@ -86,6 +103,9 @@ export const storageService = {
     };
     indicators.push(newInd);
     this.saveKpiIndicators(indicators);
+
+    // Sync to Firestore
+    firebaseDataService.saveKpiIndicator(newInd);
     return newInd;
   },
 
@@ -95,6 +115,9 @@ export const storageService = {
     if (index === -1) return null;
     indicators[index] = { ...indicators[index], ...updated };
     this.saveKpiIndicators(indicators);
+
+    // Sync update to Firestore
+    firebaseDataService.updateKpiIndicator(id, updated);
     return indicators[index];
   },
 
@@ -103,6 +126,9 @@ export const storageService = {
     const filtered = indicators.filter((item) => item.id !== id);
     if (filtered.length === indicators.length) return false;
     this.saveKpiIndicators(filtered);
+
+    // Sync delete to Firestore
+    firebaseDataService.deleteKpiIndicator(id);
     return true;
   },
 
@@ -111,5 +137,9 @@ export const storageService = {
     localStorage.removeItem(KPI_INDICATORS_KEY);
     this.saveWorkEntries(INITIAL_WORK_ENTRIES);
     this.saveKpiIndicators(INITIAL_KPI_INDICATORS);
+
+    // Seed Firestore
+    INITIAL_WORK_ENTRIES.forEach((item) => firebaseDataService.saveWorkEntry(item));
+    INITIAL_KPI_INDICATORS.forEach((ind) => firebaseDataService.saveKpiIndicator(ind));
   },
 };

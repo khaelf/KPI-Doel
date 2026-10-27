@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { WorkEntry, KpiIndicator, Department, TaskStatus } from './types/kpi';
 import { storageService } from './services/storage';
+import { firebaseDataService } from './services/firebase';
 import { Navbar } from './components/Navbar';
 import { DashboardView } from './components/DashboardView';
 import { WorkLogView } from './components/WorkLogView';
@@ -26,12 +27,33 @@ export default function App() {
   const [editingKpiIndicator, setEditingKpiIndicator] = useState<KpiIndicator | null>(null);
   const [kpiModalDept, setKpiModalDept] = useState<Department>('Humas');
 
-  // Load initial data from localStorage
+  // Load initial data & subscribe to real-time Firestore updates
   useEffect(() => {
-    const entries = storageService.getWorkEntries();
-    const indicators = storageService.getKpiIndicators();
-    setWorkEntries(entries);
-    setKpiIndicators(indicators);
+    // Initial local cache load
+    const initialEntries = storageService.getWorkEntries();
+    const initialIndicators = storageService.getKpiIndicators();
+    setWorkEntries(initialEntries);
+    setKpiIndicators(initialIndicators);
+
+    // Realtime Firestore listeners
+    const unsubscribeWork = firebaseDataService.subscribeWorkEntries((fsEntries) => {
+      if (fsEntries && fsEntries.length > 0) {
+        setWorkEntries(fsEntries);
+        storageService.saveWorkEntries(fsEntries);
+      }
+    });
+
+    const unsubscribeKpi = firebaseDataService.subscribeKpiIndicators((fsIndicators) => {
+      if (fsIndicators && fsIndicators.length > 0) {
+        setKpiIndicators(fsIndicators);
+        storageService.saveKpiIndicators(fsIndicators);
+      }
+    });
+
+    return () => {
+      unsubscribeWork();
+      unsubscribeKpi();
+    };
   }, []);
 
   // Handler: Work Entry Save (Add or Edit)
@@ -44,7 +66,6 @@ export default function App() {
     } else {
       storageService.addWorkEntry(data);
     }
-    setWorkEntries(storageService.getWorkEntries());
     setEditingWorkEntry(null);
   };
 
@@ -55,14 +76,12 @@ export default function App() {
     if (newStatus === 'Belum dikerjakan') persentase = 0;
 
     storageService.updateWorkEntry(id, { status: newStatus, persentase });
-    setWorkEntries(storageService.getWorkEntries());
   };
 
   // Handler: Work Entry Delete
   const handleDeleteWorkEntry = (id: string) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus catatan pekerjaan ini?')) {
       storageService.deleteWorkEntry(id);
-      setWorkEntries(storageService.getWorkEntries());
     }
   };
 
@@ -76,21 +95,18 @@ export default function App() {
     } else {
       storageService.addKpiIndicator(data);
     }
-    setKpiIndicators(storageService.getKpiIndicators());
     setEditingKpiIndicator(null);
   };
 
   // Handler: KPI Indicator Quick Update Realisasi
   const handleQuickUpdateRealisasi = (id: string, newRealisasi: number) => {
     storageService.updateKpiIndicator(id, { realisasi: newRealisasi });
-    setKpiIndicators(storageService.getKpiIndicators());
   };
 
   // Handler: KPI Indicator Delete
   const handleDeleteKpiIndicator = (id: string) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus indikator KPI ini?')) {
       storageService.deleteKpiIndicator(id);
-      setKpiIndicators(storageService.getKpiIndicators());
     }
   };
 
@@ -98,12 +114,10 @@ export default function App() {
   const handleResetData = () => {
     if (
       window.confirm(
-        'Apakah Anda yakin ingin memuat ulang sampel data awal Humas & IT Parabek? Seluruh perubahan lokal akan dikembalikan ke data default.'
+        'Apakah Anda yakin ingin memuat ulang sampel data awal Humas & IT Parabek? Seluruh perubahan lokal dan Firestore akan dikembalikan ke data default.'
       )
     ) {
       storageService.resetAllToDefault();
-      setWorkEntries(storageService.getWorkEntries());
-      setKpiIndicators(storageService.getKpiIndicators());
     }
   };
 
@@ -194,8 +208,9 @@ export default function App() {
           <span>
             © {new Date().getFullYear()} Pondok Pesantren Sumatera Thawalib Parabek · Bagian Humas & IT
           </span>
-          <span className="text-[11px] text-slate-400">
-            Aplikasi Monitoring KPI & Catatan Kerja Harian
+          <span className="text-[11px] text-emerald-700 font-medium flex items-center justify-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+            Terhubung dengan Firebase Cloud Firestore
           </span>
         </div>
       </footer>

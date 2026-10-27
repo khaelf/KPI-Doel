@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { KpiIndicator, Department } from '../types/kpi';
+import { autoCapitalizeText } from '../utils/textUtils';
 import { X, Save, Target } from 'lucide-react';
 
 interface KpiIndicatorModalProps {
@@ -30,8 +31,8 @@ export const KpiIndicatorModal: React.FC<KpiIndicatorModalProps> = ({
   useEffect(() => {
     if (editingIndicator) {
       setBidang(editingIndicator.bidang);
-      setNamaIndikator(editingIndicator.namaIndikator);
-      setSatuan(editingIndicator.satuan);
+      setNamaIndikator(autoCapitalizeText(editingIndicator.namaIndikator));
+      setSatuan(autoCapitalizeText(editingIndicator.satuan));
       setTarget(editingIndicator.target);
       setRealisasi(editingIndicator.realisasi);
       setBobot(editingIndicator.bobot);
@@ -56,8 +57,8 @@ export const KpiIndicatorModal: React.FC<KpiIndicatorModalProps> = ({
     onSave(
       {
         bidang,
-        namaIndikator: namaIndikator.trim(),
-        satuan: satuan.trim(),
+        namaIndikator: autoCapitalizeText(namaIndikator.trim()),
+        satuan: autoCapitalizeText(satuan.trim()),
         target: Number(target),
         realisasi: Number(realisasi),
         bobot: Number(bobot),
@@ -129,9 +130,10 @@ export const KpiIndicatorModal: React.FC<KpiIndicatorModalProps> = ({
             <input
               type="text"
               required
+              autoCapitalize="sentences"
               placeholder="Contoh: Publikasi berita dan kegiatan"
               value={namaIndikator}
-              onChange={(e) => setNamaIndikator(e.target.value)}
+              onChange={(e) => setNamaIndikator(autoCapitalizeText(e.target.value))}
               className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             />
           </div>
@@ -144,9 +146,10 @@ export const KpiIndicatorModal: React.FC<KpiIndicatorModalProps> = ({
             <input
               type="text"
               required
+              autoCapitalize="sentences"
               placeholder="Contoh: Berita, Konten, Laporan, %, Maintenance, Event"
               value={satuan}
-              onChange={(e) => setSatuan(e.target.value)}
+              onChange={(e) => setSatuan(autoCapitalizeText(e.target.value))}
               className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             />
           </div>

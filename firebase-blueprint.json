@@ -1,0 +1,96 @@
+{
+  "entities": {
+    "workEntry": {
+      "title": "WorkEntry",
+      "description": "Daily work log record for Humas and IT departments at Pesantren Parabek",
+      "type": "object",
+      "properties": {
+        "tanggalMasuk": {
+          "type": "string",
+          "description": "Date request received in YYYY-MM-DD"
+        },
+        "tanggalMulai": {
+          "type": "string",
+          "description": "Date work started in YYYY-MM-DD"
+        },
+        "tanggalSelesai": {
+          "type": "string",
+          "description": "Date work completed in YYYY-MM-DD"
+        },
+        "jumlahRevisi": {
+          "type": "integer",
+          "description": "Number of revisions"
+        },
+        "bidang": {
+          "type": "string",
+          "enum": ["Humas", "IT"]
+        },
+        "namaPekerjaan": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "targetHasil": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Belum dikerjakan", "Proses", "Selesai"]
+        },
+        "persentase": {
+          "type": "integer"
+        },
+        "catatan": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "createdAt": {
+          "type": "string"
+        }
+      },
+      "required": ["tanggalMasuk", "tanggalMulai", "bidang", "namaPekerjaan", "targetHasil", "status", "persentase"]
+    },
+    "kpiIndicator": {
+      "title": "KpiIndicator",
+      "description": "Monthly KPI target and achievement indicator",
+      "type": "object",
+      "properties": {
+        "bidang": {
+          "type": "string",
+          "enum": ["Humas", "IT"]
+        },
+        "namaIndikator": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "satuan": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "target": {
+          "type": "number"
+        },
+        "realisasi": {
+          "type": "number"
+        },
+        "bobot": {
+          "type": "number"
+        },
+        "periodeBulan": {
+          "type": "string"
+        }
+      },
+      "required": ["bidang", "namaIndikator", "satuan", "target", "realisasi", "bobot", "periodeBulan"]
+    }
+  },
+  "firestore": {
+    "/workEntries/{entryId}": {
+      "schema": "workEntry",
+      "description": "Daily work entries for Parabek Humas & IT"
+    },
+    "/kpiIndicators/{indicatorId}": {
+      "schema": "kpiIndicator",
+      "description": "Monthly KPI performance indicators"
+    }
+  }
+}

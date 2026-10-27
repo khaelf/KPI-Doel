@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { WorkEntry, Department, TaskStatus } from '../types/kpi';
-import { X, Save, Calendar, RefreshCw } from 'lucide-react';
+import { autoCapitalizeText } from '../utils/textUtils';
+import { X, Save, Calendar } from 'lucide-react';
 
 interface WorkEntryModalProps {
   isOpen: boolean;
@@ -38,8 +39,8 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
       setTanggalSelesai(editingEntry.tanggalSelesai || '');
       setJumlahRevisi(editingEntry.jumlahRevisi ?? 0);
       setBidang(editingEntry.bidang);
-      setNamaPekerjaan(editingEntry.namaPekerjaan);
-      setTargetHasil(editingEntry.targetHasil);
+      setNamaPekerjaan(autoCapitalizeText(editingEntry.namaPekerjaan));
+      setTargetHasil(autoCapitalizeText(editingEntry.targetHasil));
       setStatus(editingEntry.status);
       setPersentase(editingEntry.persentase);
       setCatatan(editingEntry.catatan || '');
@@ -71,8 +72,8 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
         jumlahRevisi: Number(jumlahRevisi) || 0,
         tanggal: tanggalMasuk, // fallback for month filters
         bidang,
-        namaPekerjaan: namaPekerjaan.trim(),
-        targetHasil: targetHasil.trim(),
+        namaPekerjaan: autoCapitalizeText(namaPekerjaan.trim()),
+        targetHasil: autoCapitalizeText(targetHasil.trim()),
         status,
         persentase: Number(persentase),
         catatan: catatan.trim(),
@@ -204,9 +205,10 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
             <input
               type="text"
               required
+              autoCapitalize="sentences"
               placeholder="Contoh: Pembuatan Banner Publikasi Milad Parabek"
               value={namaPekerjaan}
-              onChange={(e) => setNamaPekerjaan(e.target.value)}
+              onChange={(e) => setNamaPekerjaan(autoCapitalizeText(e.target.value))}
               className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             />
           </div>
@@ -219,9 +221,10 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
             <textarea
               required
               rows={2}
+              autoCapitalize="sentences"
               placeholder="Contoh: Flyer digital disebar ke seluruh grup WhatsApp wali santri"
               value={targetHasil}
-              onChange={(e) => setTargetHasil(e.target.value)}
+              onChange={(e) => setTargetHasil(autoCapitalizeText(e.target.value))}
               className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             />
           </div>
@@ -276,9 +279,10 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
             </label>
             <input
               type="text"
+              autoCapitalize="sentences"
               placeholder="https://drive.google.com/... atau catatan kendala"
               value={catatan}
-              onChange={(e) => setCatatan(e.target.value)}
+              onChange={(e) => setCatatan(autoCapitalizeText(e.target.value))}
               className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             />
           </div>
