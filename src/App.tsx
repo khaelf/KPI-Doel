@@ -145,7 +145,7 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-24 md:pb-8">
+      <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-10 pt-4 sm:pt-6 pb-24 md:pb-8">
         {activeTab === 'dashboard' && (
           <DashboardView
             workEntries={workEntries}
@@ -213,7 +213,7 @@ export default function App() {
 
       {/* Footer (No print) */}
       <footer className="no-print bg-white border-t border-slate-200 py-4 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div className="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-10 text-center text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>
             © {new Date().getFullYear()} Pondok Pesantren Sumatera Thawalib Parabek · Bagian Humas & IT
           </span>

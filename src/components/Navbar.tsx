@@ -33,7 +33,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className="no-print sticky top-0 z-30 bg-[#1b4332] text-white shadow-md">
       {/* Top Banner & Brand Container */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+      <div className="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-10">
         <div className="flex flex-col md:flex-row md:items-center justify-between py-2 md:py-0 md:h-16 border-b border-emerald-800/60 gap-2">
           {/* Row 1: Brand & Mobile Quick Actions */}
           <div className="flex items-center justify-between w-full md:w-auto">
