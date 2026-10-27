@@ -11,12 +11,12 @@ export default defineConfig(() => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['/assets/aistudio/Logo_Humas_H-04_0242de0b.png'],
+        includeAssets: ['/assets/aistudio/Logo_Humas_H-04_d71e1614.png'],
         manifest: {
           id: '/',
-          name: 'KPI Monitoring Humas & IT - Pesantren Parabek',
-          short_name: 'KPI Parabek',
-          description: 'Aplikasi monitoring KPI dan catatan pekerjaan harian Bagian Humas dan IT Pondok Pesantren Sumatera Thawalib Parabek.',
+          name: 'KPI Irsyadul F. - Staff Humas & IT',
+          short_name: 'KPI Irsyadul F.',
+          description: 'Aplikasi monitoring KPI dan catatan pekerjaan harian Bagian Humas dan IT.',
           theme_color: '#1b4332',
           background_color: '#f8f9fa',
           display: 'standalone',
@@ -24,19 +24,19 @@ export default defineConfig(() => {
           scope: '/',
           icons: [
             {
-              src: '/assets/aistudio/Logo_Humas_H-04_0242de0b.png',
+              src: '/assets/aistudio/Logo_Humas_H-04_d71e1614.png',
               sizes: '192x192',
               type: 'image/png',
               purpose: 'any',
             },
             {
-              src: '/assets/aistudio/Logo_Humas_H-04_0242de0b.png',
+              src: '/assets/aistudio/Logo_Humas_H-04_d71e1614.png',
               sizes: '512x512',
               type: 'image/png',
               purpose: 'any',
             },
             {
-              src: '/assets/aistudio/Logo_Humas_H-04_0242de0b.png',
+              src: '/assets/aistudio/Logo_Humas_H-04_d71e1614.png',
               sizes: '512x512',
               type: 'image/png',
               purpose: 'maskable',

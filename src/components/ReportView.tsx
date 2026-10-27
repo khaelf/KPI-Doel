@@ -107,7 +107,7 @@ export const ReportView: React.FC<ReportViewProps> = ({
         <div className="border-b-2 border-slate-900 pb-4 text-center space-y-1">
           <div className="flex items-center justify-center gap-3 text-emerald-800 font-bold text-lg sm:text-xl">
             <img
-              src="/assets/aistudio/Logo_Humas_H-04_0242de0b.png"
+              src="/assets/aistudio/Logo_Humas_H-04_d71e1614.png"
               alt="Logo Humas Parabek"
               className="w-8 h-8 object-contain"
             />

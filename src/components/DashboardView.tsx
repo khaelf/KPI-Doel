@@ -79,25 +79,25 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   return (
     <div className="space-y-6 pb-20 md:pb-8">
       {/* Welcome Kicker Banner */}
-      <div className="bg-gradient-to-r from-[#1b4332] via-[#2d6a4f] to-emerald-800 text-white rounded-2xl p-6 shadow-sm border border-emerald-700/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-[#1b4332] via-[#2d6a4f] to-emerald-800 text-white rounded-2xl p-5 sm:p-6 shadow-sm border border-emerald-700/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs uppercase tracking-wider font-semibold text-emerald-300">
+            <span className="text-[10px] sm:text-xs uppercase tracking-wider font-semibold text-emerald-300">
               Ringkasan Kinerja Bulan Ini
             </span>
-            <span className="text-xs font-medium text-emerald-200/80">· {monthLabel}</span>
+            <span className="text-[10px] sm:text-xs font-medium text-emerald-200/80">· {monthLabel}</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
-            Pondok Pesantren Sumatera Thawalib Parabek
+            KPI Staff Humas & IT
           </h2>
-          <p className="text-sm text-emerald-100/90 mt-1 max-w-2xl">
+          <p className="text-xs sm:text-sm text-emerald-100/90 mt-1 max-w-2xl">
             Sistem Pemantauan KPI & Catatan Pekerjaan Bagian Humas dan IT secara berkala dan terukur.
           </p>
         </div>
         <div className="flex items-center gap-3 shrink-0">
           <button
             onClick={onOpenAddModal}
-            className="px-4 py-2.5 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-bold text-xs sm:text-sm rounded-xl transition-all shadow-md flex items-center gap-2"
+            className="w-full sm:w-auto px-4 py-2.5 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-bold text-xs sm:text-sm rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
           >
             <Plus className="w-4 h-4 text-slate-950 stroke-[3]" />
             <span>Catat Pekerjaan Baru</span>
@@ -105,83 +105,83 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* 4 Main Summary Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* 4 Main Summary Stat Cards (Optimized for Mobile HP View) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Total Pekerjaan */}
-        <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+        <div className="bg-white rounded-xl p-3.5 sm:p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between gap-1">
+            <span className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wide">
               Total Pekerjaan
             </span>
-            <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center text-slate-700">
-              <Briefcase className="w-5 h-5" />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-slate-100 flex items-center justify-center text-slate-700 shrink-0">
+              <Briefcase className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
-          <div className="mt-3">
-            <span className="text-2xl sm:text-3xl font-bold text-slate-900 font-mono tabular-nums">
+          <div className="mt-2 sm:mt-3">
+            <span className="text-xl sm:text-3xl font-bold text-slate-900 font-mono tabular-nums">
               {totalPekerjaan}
             </span>
-            <span className="text-xs text-slate-500 ml-2">tugas di {monthLabel}</span>
+            <span className="text-[10px] sm:text-xs text-slate-500 ml-1.5 block sm:inline">
+              tugas di {monthLabel}
+            </span>
           </div>
         </div>
 
         {/* Pekerjaan Selesai */}
-        <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wide">
+        <div className="bg-white rounded-xl p-3.5 sm:p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between gap-1">
+            <span className="text-[10px] sm:text-xs font-semibold text-emerald-700 uppercase tracking-wide">
               Pekerjaan Selesai
             </span>
-            <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
-              <CheckCircle2 className="w-5 h-5" />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+              <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
-          <div className="mt-3">
-            <span className="text-2xl sm:text-3xl font-bold text-emerald-700 font-mono tabular-nums">
+          <div className="mt-2 sm:mt-3">
+            <span className="text-xl sm:text-3xl font-bold text-emerald-700 font-mono tabular-nums">
               {pekerjaanSelesai}
             </span>
-            <span className="text-xs text-emerald-600 font-medium ml-2">
+            <span className="text-[10px] sm:text-xs text-emerald-600 font-semibold ml-1.5">
               ({totalPekerjaan > 0 ? Math.round((pekerjaanSelesai / totalPekerjaan) * 100) : 0}%)
             </span>
           </div>
         </div>
 
         {/* Pekerjaan Masih Berjalan */}
-        <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-amber-700 uppercase tracking-wide">
+        <div className="bg-white rounded-xl p-3.5 sm:p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between gap-1">
+            <span className="text-[10px] sm:text-xs font-semibold text-amber-700 uppercase tracking-wide">
               Masih Berjalan
             </span>
-            <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600">
-              <Clock className="w-5 h-5" />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
+              <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
-          <div className="mt-3">
-            <span className="text-2xl sm:text-3xl font-bold text-amber-700 font-mono tabular-nums">
+          <div className="mt-2 sm:mt-3">
+            <span className="text-xl sm:text-3xl font-bold text-amber-700 font-mono tabular-nums">
               {pekerjaanProses + pekerjaanBelum}
             </span>
-            <span className="text-xs text-slate-500 ml-2">
+            <span className="text-[10px] sm:text-xs text-slate-500 ml-1.5 block sm:inline">
               ({pekerjaanProses} proses, {pekerjaanBelum} belum)
             </span>
           </div>
         </div>
 
         {/* Nilai KPI Bulan Ini */}
-        <div className="bg-white rounded-xl p-5 border border-emerald-200 shadow-sm flex flex-col justify-between relative overflow-hidden">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-emerald-800 uppercase tracking-wide">
+        <div className="bg-white rounded-xl p-3.5 sm:p-5 border border-emerald-200 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between gap-1">
+            <span className="text-[10px] sm:text-xs font-semibold text-emerald-800 uppercase tracking-wide">
               Nilai KPI Bulan Ini
             </span>
-            <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-800">
-              <TrendingUp className="w-5 h-5" />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-800 shrink-0">
+              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
-          <div className="mt-3 flex items-baseline justify-between">
-            <div>
-              <span className="text-2xl sm:text-3xl font-bold text-slate-900 font-mono tabular-nums">
-                {overallKpiScore.toFixed(1)}%
-              </span>
-            </div>
-            <span className={`px-2.5 py-1 text-[11px] font-bold rounded-md ${kpiBadge.badgeClass}`}>
+          <div className="mt-2 sm:mt-3 flex flex-wrap items-center justify-between gap-1.5">
+            <span className="text-xl sm:text-3xl font-bold text-slate-900 font-mono tabular-nums">
+              {overallKpiScore.toFixed(1)}%
+            </span>
+            <span className={`px-2 py-0.5 text-[9px] sm:text-[11px] font-bold rounded-md ${kpiBadge.badgeClass}`}>
               {kpiBadge.label}
             </span>
           </div>
@@ -363,15 +363,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       )}
                     </td>
                     <td className="py-3 px-3 whitespace-nowrap">
-                      <select
-                        value={entry.status}
-                        onChange={(e) =>
-                          onQuickUpdateStatus(
-                            entry.id,
-                            e.target.value as 'Belum dikerjakan' | 'Proses' | 'Selesai'
-                          )
-                        }
-                        className={`text-[11px] font-semibold rounded-md px-2 py-1 border transition-colors cursor-pointer ${
+                      {/* Read-only status badge as requested in requirement 5 */}
+                      <span
+                        className={`inline-block text-[11px] font-semibold rounded-md px-2.5 py-1 border ${
                           entry.status === 'Selesai'
                             ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                             : entry.status === 'Proses'
@@ -379,10 +373,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                             : 'bg-slate-100 text-slate-600 border-slate-300'
                         }`}
                       >
-                        <option value="Belum dikerjakan">Belum dikerjakan</option>
-                        <option value="Proses">Proses</option>
-                        <option value="Selesai">Selesai</option>
-                      </select>
+                        {entry.status}
+                      </span>
                     </td>
                     <td className="py-3 px-3 text-right font-mono font-bold text-slate-900 whitespace-nowrap">
                       {entry.persentase}%

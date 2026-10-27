@@ -40,23 +40,15 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* White solid background box for logo per request #1 & image 1 */}
             <div className="w-10 h-10 rounded-xl bg-white p-1 flex items-center justify-center shrink-0 shadow-xs border border-emerald-300/40">
               <img
-                src="/assets/aistudio/Logo_Humas_H-04_0242de0b.png"
+                src="/assets/aistudio/Logo_Humas_H-04_d71e1614.png"
                 alt="Logo Humas Parabek"
                 className="w-full h-full object-contain"
               />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-base sm:text-lg font-bold tracking-tight text-white leading-tight">
-                  Parabek KPI System
-                </h1>
-                <span className="hidden sm:inline-block px-2 py-0.5 text-[10px] font-semibold bg-emerald-900/80 border border-emerald-600/50 rounded-md text-emerald-200">
-                  Humas & IT
-                </span>
-              </div>
-              <p className="text-xs text-emerald-200/80 font-medium">
-                Pondok Pesantren Sumatera Thawalib Parabek
-              </p>
+              <h1 className="text-base sm:text-lg font-bold tracking-tight text-white leading-tight">
+                KPI Irsyadul F.
+              </h1>
             </div>
           </div>
 
