@@ -14,6 +14,12 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'catatan' | 'kpi' | 'laporan'>('dashboard');
   const [selectedDepartment, setSelectedDepartment] = useState<'Semua' | Department>('Semua');
   const [selectedMonth, setSelectedMonth] = useState<string>('2026-10');
+  const [catatanStatusFilter, setCatatanStatusFilter] = useState<'Semua' | TaskStatus>('Semua');
+
+  const handleNavigateToCatatanWithStatus = (filter: 'Semua' | TaskStatus) => {
+    setCatatanStatusFilter(filter);
+    setActiveTab('catatan');
+  };
 
   // Data State
   const [workEntries, setWorkEntries] = useState<WorkEntry[]>([]);
@@ -147,6 +153,7 @@ export default function App() {
             selectedMonth={selectedMonth}
             selectedDepartment={selectedDepartment}
             onNavigateTab={(tab) => setActiveTab(tab)}
+            onNavigateToCatatanWithStatus={handleNavigateToCatatanWithStatus}
             onOpenAddModal={() => {
               setEditingWorkEntry(null);
               setIsWorkModalOpen(true);
@@ -160,6 +167,8 @@ export default function App() {
             workEntries={workEntries}
             selectedMonth={selectedMonth}
             selectedDepartment={selectedDepartment}
+            statusFilter={catatanStatusFilter}
+            setStatusFilter={setCatatanStatusFilter}
             onAddEntry={() => {
               setEditingWorkEntry(null);
               setIsWorkModalOpen(true);

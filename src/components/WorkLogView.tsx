@@ -15,6 +15,8 @@ interface WorkLogViewProps {
   workEntries: WorkEntry[];
   selectedMonth: string;
   selectedDepartment: 'Semua' | Department;
+  statusFilter?: 'Semua' | TaskStatus;
+  setStatusFilter?: (status: 'Semua' | TaskStatus) => void;
   onAddEntry: () => void;
   onEditEntry: (entry: WorkEntry) => void;
   onDeleteEntry: (id: string) => void;
@@ -38,13 +40,24 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
   workEntries,
   selectedMonth,
   selectedDepartment,
+  statusFilter,
+  setStatusFilter,
   onAddEntry,
   onEditEntry,
   onDeleteEntry,
   onStatusChange,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'Semua' | TaskStatus>('Semua');
+  const [localStatusFilter, setLocalStatusFilter] = useState<'Semua' | TaskStatus>('Semua');
+
+  const activeStatusFilter = statusFilter !== undefined ? statusFilter : localStatusFilter;
+
+  const handleStatusFilterChange = (st: 'Semua' | TaskStatus) => {
+    if (setStatusFilter) {
+      setStatusFilter(st);
+    }
+    setLocalStatusFilter(st);
+  };
   const [sortOrder, setSortOrder] = useState<'terbaru' | 'terlama'>('terbaru');
   const [showColumnDropdown, setShowColumnDropdown] = useState(false);
 
@@ -74,7 +87,7 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
     const entryMonth = (entry.tanggalMasuk || entry.tanggal || '').substring(0, 7);
     const isMonthMatch = !selectedMonth || entryMonth === selectedMonth;
     const isDeptMatch = selectedDepartment === 'Semua' || entry.bidang === selectedDepartment;
-    const isStatusMatch = statusFilter === 'Semua' || entry.status === statusFilter;
+    const isStatusMatch = activeStatusFilter === 'Semua' || entry.status === activeStatusFilter;
     const isSearchMatch =
       !searchTerm ||
       entry.namaPekerjaan.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -131,9 +144,9 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
             {(['Semua', 'Belum dikerjakan', 'Proses', 'Selesai'] as const).map((st) => (
               <button
                 key={st}
-                onClick={() => setStatusFilter(st)}
+                onClick={() => handleStatusFilterChange(st)}
                 className={`px-3 py-1.5 rounded-lg font-medium transition-all shrink-0 ${
-                  statusFilter === st
+                  activeStatusFilter === st
                     ? 'bg-slate-900 text-white font-semibold'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}

@@ -23,6 +23,7 @@ interface DashboardViewProps {
   selectedMonth: string;
   selectedDepartment: 'Semua' | Department;
   onNavigateTab: (tab: 'catatan' | 'kpi' | 'laporan') => void;
+  onNavigateToCatatanWithStatus?: (status: 'Semua' | 'Belum dikerjakan' | 'Proses' | 'Selesai') => void;
   onOpenAddModal: () => void;
   onQuickUpdateStatus: (id: string, newStatus: 'Belum dikerjakan' | 'Proses' | 'Selesai') => void;
 }
@@ -33,6 +34,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   selectedMonth,
   selectedDepartment,
   onNavigateTab,
+  onNavigateToCatatanWithStatus,
   onOpenAddModal,
   onQuickUpdateStatus,
 }) => {
@@ -102,15 +104,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* 4 Main Summary Stat Cards (Ultra-Minimalist View) */}
+      {/* 4 Main Summary Stat Cards (Clickable to Filter Catatan) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {/* Total Pekerjaan */}
-        <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-slate-200/60 flex flex-col justify-between">
+        <button
+          onClick={() => onNavigateToCatatanWithStatus?.('Semua')}
+          className="bg-white text-left rounded-xl p-3.5 sm:p-4 border border-slate-200/60 hover:border-emerald-500 hover:shadow-md transition-all active:scale-[0.99] flex flex-col justify-between cursor-pointer group"
+          title="Klik untuk melihat semua pekerjaan"
+        >
           <div className="flex items-center justify-between">
-            <span className="text-[11px] sm:text-xs font-medium text-slate-500">
+            <span className="text-[11px] sm:text-xs font-medium text-slate-500 group-hover:text-emerald-700 transition-colors">
               Total Pekerjaan
             </span>
-            <Briefcase className="w-4 h-4 text-slate-400" />
+            <Briefcase className="w-4 h-4 text-slate-400 group-hover:text-emerald-600 transition-colors" />
           </div>
           <div className="mt-2 flex items-baseline gap-1.5">
             <span className="text-xl sm:text-2xl font-bold text-slate-900 font-mono tabular-nums">
@@ -118,15 +124,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </span>
             <span className="text-[10px] sm:text-xs text-slate-400">tugas</span>
           </div>
-        </div>
+        </button>
 
         {/* Pekerjaan Selesai */}
-        <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-slate-200/60 flex flex-col justify-between">
+        <button
+          onClick={() => onNavigateToCatatanWithStatus?.('Selesai')}
+          className="bg-white text-left rounded-xl p-3.5 sm:p-4 border border-slate-200/60 hover:border-emerald-500 hover:shadow-md transition-all active:scale-[0.99] flex flex-col justify-between cursor-pointer group"
+          title="Klik untuk melihat pekerjaan selesai"
+        >
           <div className="flex items-center justify-between">
-            <span className="text-[11px] sm:text-xs font-medium text-slate-500">
+            <span className="text-[11px] sm:text-xs font-medium text-slate-500 group-hover:text-emerald-700 transition-colors">
               Selesai
             </span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
           </div>
           <div className="mt-2 flex items-baseline gap-1.5">
             <span className="text-xl sm:text-2xl font-bold text-emerald-700 font-mono tabular-nums">
@@ -136,15 +146,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               ({totalPekerjaan > 0 ? Math.round((pekerjaanSelesai / totalPekerjaan) * 100) : 0}%)
             </span>
           </div>
-        </div>
+        </button>
 
-        {/* Masih Berjalan / Proses */}
-        <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-slate-200/60 flex flex-col justify-between">
+        {/* Dalam Proses */}
+        <button
+          onClick={() => onNavigateToCatatanWithStatus?.('Proses')}
+          className="bg-white text-left rounded-xl p-3.5 sm:p-4 border border-slate-200/60 hover:border-amber-500 hover:shadow-md transition-all active:scale-[0.99] flex flex-col justify-between cursor-pointer group"
+          title="Klik untuk melihat pekerjaan dalam proses"
+        >
           <div className="flex items-center justify-between">
-            <span className="text-[11px] sm:text-xs font-medium text-slate-500">
+            <span className="text-[11px] sm:text-xs font-medium text-slate-500 group-hover:text-amber-700 transition-colors">
               Dalam Proses
             </span>
-            <Clock className="w-4 h-4 text-amber-600" />
+            <Clock className="w-4 h-4 text-amber-600 group-hover:scale-110 transition-transform" />
           </div>
           <div className="mt-2 flex items-baseline gap-1.5">
             <span className="text-xl sm:text-2xl font-bold text-amber-700 font-mono tabular-nums">
@@ -152,15 +166,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </span>
             <span className="text-[10px] sm:text-xs text-slate-400">tugas</span>
           </div>
-        </div>
+        </button>
 
-        {/* Belum Dimulai (Replaces Nilai KPI per request) */}
-        <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-slate-200/60 flex flex-col justify-between">
+        {/* Belum Dimulai */}
+        <button
+          onClick={() => onNavigateToCatatanWithStatus?.('Belum dikerjakan')}
+          className="bg-white text-left rounded-xl p-3.5 sm:p-4 border border-slate-200/60 hover:border-slate-400 hover:shadow-md transition-all active:scale-[0.99] flex flex-col justify-between cursor-pointer group"
+          title="Klik untuk melihat pekerjaan belum dimulai"
+        >
           <div className="flex items-center justify-between">
-            <span className="text-[11px] sm:text-xs font-medium text-slate-500">
+            <span className="text-[11px] sm:text-xs font-medium text-slate-500 group-hover:text-slate-800 transition-colors">
               Belum Dimulai
             </span>
-            <Clock className="w-4 h-4 text-slate-400" />
+            <Clock className="w-4 h-4 text-slate-400 group-hover:scale-110 transition-transform" />
           </div>
           <div className="mt-2 flex items-baseline gap-1.5">
             <span className="text-xl sm:text-2xl font-bold text-slate-700 font-mono tabular-nums">
@@ -168,7 +186,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </span>
             <span className="text-[10px] sm:text-xs text-slate-400">tugas</span>
           </div>
-        </div>
+        </button>
       </div>
 
       {/* Department Breakdown Section */}
