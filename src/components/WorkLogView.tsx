@@ -8,9 +8,7 @@ import {
   Filter,
   ExternalLink,
   Calendar,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
+  RotateCcw,
 } from 'lucide-react';
 
 interface WorkLogViewProps {
@@ -37,7 +35,7 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
 
   // Filtered list
   const filteredList = workEntries.filter((entry) => {
-    const entryMonth = entry.tanggal.substring(0, 7);
+    const entryMonth = (entry.tanggalMasuk || entry.tanggal || '').substring(0, 7);
     const isMonthMatch = !selectedMonth || entryMonth === selectedMonth;
     const isDeptMatch = selectedDepartment === 'Semua' || entry.bidang === selectedDepartment;
     const isStatusMatch = statusFilter === 'Semua' || entry.status === statusFilter;
@@ -57,7 +55,7 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
         <div>
           <h2 className="text-xl font-bold text-slate-900">Catatan Pekerjaan Harian</h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            Kelola dan evaluasi tugas harian bagian Humas dan IT Parabek.
+            Kelola jadwal, tanggal masuk/mulai/selesai, serta revisi pekerjaan Humas dan IT Parabek.
           </p>
         </div>
 
@@ -124,23 +122,47 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
               <table className="w-full text-left text-xs text-slate-600">
                 <thead className="bg-slate-50 text-slate-700 uppercase font-semibold text-[11px] border-b border-slate-200">
                   <tr>
-                    <th className="py-3 px-4">Tanggal</th>
-                    <th className="py-3 px-4">Bidang</th>
+                    <th className="py-3 px-3">Masuk</th>
+                    <th className="py-3 px-3">Mulai</th>
+                    <th className="py-3 px-3">Selesai</th>
+                    <th className="py-3 px-2 text-center">Revisi</th>
+                    <th className="py-3 px-3">Bidang</th>
                     <th className="py-3 px-4">Nama Pekerjaan</th>
-                    <th className="py-3 px-4">Target / Hasil Diharapkan</th>
-                    <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4 text-center">Pencapaian</th>
-                    <th className="py-3 px-4">Catatan / Dok</th>
-                    <th className="py-3 px-4 text-right">Aksi</th>
+                    <th className="py-3 px-4">Target / Hasil</th>
+                    <th className="py-3 px-3">Status</th>
+                    <th className="py-3 px-3 text-center">Capaian</th>
+                    <th className="py-3 px-3">Catatan</th>
+                    <th className="py-3 px-3 text-right">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {filteredList.map((entry) => (
                     <tr key={entry.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-3.5 px-4 font-mono text-slate-500 whitespace-nowrap">
-                        {entry.tanggal}
+                      <td className="py-3 px-3 font-mono text-slate-600 whitespace-nowrap">
+                        {entry.tanggalMasuk || entry.tanggal}
                       </td>
-                      <td className="py-3.5 px-4 whitespace-nowrap">
+                      <td className="py-3 px-3 font-mono text-slate-600 whitespace-nowrap">
+                        {entry.tanggalMulai || '-'}
+                      </td>
+                      <td className="py-3 px-3 font-mono whitespace-nowrap">
+                        {entry.tanggalSelesai ? (
+                          <span className="text-emerald-700 font-semibold">{entry.tanggalSelesai}</span>
+                        ) : (
+                          <span className="text-slate-400 italic">Proses</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-2 text-center whitespace-nowrap">
+                        <span
+                          className={`inline-block px-2 py-0.5 font-mono text-[11px] font-bold rounded-full ${
+                            (entry.jumlahRevisi || 0) > 0
+                              ? 'bg-amber-100 text-amber-800'
+                              : 'bg-slate-100 text-slate-500'
+                          }`}
+                        >
+                          {entry.jumlahRevisi || 0}x
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 whitespace-nowrap">
                         <span
                           className={`inline-block px-2.5 py-0.5 text-[10px] font-bold rounded ${
                             entry.bidang === 'Humas'
@@ -151,11 +173,11 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
                           {entry.bidang}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 font-semibold text-slate-900 max-w-xs">
+                      <td className="py-3 px-4 font-semibold text-slate-900 max-w-xs">
                         {entry.namaPekerjaan}
                       </td>
-                      <td className="py-3.5 px-4 text-slate-600 max-w-xs">{entry.targetHasil}</td>
-                      <td className="py-3.5 px-4 whitespace-nowrap">
+                      <td className="py-3 px-4 text-slate-600 max-w-xs">{entry.targetHasil}</td>
+                      <td className="py-3 px-3 whitespace-nowrap">
                         <select
                           value={entry.status}
                           onChange={(e) =>
@@ -174,12 +196,12 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
                           <option value="Selesai">Selesai</option>
                         </select>
                       </td>
-                      <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                      <td className="py-3 px-3 text-center whitespace-nowrap">
                         <span className="font-mono font-bold text-slate-900 bg-slate-100 px-2 py-1 rounded">
                           {entry.persentase}%
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 max-w-xs truncate">
+                      <td className="py-3 px-3 max-w-xs truncate">
                         {entry.catatan ? (
                           entry.catatan.startsWith('http') ? (
                             <a
@@ -198,7 +220,7 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
                           <span className="text-slate-300">-</span>
                         )}
                       </td>
-                      <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                      <td className="py-3 px-3 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => onEditEntry(entry)}
@@ -236,7 +258,9 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
                     >
                       {entry.bidang}
                     </span>
-                    <span className="font-mono text-xs text-slate-400">{entry.tanggal}</span>
+                    <span className="font-mono text-[11px] text-slate-500">
+                      Masuk: {entry.tanggalMasuk || entry.tanggal}
+                    </span>
                   </div>
 
                   <div>
@@ -244,6 +268,28 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
                     <p className="text-xs text-slate-600 mt-1">
                       <strong className="text-slate-700">Target:</strong> {entry.targetHasil}
                     </p>
+                  </div>
+
+                  {/* Dates & Revisions Detail Badge Bar */}
+                  <div className="grid grid-cols-3 gap-2 text-[10px] bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                    <div>
+                      <span className="text-slate-400 block">Tgl Mulai:</span>
+                      <span className="font-mono font-medium text-slate-700">
+                        {entry.tanggalMulai || '-'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block">Tgl Selesai:</span>
+                      <span className="font-mono font-medium text-emerald-700">
+                        {entry.tanggalSelesai || '-'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block">Revisi:</span>
+                      <span className="font-mono font-bold text-amber-700">
+                        {entry.jumlahRevisi || 0} kali
+                      </span>
+                    </div>
                   </div>
 
                   {entry.catatan && (

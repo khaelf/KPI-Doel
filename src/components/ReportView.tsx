@@ -8,15 +8,10 @@ import {
 } from '../utils/kpiCalculations';
 import { exportToPDF, exportToExcel } from '../utils/exportUtils';
 import {
-  FileText,
   Download,
   Printer,
   FileSpreadsheet,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
   Building2,
-  Award,
 } from 'lucide-react';
 
 interface ReportViewProps {
@@ -40,7 +35,8 @@ export const ReportView: React.FC<ReportViewProps> = ({
 
   // Month Work Entries
   const monthWorkEntries = workEntries.filter((e) => {
-    const isMonthMatch = e.tanggal.substring(0, 7) === selectedMonth;
+    const entryDate = e.tanggalMasuk || e.tanggal || '';
+    const isMonthMatch = entryDate.substring(0, 7) === selectedMonth;
     const isDeptMatch = selectedDepartment === 'Semua' || e.bidang === selectedDepartment;
     return isMonthMatch && isDeptMatch;
   });
@@ -242,7 +238,10 @@ export const ReportView: React.FC<ReportViewProps> = ({
               <table className="w-full text-left text-xs border border-slate-200">
                 <thead className="bg-emerald-50 text-emerald-950 font-bold uppercase text-[10px]">
                   <tr>
-                    <th className="py-2 px-3 border-b border-r border-slate-200">Tanggal</th>
+                    <th className="py-2 px-3 border-b border-r border-slate-200">Tgl Masuk</th>
+                    <th className="py-2 px-3 border-b border-r border-slate-200">Tgl Mulai</th>
+                    <th className="py-2 px-3 border-b border-r border-slate-200">Tgl Selesai</th>
+                    <th className="py-2 px-2 border-b border-r border-slate-200 text-center">Revisi</th>
                     <th className="py-2 px-3 border-b border-r border-slate-200">Bidang</th>
                     <th className="py-2 px-3 border-b border-r border-slate-200">Nama Pekerjaan</th>
                     <th className="py-2 px-3 border-b border-r border-slate-200">Hasil Diharapkan</th>
@@ -253,7 +252,16 @@ export const ReportView: React.FC<ReportViewProps> = ({
                   {completedTasks.map((task) => (
                     <tr key={task.id}>
                       <td className="py-2 px-3 border-r border-slate-200 font-mono text-slate-500 whitespace-nowrap">
-                        {task.tanggal}
+                        {task.tanggalMasuk || task.tanggal}
+                      </td>
+                      <td className="py-2 px-3 border-r border-slate-200 font-mono text-slate-500 whitespace-nowrap">
+                        {task.tanggalMulai || '-'}
+                      </td>
+                      <td className="py-2 px-3 border-r border-slate-200 font-mono text-emerald-700 font-semibold whitespace-nowrap">
+                        {task.tanggalSelesai || '-'}
+                      </td>
+                      <td className="py-2 px-2 border-r border-slate-200 text-center font-mono font-bold text-amber-700">
+                        {task.jumlahRevisi || 0}x
                       </td>
                       <td className="py-2 px-3 border-r border-slate-200 font-semibold text-slate-700 whitespace-nowrap">
                         {task.bidang}
@@ -290,7 +298,9 @@ export const ReportView: React.FC<ReportViewProps> = ({
               <table className="w-full text-left text-xs border border-slate-200">
                 <thead className="bg-amber-50 text-amber-950 font-bold uppercase text-[10px]">
                   <tr>
-                    <th className="py-2 px-3 border-b border-r border-slate-200">Tanggal</th>
+                    <th className="py-2 px-3 border-b border-r border-slate-200">Tgl Masuk</th>
+                    <th className="py-2 px-3 border-b border-r border-slate-200">Tgl Mulai</th>
+                    <th className="py-2 px-2 border-b border-r border-slate-200 text-center">Revisi</th>
                     <th className="py-2 px-3 border-b border-r border-slate-200">Bidang</th>
                     <th className="py-2 px-3 border-b border-r border-slate-200">Nama Pekerjaan</th>
                     <th className="py-2 px-3 border-b border-r border-slate-200">Status</th>
@@ -302,7 +312,13 @@ export const ReportView: React.FC<ReportViewProps> = ({
                   {uncompletedTasks.map((task) => (
                     <tr key={task.id}>
                       <td className="py-2 px-3 border-r border-slate-200 font-mono text-slate-500 whitespace-nowrap">
-                        {task.tanggal}
+                        {task.tanggalMasuk || task.tanggal}
+                      </td>
+                      <td className="py-2 px-3 border-r border-slate-200 font-mono text-slate-500 whitespace-nowrap">
+                        {task.tanggalMulai || '-'}
+                      </td>
+                      <td className="py-2 px-2 border-r border-slate-200 text-center font-mono font-bold text-amber-700">
+                        {task.jumlahRevisi || 0}x
                       </td>
                       <td className="py-2 px-3 border-r border-slate-200 font-semibold text-slate-700 whitespace-nowrap">
                         {task.bidang}

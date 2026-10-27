@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { WorkEntry, Department, TaskStatus } from '../types/kpi';
-import { X, Save, Calendar, CheckCircle, Link } from 'lucide-react';
+import { X, Save, Calendar, RefreshCw } from 'lucide-react';
 
 interface WorkEntryModalProps {
   isOpen: boolean;
@@ -19,7 +19,10 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
   defaultDepartment = 'Humas',
   defaultMonth,
 }) => {
-  const [tanggal, setTanggal] = useState('');
+  const [tanggalMasuk, setTanggalMasuk] = useState('');
+  const [tanggalMulai, setTanggalMulai] = useState('');
+  const [tanggalSelesai, setTanggalSelesai] = useState('');
+  const [jumlahRevisi, setJumlahRevisi] = useState<number>(0);
   const [bidang, setBidang] = useState<Department>('Humas');
   const [namaPekerjaan, setNamaPekerjaan] = useState('');
   const [targetHasil, setTargetHasil] = useState('');
@@ -28,8 +31,12 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
   const [catatan, setCatatan] = useState('');
 
   useEffect(() => {
+    const today = new Date().toISOString().substring(0, 10);
     if (editingEntry) {
-      setTanggal(editingEntry.tanggal);
+      setTanggalMasuk(editingEntry.tanggalMasuk || editingEntry.tanggal || today);
+      setTanggalMulai(editingEntry.tanggalMulai || editingEntry.tanggal || today);
+      setTanggalSelesai(editingEntry.tanggalSelesai || '');
+      setJumlahRevisi(editingEntry.jumlahRevisi ?? 0);
       setBidang(editingEntry.bidang);
       setNamaPekerjaan(editingEntry.namaPekerjaan);
       setTargetHasil(editingEntry.targetHasil);
@@ -37,8 +44,10 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
       setPersentase(editingEntry.persentase);
       setCatatan(editingEntry.catatan || '');
     } else {
-      const today = new Date().toISOString().substring(0, 10);
-      setTanggal(today);
+      setTanggalMasuk(today);
+      setTanggalMulai(today);
+      setTanggalSelesai('');
+      setJumlahRevisi(0);
       setBidang(defaultDepartment);
       setNamaPekerjaan('');
       setTargetHasil('');
@@ -56,7 +65,11 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
 
     onSave(
       {
-        tanggal,
+        tanggalMasuk,
+        tanggalMulai,
+        tanggalSelesai: tanggalSelesai.trim() || undefined,
+        jumlahRevisi: Number(jumlahRevisi) || 0,
+        tanggal: tanggalMasuk, // fallback for month filters
         bidang,
         namaPekerjaan: namaPekerjaan.trim(),
         targetHasil: targetHasil.trim(),
@@ -72,10 +85,13 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
 
   const handleStatusChange = (newStatus: TaskStatus) => {
     setStatus(newStatus);
+    const today = new Date().toISOString().substring(0, 10);
     if (newStatus === 'Selesai') {
       setPersentase(100);
+      if (!tanggalSelesai) setTanggalSelesai(today);
     } else if (newStatus === 'Belum dikerjakan') {
       setPersentase(0);
+      setTanggalSelesai('');
     } else if (persentase === 100 || persentase === 0) {
       setPersentase(50);
     }
@@ -98,35 +114,85 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
         </div>
 
         {/* Modal Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs text-slate-700">
-          <div className="grid grid-cols-2 gap-4">
-            {/* Tanggal */}
-            <div>
-              <label className="block font-semibold text-slate-900 mb-1">
-                Tanggal Pekerjaan <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="date"
-                required
-                value={tanggal}
-                onChange={(e) => setTanggal(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-              />
-            </div>
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs text-slate-700 max-h-[85vh] overflow-y-auto">
+          {/* Bidang */}
+          <div>
+            <label className="block font-semibold text-slate-900 mb-1">
+              Bidang / Dept <span className="text-rose-500">*</span>
+            </label>
+            <select
+              value={bidang}
+              onChange={(e) => setBidang(e.target.value as Department)}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+            >
+              <option value="Humas">Humas (Hubungan Masyarakat)</option>
+              <option value="IT">IT (Teknologi Informasi)</option>
+            </select>
+          </div>
 
-            {/* Bidang */}
-            <div>
-              <label className="block font-semibold text-slate-900 mb-1">
-                Bidang / Dept <span className="text-rose-500">*</span>
-              </label>
-              <select
-                value={bidang}
-                onChange={(e) => setBidang(e.target.value as Department)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-              >
-                <option value="Humas">Humas (Hubungan Masyarakat)</option>
-                <option value="IT">IT (Teknologi Informasi)</option>
-              </select>
+          {/* Group 4 Dates & Revision Fields */}
+          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+            <h4 className="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+              <Calendar className="w-4 h-4 text-emerald-700" />
+              <span>Jadwal & Riwayat Revisi</span>
+            </h4>
+
+            <div className="grid grid-cols-2 gap-3">
+              {/* Tanggal Masuk */}
+              <div>
+                <label className="block font-semibold text-slate-900 mb-1">
+                  Tanggal Masuk <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={tanggalMasuk}
+                  onChange={(e) => setTanggalMasuk(e.target.value)}
+                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              {/* Tanggal Mulai */}
+              <div>
+                <label className="block font-semibold text-slate-900 mb-1">
+                  Tanggal Mulai <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={tanggalMulai}
+                  onChange={(e) => setTanggalMulai(e.target.value)}
+                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              {/* Tanggal Selesai */}
+              <div>
+                <label className="block font-semibold text-slate-900 mb-1">
+                  Tanggal Selesai <span className="text-slate-400 font-normal">(Opsional)</span>
+                </label>
+                <input
+                  type="date"
+                  value={tanggalSelesai}
+                  onChange={(e) => setTanggalSelesai(e.target.value)}
+                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              {/* Jumlah Revisi */}
+              <div>
+                <label className="block font-semibold text-slate-900 mb-1">
+                  Jumlah Revisi
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  required
+                  value={jumlahRevisi}
+                  onChange={(e) => setJumlahRevisi(Math.max(0, parseInt(e.target.value) || 0))}
+                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-slate-900 font-bold font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                />
+              </div>
             </div>
           </div>
 

@@ -4,7 +4,11 @@ export type TaskStatus = 'Belum dikerjakan' | 'Proses' | 'Selesai';
 
 export interface WorkEntry {
   id: string;
-  tanggal: string; // YYYY-MM-DD
+  tanggalMasuk: string; // YYYY-MM-DD (Tanggal Permintaan/Masuk)
+  tanggalMulai: string; // YYYY-MM-DD (Tanggal Pengerjaan Dimulai)
+  tanggalSelesai?: string; // YYYY-MM-DD (Tanggal Selesai, opsional jika belum selesai)
+  jumlahRevisi: number; // Jumlah revisi (0, 1, 2, dst)
+  tanggal?: string; // Fallback helper YYYY-MM-DD
   bidang: Department;
   namaPekerjaan: string;
   targetHasil: string;

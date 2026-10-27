@@ -29,7 +29,8 @@ export function calculateDepartmentSummary(
   );
 
   const deptEntries = workEntries.filter((entry) => {
-    const entryMonth = entry.tanggal.substring(0, 7);
+    const entryDate = entry.tanggalMasuk || entry.tanggal || '';
+    const entryMonth = entryDate.substring(0, 7);
     return entry.bidang === bidang && entryMonth === periodeBulan;
   });
 

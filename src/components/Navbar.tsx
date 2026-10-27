@@ -56,7 +56,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* Quick Actions & Selectors */}
+          {/* Quick Selectors & Controls (Removed "+ Tambah Pekerjaan" button per user request) */}
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Department Filter Toggle */}
             <div className="bg-emerald-900/80 p-1 rounded-lg border border-emerald-700/50 flex items-center gap-1 text-xs">
@@ -84,16 +84,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className="bg-emerald-900/80 border border-emerald-700/60 text-emerald-100 text-xs rounded-lg px-2.5 py-1.5 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-400"
               />
             </div>
-
-            {/* Quick Add Button */}
-            <button
-              onClick={onOpenAddModal}
-              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-xs rounded-lg transition-colors shadow-sm"
-              title="Tambah Catatan Kerja Baru"
-            >
-              <PlusCircle className="w-4 h-4 text-slate-950" />
-              <span>Tambah Pekerjaan</span>
-            </button>
 
             {/* Reset Data Button */}
             <button
@@ -158,11 +148,11 @@ export const Navbar: React.FC<NavbarProps> = ({
         </nav>
       </div>
 
-      {/* Mobile Sticky Bottom Navigation Bar (for smartphone ease of access) */}
+      {/* Mobile Bottom Bar for smartphone view */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#1b4332] border-t border-emerald-800 flex items-center justify-around py-2 px-2 shadow-lg no-print">
         <button
           onClick={() => setActiveTab('dashboard')}
-          className={`flex flex-col items-center gap-1 px-2 py-1 text-[11px] ${
+          className={`flex flex-col items-center gap-1 px-3 py-1 text-[11px] ${
             activeTab === 'dashboard' ? 'text-emerald-300 font-bold' : 'text-emerald-200/70'
           }`}
         >
@@ -172,7 +162,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         <button
           onClick={() => setActiveTab('catatan')}
-          className={`flex flex-col items-center gap-1 px-2 py-1 text-[11px] ${
+          className={`flex flex-col items-center gap-1 px-3 py-1 text-[11px] ${
             activeTab === 'catatan' ? 'text-emerald-300 font-bold' : 'text-emerald-200/70'
           }`}
         >
@@ -181,15 +171,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         </button>
 
         <button
-          onClick={onOpenAddModal}
-          className="flex flex-col items-center justify-center w-10 h-10 -mt-5 bg-emerald-500 rounded-full text-slate-950 shadow-lg border-2 border-[#1b4332]"
-        >
-          <PlusCircle className="w-6 h-6" />
-        </button>
-
-        <button
           onClick={() => setActiveTab('kpi')}
-          className={`flex flex-col items-center gap-1 px-2 py-1 text-[11px] ${
+          className={`flex flex-col items-center gap-1 px-3 py-1 text-[11px] ${
             activeTab === 'kpi' ? 'text-emerald-300 font-bold' : 'text-emerald-200/70'
           }`}
         >
@@ -199,7 +182,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         <button
           onClick={() => setActiveTab('laporan')}
-          className={`flex flex-col items-center gap-1 px-2 py-1 text-[11px] ${
+          className={`flex flex-col items-center gap-1 px-3 py-1 text-[11px] ${
             activeTab === 'laporan' ? 'text-emerald-300 font-bold' : 'text-emerald-200/70'
           }`}
         >

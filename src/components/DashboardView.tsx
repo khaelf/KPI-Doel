@@ -13,7 +13,6 @@ import {
   Plus,
   ArrowRight,
   ExternalLink,
-  ShieldCheck,
   Megaphone,
   Monitor,
 } from 'lucide-react';
@@ -39,9 +38,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 }) => {
   const monthLabel = formatMonthLabel(selectedMonth);
 
-  // Filter entries for current selected month
+  // Filter entries for current selected month based on tanggalMasuk
   const monthWorkEntries = workEntries.filter((e) => {
-    const entryMonth = e.tanggal.substring(0, 7);
+    const entryDate = e.tanggalMasuk || e.tanggal || '';
+    const entryMonth = entryDate.substring(0, 7);
     const isDeptMatch = selectedDepartment === 'Semua' || e.bidang === selectedDepartment;
     return entryMonth === selectedMonth && isDeptMatch;
   });
@@ -62,15 +62,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   } else if (selectedDepartment === 'IT') {
     overallKpiScore = itSummary.nilaiKpi;
   } else {
-    // Average of both departments if total weight is 100%
     overallKpiScore = (humasSummary.nilaiKpi + itSummary.nilaiKpi) / 2;
   }
 
   const kpiBadge = getKpiStatusBadge(overallKpiScore);
 
-  // Recent work entries (sorted by date descending)
+  // Recent work entries (sorted by tanggalMasuk descending)
   const recentEntries = [...monthWorkEntries]
-    .sort((a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime())
+    .sort((a, b) => {
+      const dateA = new Date(a.tanggalMasuk || a.tanggal || '').getTime();
+      const dateB = new Date(b.tanggalMasuk || b.tanggal || '').getTime();
+      return dateB - dateA;
+    })
     .slice(0, 6);
 
   return (
@@ -315,21 +318,36 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <table className="w-full text-left text-xs text-slate-600">
               <thead className="bg-slate-50 text-slate-700 uppercase font-semibold text-[11px] border-b border-slate-200">
                 <tr>
-                  <th className="py-3 px-4">Tanggal</th>
-                  <th className="py-3 px-4">Bidang</th>
+                  <th className="py-3 px-3">Tgl Masuk</th>
+                  <th className="py-3 px-3">Tgl Mulai</th>
+                  <th className="py-3 px-3">Tgl Selesai</th>
+                  <th className="py-3 px-2 text-center">Revisi</th>
+                  <th className="py-3 px-3">Bidang</th>
                   <th className="py-3 px-4">Nama Pekerjaan</th>
-                  <th className="py-3 px-4">Target / Hasil</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4 text-right">Capaian</th>
+                  <th className="py-3 px-3">Status</th>
+                  <th className="py-3 px-3 text-right">Capaian</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {recentEntries.map((entry) => (
                   <tr key={entry.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3 px-4 font-mono text-slate-500 whitespace-nowrap">
-                      {entry.tanggal}
+                    <td className="py-3 px-3 font-mono text-slate-500 whitespace-nowrap">
+                      {entry.tanggalMasuk || entry.tanggal}
                     </td>
-                    <td className="py-3 px-4 whitespace-nowrap">
+                    <td className="py-3 px-3 font-mono text-slate-500 whitespace-nowrap">
+                      {entry.tanggalMulai || '-'}
+                    </td>
+                    <td className="py-3 px-3 font-mono whitespace-nowrap">
+                      {entry.tanggalSelesai ? (
+                        <span className="text-emerald-700 font-semibold">{entry.tanggalSelesai}</span>
+                      ) : (
+                        <span className="text-slate-400 italic">Proses</span>
+                      )}
+                    </td>
+                    <td className="py-3 px-2 text-center whitespace-nowrap font-mono font-bold text-amber-700">
+                      {entry.jumlahRevisi || 0}x
+                    </td>
+                    <td className="py-3 px-3 whitespace-nowrap">
                       <span
                         className={`inline-block px-2 py-0.5 text-[10px] font-bold rounded ${
                           entry.bidang === 'Humas'
@@ -360,10 +378,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         </div>
                       )}
                     </td>
-                    <td className="py-3 px-4 text-slate-600 max-w-xs truncate">
-                      {entry.targetHasil}
-                    </td>
-                    <td className="py-3 px-4 whitespace-nowrap">
+                    <td className="py-3 px-3 whitespace-nowrap">
                       <select
                         value={entry.status}
                         onChange={(e) =>
@@ -385,7 +400,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         <option value="Selesai">Selesai</option>
                       </select>
                     </td>
-                    <td className="py-3 px-4 text-right font-mono font-bold text-slate-900 whitespace-nowrap">
+                    <td className="py-3 px-3 text-right font-mono font-bold text-slate-900 whitespace-nowrap">
                       {entry.persentase}%
                     </td>
                   </tr>

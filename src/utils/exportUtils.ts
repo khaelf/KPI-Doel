@@ -14,7 +14,8 @@ export function exportToExcel(
 
   // Filter entries & indicators
   const filteredEntries = workEntries.filter((e) => {
-    const isMonthMatch = e.tanggal.substring(0, 7) === periodeBulan;
+    const entryDate = e.tanggalMasuk || e.tanggal || '';
+    const isMonthMatch = entryDate.substring(0, 7) === periodeBulan;
     const isDeptMatch = selectedDepartment === 'Semua' || e.bidang === selectedDepartment;
     return isMonthMatch && isDeptMatch;
   });
@@ -49,7 +50,10 @@ export function exportToExcel(
   // Sheet 2: Work Logs
   const workRows = filteredEntries.map((entry, idx) => ({
     No: idx + 1,
-    Tanggal: entry.tanggal,
+    'Tanggal Masuk': entry.tanggalMasuk || entry.tanggal || '-',
+    'Tanggal Mulai': entry.tanggalMulai || '-',
+    'Tanggal Selesai': entry.tanggalSelesai || 'Proses',
+    'Jumlah Revisi': entry.jumlahRevisi || 0,
     Bidang: entry.bidang,
     'Nama Pekerjaan': entry.namaPekerjaan,
     'Target / Hasil Diharapkan': entry.targetHasil,
@@ -196,7 +200,8 @@ export function exportToPDF(
 
   // 4. Detailed Work Entries Section
   const filteredEntries = workEntries.filter((e) => {
-    const isMonthMatch = e.tanggal.substring(0, 7) === periodeBulan;
+    const entryDate = e.tanggalMasuk || e.tanggal || '';
+    const isMonthMatch = entryDate.substring(0, 7) === periodeBulan;
     const isDeptMatch = selectedDepartment === 'Semua' || e.bidang === selectedDepartment;
     return isMonthMatch && isDeptMatch;
   });
@@ -216,17 +221,19 @@ export function exportToPDF(
 
     const workTableBody = filteredEntries.map((e, idx) => [
       (idx + 1).toString(),
-      e.tanggal,
+      e.tanggalMasuk || e.tanggal || '-',
+      e.tanggalMulai || '-',
+      e.tanggalSelesai || 'Proses',
+      `${e.jumlahRevisi || 0}x`,
       e.bidang,
       e.namaPekerjaan,
-      e.targetHasil,
       e.status,
       `${e.persentase}%`,
     ]);
 
     autoTable(doc, {
       startY: currentY,
-      head: [['No', 'Tanggal', 'Bidang', 'Nama Pekerjaan', 'Target / Hasil', 'Status', 'Capaian']],
+      head: [['No', 'Tgl Masuk', 'Tgl Mulai', 'Tgl Selesai', 'Revisi', 'Bidang', 'Nama Pekerjaan', 'Status', 'Capaian']],
       body: workTableBody,
       theme: 'grid',
       headStyles: {
@@ -241,12 +248,14 @@ export function exportToPDF(
       },
       columnStyles: {
         0: { cellWidth: 8, halign: 'center' },
-        1: { cellWidth: 20 },
-        2: { cellWidth: 16, halign: 'center' },
-        3: { cellWidth: 55 },
-        4: { cellWidth: 50 },
-        5: { cellWidth: 22, halign: 'center' },
-        6: { cellWidth: 15, halign: 'right' },
+        1: { cellWidth: 19 },
+        2: { cellWidth: 19 },
+        3: { cellWidth: 19 },
+        4: { cellWidth: 14, halign: 'center' },
+        5: { cellWidth: 15, halign: 'center' },
+        6: { cellWidth: 50 },
+        7: { cellWidth: 22, halign: 'center' },
+        8: { cellWidth: 16, halign: 'right' },
       },
     });
 
