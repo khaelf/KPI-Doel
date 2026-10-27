@@ -9,8 +9,6 @@ import {
   CheckCircle2,
   Clock,
   Briefcase,
-  TrendingUp,
-  Plus,
   ArrowRight,
   ExternalLink,
   Megaphone,
@@ -24,7 +22,7 @@ interface DashboardViewProps {
   selectedDepartment: 'Semua' | Department;
   onNavigateTab: (tab: 'catatan' | 'kpi' | 'laporan') => void;
   onNavigateToCatatanWithStatus?: (status: 'Semua' | 'Belum dikerjakan' | 'Proses' | 'Selesai') => void;
-  onOpenAddModal: () => void;
+  onOpenAddModal?: () => void;
   onQuickUpdateStatus: (id: string, newStatus: 'Belum dikerjakan' | 'Proses' | 'Selesai') => void;
 }
 
@@ -81,27 +79,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   return (
     <div className="space-y-5 sm:space-y-6 pb-6 md:pb-8">
       {/* Welcome Kicker Banner */}
-      <div className="bg-gradient-to-r from-[#1b4332] via-[#2d6a4f] to-emerald-800 text-white rounded-2xl p-5 sm:p-6 shadow-sm border border-emerald-700/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] sm:text-xs uppercase tracking-wider font-semibold text-emerald-300">
-              Ringkasan Kinerja Bulan Ini
-            </span>
-            <span className="text-[10px] sm:text-xs font-medium text-emerald-200/80">· {monthLabel}</span>
-          </div>
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
-            Irsyadul Fuadi
-          </h2>
+      <div className="bg-gradient-to-r from-[#1b4332] via-[#2d6a4f] to-emerald-800 text-white rounded-2xl p-5 sm:p-6 shadow-sm border border-emerald-700/40">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-[10px] sm:text-xs uppercase tracking-wider font-semibold text-emerald-300">
+            Ringkasan Kinerja Bulan Ini
+          </span>
+          <span className="text-[10px] sm:text-xs font-medium text-emerald-200/80">· {monthLabel}</span>
         </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <button
-            onClick={onOpenAddModal}
-            className="w-full sm:w-auto px-4 py-2.5 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-bold text-xs sm:text-sm rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
-          >
-            <Plus className="w-4 h-4 text-slate-950 stroke-[3]" />
-            <span>Catat Pekerjaan Baru</span>
-          </button>
-        </div>
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
+          Irsyadul Fuadi
+        </h2>
       </div>
 
       {/* 4 Main Summary Stat Cards (Clickable to Filter Catatan) */}
@@ -312,7 +299,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         {recentEntries.length === 0 ? (
           <div className="p-8 text-center text-slate-500 text-xs">
-            Belum ada catatan pekerjaan untuk bulan {monthLabel}. Klik &quot;Catat Pekerjaan Baru&quot; untuk menambahkan.
+            Belum ada catatan pekerjaan untuk bulan {monthLabel}. Catatan dapat ditambahkan melalui menu Catatan Kerja.
           </div>
         ) : (
           <div className="overflow-x-auto">
