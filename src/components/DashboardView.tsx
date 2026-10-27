@@ -77,7 +77,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     .slice(0, 6);
 
   return (
-    <div className="space-y-6 pb-20 md:pb-8">
+    <div className="space-y-5 sm:space-y-6 pb-6 md:pb-8">
       {/* Welcome Kicker Banner */}
       <div className="bg-gradient-to-r from-[#1b4332] via-[#2d6a4f] to-emerald-800 text-white rounded-2xl p-5 sm:p-6 shadow-sm border border-emerald-700/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

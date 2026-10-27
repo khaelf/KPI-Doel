@@ -32,40 +32,48 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   return (
     <header className="no-print sticky top-0 z-30 bg-[#1b4332] text-white shadow-md">
-      {/* Top Banner & Brand */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 border-b border-emerald-800/60">
-          {/* Brand Logo & Name */}
-          <div className="flex items-center gap-3">
-            {/* White solid background box for logo per request #1 & image 1 */}
-            <div className="w-10 h-10 rounded-xl bg-white p-1 flex items-center justify-center shrink-0 shadow-xs border border-emerald-300/40">
-              <img
-                src="/assets/aistudio/Logo_Humas_H-04_d71e1614.png"
-                alt="Logo Humas Parabek"
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <div>
+      {/* Top Banner & Brand Container */}
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between py-2 md:py-0 md:h-16 border-b border-emerald-800/60 gap-2">
+          {/* Row 1: Brand & Mobile Quick Actions */}
+          <div className="flex items-center justify-between w-full md:w-auto">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white p-1 flex items-center justify-center shrink-0 shadow-xs border border-emerald-300/40">
+                <img
+                  src="/assets/aistudio/Logo_Humas_H-04_d71e1614.png"
+                  alt="Logo Humas Parabek"
+                  className="w-full h-full object-contain"
+                />
+              </div>
               <h1 className="text-base sm:text-lg font-bold tracking-tight text-white leading-tight">
                 KPI Irsyadul F.
               </h1>
             </div>
+
+            {/* Mobile Quick Controls (PWA + Reset) */}
+            <div className="flex md:hidden items-center gap-1.5">
+              <PWAInstallButton />
+              <button
+                onClick={onResetData}
+                className="p-1.5 text-emerald-300 hover:text-white hover:bg-emerald-800/60 rounded-lg transition-colors"
+                title="Muat Ulang Data Sampel Parabek"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
-          {/* Quick Selectors & Controls */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            {/* PWA Install Button */}
-            <PWAInstallButton />
-
+          {/* Row 2 on Mobile / Right side on Desktop: Filters & Controls */}
+          <div className="flex items-center justify-between md:justify-end gap-2 w-full md:w-auto">
             {/* Department Filter Toggle */}
-            <div className="bg-emerald-900/80 p-1 rounded-lg border border-emerald-700/50 flex items-center gap-1 text-xs">
+            <div className="bg-emerald-900/90 p-1 rounded-lg border border-emerald-700/60 flex items-center gap-1 text-[11px] sm:text-xs">
               {(['Semua', 'Humas', 'IT'] as const).map((dept) => (
                 <button
                   key={dept}
                   onClick={() => setSelectedDepartment(dept)}
                   className={`px-2.5 py-1 rounded-md font-medium transition-all ${
                     selectedDepartment === dept
-                      ? 'bg-emerald-500 text-white shadow-sm font-semibold'
+                      ? 'bg-emerald-500 text-white shadow-xs font-bold'
                       : 'text-emerald-200 hover:text-white hover:bg-emerald-800/50'
                   }`}
                 >
@@ -80,23 +88,26 @@ export const Navbar: React.FC<NavbarProps> = ({
                 type="month"
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
-                className="bg-emerald-900/80 border border-emerald-700/60 text-emerald-100 text-xs rounded-lg px-2.5 py-1.5 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                className="bg-emerald-900/90 border border-emerald-700/60 text-emerald-100 text-[11px] sm:text-xs rounded-lg px-2.5 py-1.5 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-400"
               />
             </div>
 
-            {/* Reset Data Button */}
-            <button
-              onClick={onResetData}
-              className="p-1.5 text-emerald-300 hover:text-white hover:bg-emerald-800/60 rounded-lg transition-colors"
-              title="Muat Ulang Data Sampel Parabek"
-            >
-              <RefreshCw className="w-4 h-4" />
-            </button>
+            {/* Desktop-only PWA & Reset */}
+            <div className="hidden md:flex items-center gap-2">
+              <PWAInstallButton />
+              <button
+                onClick={onResetData}
+                className="p-1.5 text-emerald-300 hover:text-white hover:bg-emerald-800/60 rounded-lg transition-colors"
+                title="Muat Ulang Data Sampel Parabek"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* 4 Main Navigation Tabs (Desktop & Tablet) */}
-        <nav className="flex items-center gap-2 overflow-x-auto py-2 text-xs font-medium scrollbar-none">
+        {/* 4 Main Navigation Tabs (Desktop ONLY: hidden on mobile) */}
+        <nav className="hidden md:flex items-center gap-2 overflow-x-auto py-2 text-xs font-medium scrollbar-none">
           <button
             onClick={() => setActiveTab('dashboard')}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-lg transition-all whitespace-nowrap ${
@@ -147,7 +158,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </nav>
       </div>
 
-      {/* Mobile Bottom Bar for smartphone view */}
+      {/* Mobile Bottom Navigation Bar (Hidden on desktop) */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#1b4332] border-t border-emerald-800 flex items-center justify-around py-2 px-2 shadow-lg no-print">
         <button
           onClick={() => setActiveTab('dashboard')}

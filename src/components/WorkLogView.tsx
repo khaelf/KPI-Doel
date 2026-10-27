@@ -94,7 +94,7 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
   });
 
   return (
-    <div className="space-y-6 pb-20 md:pb-8">
+    <div className="space-y-5 sm:space-y-6 pb-6 md:pb-8">
       {/* Top Header & Toolbar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
         <div>
