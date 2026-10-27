@@ -36,22 +36,22 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-10">
         <div className="flex flex-col md:flex-row md:items-center justify-between py-2 md:py-0 md:h-16 border-b border-emerald-800/60 gap-2">
           {/* Row 1: Brand & Mobile Quick Actions */}
-          <div className="flex items-center justify-between w-full md:w-auto">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white p-1 flex items-center justify-center shrink-0 shadow-xs border border-emerald-300/40">
+          <div className="flex items-center justify-between w-full md:w-auto gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white p-1 flex items-center justify-center shrink-0 shadow-xs border border-emerald-300/40">
                 <img
                   src="/assets/aistudio/Logo_Humas_H-04_d71e1614.png"
                   alt="Logo Humas Parabek"
                   className="w-full h-full object-contain"
                 />
               </div>
-              <h1 className="text-base sm:text-lg font-bold tracking-tight text-white leading-tight">
+              <h1 className="text-xs sm:text-base font-bold tracking-tight text-white leading-tight truncate">
                 KPI Staff Humas dan IT
               </h1>
             </div>
 
             {/* Mobile Quick Controls (PWA + Reset) */}
-            <div className="flex md:hidden items-center gap-1.5">
+            <div className="flex md:hidden items-center gap-1.5 shrink-0">
               <PWAInstallButton />
               <button
                 onClick={onResetData}

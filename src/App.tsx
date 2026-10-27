@@ -9,6 +9,7 @@ import { KpiMonthlyView } from './components/KpiMonthlyView';
 import { ReportView } from './components/ReportView';
 import { WorkEntryModal } from './components/WorkEntryModal';
 import { KpiIndicatorModal } from './components/KpiIndicatorModal';
+import { OfflineIndicator } from './components/OfflineIndicator';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'catatan' | 'kpi' | 'laporan'>('dashboard');
@@ -243,6 +244,8 @@ export default function App() {
         defaultDepartment={kpiModalDept}
         defaultMonth={selectedMonth}
       />
+      {/* Offline Status Toast */}
+      <OfflineIndicator />
     </div>
   );
 }
