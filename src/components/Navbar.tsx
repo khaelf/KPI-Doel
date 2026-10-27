@@ -1,6 +1,5 @@
 import React from 'react';
 import { Department } from '../types/kpi';
-import { PWAInstallButton } from './PWAInstallButton';
 import {
   LayoutDashboard,
   ClipboardList,
@@ -50,9 +49,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               </h1>
             </div>
 
-            {/* Mobile Quick Controls (PWA + Reset) */}
+            {/* Mobile Quick Controls */}
             <div className="flex md:hidden items-center gap-1.5 shrink-0">
-              <PWAInstallButton />
               <button
                 onClick={onResetData}
                 className="p-1.5 text-emerald-300 hover:text-white hover:bg-emerald-800/60 rounded-lg transition-colors"
@@ -92,9 +90,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               />
             </div>
 
-            {/* Desktop-only PWA & Reset */}
+            {/* Desktop-only Reset */}
             <div className="hidden md:flex items-center gap-2">
-              <PWAInstallButton />
               <button
                 onClick={onResetData}
                 className="p-1.5 text-emerald-300 hover:text-white hover:bg-emerald-800/60 rounded-lg transition-colors"

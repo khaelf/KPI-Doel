@@ -64,8 +64,8 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
     onSave(
       {
         tanggalMasuk,
-        tanggalMulai,
-        tanggalSelesai: tanggalSelesai.trim() || undefined,
+        tanggalMulai: tanggalMulai || tanggalMasuk,
+        tanggalSelesai: tanggalSelesai.trim() ? tanggalSelesai.trim() : '',
         jumlahRevisi: Number(jumlahRevisi) || 0,
         tanggal: tanggalMasuk, // fallback for month filters
         bidang,

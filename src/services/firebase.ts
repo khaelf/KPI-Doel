@@ -70,6 +70,21 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
 const WORK_ENTRIES_COL = 'workEntries';
 const KPI_INDICATORS_COL = 'kpiIndicators';
 
+// Helper to remove undefined fields which cause Firestore setDoc/updateDoc to reject writes
+function sanitizeFirestoreData<T extends Record<string, any>>(data: T): Record<string, any> {
+  const result: Record<string, any> = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (value !== undefined) {
+      if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+        result[key] = sanitizeFirestoreData(value);
+      } else {
+        result[key] = value;
+      }
+    }
+  }
+  return result;
+}
+
 export const firebaseDataService = {
   // --- Work Entries Firestore API ---
   async fetchWorkEntries(): Promise<WorkEntry[]> {
@@ -89,7 +104,7 @@ export const firebaseDataService = {
   async saveWorkEntry(entry: WorkEntry): Promise<void> {
     try {
       const docRef = doc(db, WORK_ENTRIES_COL, entry.id);
-      await setDoc(docRef, { ...entry });
+      await setDoc(docRef, sanitizeFirestoreData(entry));
     } catch (err) {
       handleFirestoreError(err, OperationType.WRITE, `${WORK_ENTRIES_COL}/${entry.id}`);
     }
@@ -98,7 +113,7 @@ export const firebaseDataService = {
   async updateWorkEntry(id: string, updated: Partial<WorkEntry>): Promise<void> {
     try {
       const docRef = doc(db, WORK_ENTRIES_COL, id);
-      await updateDoc(docRef, { ...updated });
+      await updateDoc(docRef, sanitizeFirestoreData(updated));
     } catch (err) {
       handleFirestoreError(err, OperationType.UPDATE, `${WORK_ENTRIES_COL}/${id}`);
     }
@@ -148,7 +163,7 @@ export const firebaseDataService = {
   async saveKpiIndicator(indicator: KpiIndicator): Promise<void> {
     try {
       const docRef = doc(db, KPI_INDICATORS_COL, indicator.id);
-      await setDoc(docRef, { ...indicator });
+      await setDoc(docRef, sanitizeFirestoreData(indicator));
     } catch (err) {
       handleFirestoreError(err, OperationType.WRITE, `${KPI_INDICATORS_COL}/${indicator.id}`);
     }
@@ -157,7 +172,7 @@ export const firebaseDataService = {
   async updateKpiIndicator(id: string, updated: Partial<KpiIndicator>): Promise<void> {
     try {
       const docRef = doc(db, KPI_INDICATORS_COL, id);
-      await updateDoc(docRef, { ...updated });
+      await updateDoc(docRef, sanitizeFirestoreData(updated));
     } catch (err) {
       handleFirestoreError(err, OperationType.UPDATE, `${KPI_INDICATORS_COL}/${id}`);
     }

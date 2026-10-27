@@ -73,6 +73,15 @@ export default function App() {
     } else {
       storageService.addWorkEntry(data);
     }
+    // Optimistic immediate update to local state
+    setWorkEntries([...storageService.getWorkEntries()]);
+
+    // If entry date belongs to a different month than currently selected, switch month to view it
+    const entryMonth = (data.tanggalMasuk || data.tanggal || '').substring(0, 7);
+    if (entryMonth && entryMonth !== selectedMonth) {
+      setSelectedMonth(entryMonth);
+    }
+
     setEditingWorkEntry(null);
   };
 
@@ -83,12 +92,14 @@ export default function App() {
     if (newStatus === 'Belum dikerjakan') persentase = 0;
 
     storageService.updateWorkEntry(id, { status: newStatus, persentase });
+    setWorkEntries([...storageService.getWorkEntries()]);
   };
 
   // Handler: Work Entry Delete
   const handleDeleteWorkEntry = (id: string) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus catatan pekerjaan ini?')) {
       storageService.deleteWorkEntry(id);
+      setWorkEntries([...storageService.getWorkEntries()]);
     }
   };
 
@@ -102,18 +113,21 @@ export default function App() {
     } else {
       storageService.addKpiIndicator(data);
     }
+    setKpiIndicators([...storageService.getKpiIndicators()]);
     setEditingKpiIndicator(null);
   };
 
   // Handler: KPI Indicator Quick Update Realisasi
   const handleQuickUpdateRealisasi = (id: string, newRealisasi: number) => {
     storageService.updateKpiIndicator(id, { realisasi: newRealisasi });
+    setKpiIndicators([...storageService.getKpiIndicators()]);
   };
 
   // Handler: KPI Indicator Delete
   const handleDeleteKpiIndicator = (id: string) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus indikator KPI ini?')) {
       storageService.deleteKpiIndicator(id);
+      setKpiIndicators([...storageService.getKpiIndicators()]);
     }
   };
 
@@ -125,6 +139,8 @@ export default function App() {
       )
     ) {
       storageService.resetAllToDefault();
+      setWorkEntries([...storageService.getWorkEntries()]);
+      setKpiIndicators([...storageService.getKpiIndicators()]);
     }
   };
 
