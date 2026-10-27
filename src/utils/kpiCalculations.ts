@@ -40,13 +40,14 @@ export function calculateDepartmentSummary(
   const pekerjaanBelum = deptEntries.filter((e) => e.status === 'Belum dikerjakan').length;
 
   let totalBobot = 0;
-  let nilaiKpi = 0;
-
   deptIndicators.forEach((ind) => {
     totalBobot += ind.bobot;
-    const { weightedScore } = calculateIndicatorAchievement(ind);
-    nilaiKpi += weightedScore;
   });
+
+  // Hitungan persentase diambil dari berapa banyak pekerjaan selesai dari total pekerjaan ditugaskan dalam bulan tersebut
+  const nilaiKpi = totalPekerjaan > 0
+    ? (pekerjaanSelesai / totalPekerjaan) * 100
+    : 0;
 
   return {
     bidang,

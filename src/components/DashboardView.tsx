@@ -55,14 +55,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const humasSummary = calculateDepartmentSummary('Humas', kpiIndicators, workEntries, selectedMonth);
   const itSummary = calculateDepartmentSummary('IT', kpiIndicators, workEntries, selectedMonth);
 
-  // Overall KPI Score calculation
+  // Overall KPI Score calculation: total pekerjaan selesai / total pekerjaan ditugaskan
   let overallKpiScore = 0;
   if (selectedDepartment === 'Humas') {
     overallKpiScore = humasSummary.nilaiKpi;
   } else if (selectedDepartment === 'IT') {
     overallKpiScore = itSummary.nilaiKpi;
   } else {
-    overallKpiScore = (humasSummary.nilaiKpi + itSummary.nilaiKpi) / 2;
+    overallKpiScore = totalPekerjaan > 0 ? (pekerjaanSelesai / totalPekerjaan) * 100 : 0;
   }
 
   const kpiBadge = getKpiStatusBadge(overallKpiScore);
