@@ -387,7 +387,14 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
                       )}
                       {visibleColumns.namaPekerjaan && (
                         <td className="py-3.5 px-4 font-semibold text-slate-900 max-w-sm">
-                          {entry.namaPekerjaan}
+                          <div>{entry.namaPekerjaan}</div>
+                          {entry.indikatorKpi && (
+                            <div className="mt-0.5">
+                              <span className="inline-block bg-emerald-50 text-emerald-800 border border-emerald-200 px-1.5 py-0.5 rounded text-[10px] font-medium">
+                                KPI: {entry.indikatorKpi}
+                              </span>
+                            </div>
+                          )}
                         </td>
                       )}
                       {visibleColumns.status && (
@@ -489,7 +496,14 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
                   </div>
 
                   {visibleColumns.namaPekerjaan && (
-                    <h4 className="font-bold text-slate-900 text-sm">{entry.namaPekerjaan}</h4>
+                    <div>
+                      <h4 className="font-bold text-slate-900 text-sm">{entry.namaPekerjaan}</h4>
+                      {entry.indikatorKpi && (
+                        <span className="inline-block mt-1 bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded text-[10px] font-medium">
+                          KPI: {entry.indikatorKpi}
+                        </span>
+                      )}
+                    </div>
                   )}
 
                   {/* Optional Date details if enabled */}

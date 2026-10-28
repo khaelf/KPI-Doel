@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { WorkEntry, Department, TaskStatus } from '../types/kpi';
+import { WorkEntry, KpiIndicator, Department, TaskStatus } from '../types/kpi';
 import { autoCapitalizeText } from '../utils/textUtils';
-import { X, Save, Calendar } from 'lucide-react';
+import { X, Save, Calendar, Target } from 'lucide-react';
 
 interface WorkEntryModalProps {
   isOpen: boolean;
@@ -10,6 +10,7 @@ interface WorkEntryModalProps {
   editingEntry?: WorkEntry | null;
   defaultDepartment?: Department;
   defaultMonth?: string;
+  kpiIndicators?: KpiIndicator[];
 }
 
 export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
@@ -19,6 +20,7 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
   editingEntry,
   defaultDepartment = 'Humas',
   defaultMonth,
+  kpiIndicators = [],
 }) => {
   const [tanggalMasuk, setTanggalMasuk] = useState('');
   const [tanggalMulai, setTanggalMulai] = useState('');
@@ -26,6 +28,7 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
   const [jumlahRevisi, setJumlahRevisi] = useState<number>(0);
   const [bidang, setBidang] = useState<Department>('Humas');
   const [namaPekerjaan, setNamaPekerjaan] = useState('');
+  const [indikatorKpi, setIndikatorKpi] = useState('');
   const [status, setStatus] = useState<TaskStatus>('Proses');
   const [persentase, setPersentase] = useState<number>(50);
   const [catatan, setCatatan] = useState('');
@@ -39,6 +42,7 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
       setJumlahRevisi(editingEntry.jumlahRevisi ?? 0);
       setBidang(editingEntry.bidang);
       setNamaPekerjaan(autoCapitalizeText(editingEntry.namaPekerjaan));
+      setIndikatorKpi(editingEntry.indikatorKpi || '');
       setStatus(editingEntry.status);
       setPersentase(editingEntry.persentase);
       setCatatan(editingEntry.catatan || '');
@@ -49,6 +53,7 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
       setJumlahRevisi(0);
       setBidang(defaultDepartment);
       setNamaPekerjaan('');
+      setIndikatorKpi('');
       setStatus('Proses');
       setPersentase(50);
       setCatatan('');
@@ -56,6 +61,15 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
   }, [editingEntry, isOpen, defaultDepartment]);
 
   if (!isOpen) return null;
+
+  // Filter KPI indicators for the selected department
+  const currentMonth = (tanggalMasuk || defaultMonth || '').substring(0, 7);
+  const monthMatchIndicators = kpiIndicators.filter(
+    (ind) => ind.bidang === bidang && (!currentMonth || ind.periodeBulan === currentMonth)
+  );
+  const departmentIndicators = monthMatchIndicators.length > 0
+    ? monthMatchIndicators
+    : kpiIndicators.filter((ind) => ind.bidang === bidang);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,6 +84,7 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
         tanggal: tanggalMasuk, // fallback for month filters
         bidang,
         namaPekerjaan: autoCapitalizeText(namaPekerjaan.trim()),
+        indikatorKpi: indikatorKpi.trim(),
         status,
         persentase: Number(persentase),
         catatan: catatan.trim(),
@@ -125,6 +140,36 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
               <option value="Humas">Humas (Hubungan Masyarakat)</option>
               <option value="IT">IT (Teknologi Informasi)</option>
             </select>
+          </div>
+
+          {/* Indikator KPI */}
+          <div>
+            <label className="block font-semibold text-slate-900 mb-1 flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <Target className="w-3.5 h-3.5 text-emerald-700" />
+                <span>Indikator KPI Terkait <span className="text-slate-400 font-normal">(Opsional)</span></span>
+              </span>
+              <span className="text-[10px] text-emerald-700 font-medium bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                KPI Bulanan
+              </span>
+            </label>
+            <select
+              value={indikatorKpi}
+              onChange={(e) => setIndikatorKpi(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
+            >
+              <option value="">-- Tanpa Indikator KPI --</option>
+              {departmentIndicators.map((ind) => (
+                <option key={ind.id} value={ind.namaIndikator}>
+                  {ind.namaIndikator} ({ind.periodeBulan}) - Target: {ind.target} {ind.satuan}
+                </option>
+              ))}
+            </select>
+            {departmentIndicators.length === 0 && (
+              <p className="text-[11px] text-slate-400 mt-1 italic">
+                Belum ada Indikator KPI terdaftar untuk bidang {bidang}.
+              </p>
+            )}
           </div>
 
           {/* Group 4 Dates & Revision Fields */}

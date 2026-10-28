@@ -11,6 +11,7 @@ export interface WorkEntry {
   tanggal?: string; // Fallback helper YYYY-MM-DD
   bidang: Department;
   namaPekerjaan: string;
+  indikatorKpi?: string; // Indikator KPI terkait dari KPI bulanan
   targetHasil?: string; // Removed field, optional for backwards compatibility
   status: TaskStatus;
   persentase: number; // 0 - 100

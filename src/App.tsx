@@ -249,6 +249,7 @@ export default function App() {
         editingEntry={editingWorkEntry}
         defaultDepartment={selectedDepartment === 'Semua' ? 'Humas' : selectedDepartment}
         defaultMonth={selectedMonth}
+        kpiIndicators={kpiIndicators}
       />
 
       {/* KPI Indicator Modal */}
