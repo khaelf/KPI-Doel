@@ -30,6 +30,22 @@ export interface KpiIndicator {
   periodeBulan: string; // YYYY-MM
 }
 
+export type AgendaStatus = 'Mendatang' | 'Berlangsung' | 'Selesai' | 'Dibatalkan';
+
+export interface AgendaItem {
+  id: string;
+  judul: string;
+  tanggal: string; // YYYY-MM-DD
+  waktuMulai?: string; // HH:mm
+  waktuSelesai?: string; // HH:mm
+  lokasi?: string;
+  bidang: Department | 'Semua';
+  penanggungJawab?: string;
+  keterangan?: string;
+  status: AgendaStatus;
+  createdAt: string;
+}
+
 export interface DepartmentSummary {
   bidang: Department;
   totalPekerjaan: number;

@@ -160,11 +160,11 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                     <tr>
                       <th className="py-3 px-4">No</th>
                       <th className="py-3 px-4">Indikator KPI Humas</th>
-                      <th className="py-3 px-4 text-right">Target</th>
-                      <th className="py-3 px-4 text-right">Realisasi</th>
-                      <th className="py-3 px-4 text-right">Bobot</th>
-                      <th className="py-3 px-4 text-right">Pencapaian (%)</th>
-                      <th className="py-3 px-4 text-right">Nilai Akhir</th>
+                      <th className="py-3 px-4 text-left">Target</th>
+                      <th className="py-3 px-4 text-left">Realisasi</th>
+                      <th className="py-3 px-4 text-left">Bobot</th>
+                      <th className="py-3 px-4 text-left">Pencapaian (%)</th>
+                      <th className="py-3 px-4 text-left">Nilai Akhir</th>
                       <th className="py-3 px-4 text-right">Aksi</th>
                     </tr>
                   </thead>
@@ -177,26 +177,28 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                           <td className="py-3.5 px-4 font-semibold text-slate-900">
                             {ind.namaIndikator}
                           </td>
-                          <td className="py-3.5 px-4 text-right font-mono font-medium text-slate-700 whitespace-nowrap">
+                          <td className="py-3.5 px-4 text-left font-mono font-medium text-slate-700 whitespace-nowrap">
                             {ind.target} {ind.satuan}
                           </td>
-                          <td className="py-3.5 px-4 text-right font-mono whitespace-nowrap">
-                            <input
-                              type="number"
-                              min="0"
-                              step="any"
-                              value={ind.realisasi}
-                              onChange={(e) =>
-                                onQuickUpdateRealisasi(ind.id, parseFloat(e.target.value) || 0)
-                              }
-                              className="w-20 px-2 py-1 text-right border border-slate-300 rounded font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                            />
-                            <span className="text-[10px] text-slate-400 ml-1">{ind.satuan}</span>
+                          <td className="py-3.5 px-4 text-left font-mono whitespace-nowrap">
+                            <div className="flex items-center justify-start gap-1.5">
+                              <input
+                                type="number"
+                                min="0"
+                                step="any"
+                                value={ind.realisasi}
+                                onChange={(e) =>
+                                  onQuickUpdateRealisasi(ind.id, parseFloat(e.target.value) || 0)
+                                }
+                                className="w-14 px-1.5 py-0.5 text-center border border-slate-300 rounded-md font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                              />
+                              <span className="text-[11px] text-slate-500 font-normal">{ind.satuan}</span>
+                            </div>
                           </td>
-                          <td className="py-3.5 px-4 text-right font-mono font-bold text-slate-700 whitespace-nowrap">
+                          <td className="py-3.5 px-4 text-left font-mono font-bold text-slate-700 whitespace-nowrap">
                             {ind.bobot}%
                           </td>
-                          <td className="py-3.5 px-4 text-right font-mono font-bold text-slate-900 whitespace-nowrap">
+                          <td className="py-3.5 px-4 text-left font-mono font-bold text-slate-900 whitespace-nowrap">
                             <span
                               className={`px-2 py-0.5 rounded text-[11px] ${
                                 calc.rawPercentage >= 100
@@ -209,7 +211,7 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                               {calc.cappedPercentage.toFixed(1)}%
                             </span>
                           </td>
-                          <td className="py-3.5 px-4 text-right font-mono font-bold text-emerald-700 text-sm whitespace-nowrap">
+                          <td className="py-3.5 px-4 text-left font-mono font-bold text-emerald-700 text-sm whitespace-nowrap">
                             {calc.weightedScore.toFixed(2)}%
                           </td>
                           <td className="py-3.5 px-4 text-right whitespace-nowrap">
@@ -299,11 +301,11 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                     <tr>
                       <th className="py-3 px-4">No</th>
                       <th className="py-3 px-4">Indikator KPI IT</th>
-                      <th className="py-3 px-4 text-right">Target</th>
-                      <th className="py-3 px-4 text-right">Realisasi</th>
-                      <th className="py-3 px-4 text-right">Bobot</th>
-                      <th className="py-3 px-4 text-right">Pencapaian (%)</th>
-                      <th className="py-3 px-4 text-right">Nilai Akhir</th>
+                      <th className="py-3 px-4 text-left">Target</th>
+                      <th className="py-3 px-4 text-left">Realisasi</th>
+                      <th className="py-3 px-4 text-left">Bobot</th>
+                      <th className="py-3 px-4 text-left">Pencapaian (%)</th>
+                      <th className="py-3 px-4 text-left">Nilai Akhir</th>
                       <th className="py-3 px-4 text-right">Aksi</th>
                     </tr>
                   </thead>
@@ -316,26 +318,28 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                           <td className="py-3.5 px-4 font-semibold text-slate-900">
                             {ind.namaIndikator}
                           </td>
-                          <td className="py-3.5 px-4 text-right font-mono font-medium text-slate-700 whitespace-nowrap">
+                          <td className="py-3.5 px-4 text-left font-mono font-medium text-slate-700 whitespace-nowrap">
                             {ind.target} {ind.satuan}
                           </td>
-                          <td className="py-3.5 px-4 text-right font-mono whitespace-nowrap">
-                            <input
-                              type="number"
-                              min="0"
-                              step="any"
-                              value={ind.realisasi}
-                              onChange={(e) =>
-                                onQuickUpdateRealisasi(ind.id, parseFloat(e.target.value) || 0)
-                              }
-                              className="w-20 px-2 py-1 text-right border border-slate-300 rounded font-bold text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                            />
-                            <span className="text-[10px] text-slate-400 ml-1">{ind.satuan}</span>
+                          <td className="py-3.5 px-4 text-left font-mono whitespace-nowrap">
+                            <div className="flex items-center justify-start gap-1.5">
+                              <input
+                                type="number"
+                                min="0"
+                                step="any"
+                                value={ind.realisasi}
+                                onChange={(e) =>
+                                  onQuickUpdateRealisasi(ind.id, parseFloat(e.target.value) || 0)
+                                }
+                                className="w-14 px-1.5 py-0.5 text-center border border-slate-300 rounded-md font-bold text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                              />
+                              <span className="text-[11px] text-slate-500 font-normal">{ind.satuan}</span>
+                            </div>
                           </td>
-                          <td className="py-3.5 px-4 text-right font-mono font-bold text-slate-700 whitespace-nowrap">
+                          <td className="py-3.5 px-4 text-left font-mono font-bold text-slate-700 whitespace-nowrap">
                             {ind.bobot}%
                           </td>
-                          <td className="py-3.5 px-4 text-right font-mono font-bold text-slate-900 whitespace-nowrap">
+                          <td className="py-3.5 px-4 text-left font-mono font-bold text-slate-900 whitespace-nowrap">
                             <span
                               className={`px-2 py-0.5 rounded text-[11px] ${
                                 calc.rawPercentage >= 100
@@ -348,7 +352,7 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                               {calc.cappedPercentage.toFixed(1)}%
                             </span>
                           </td>
-                          <td className="py-3.5 px-4 text-right font-mono font-bold text-blue-700 text-sm whitespace-nowrap">
+                          <td className="py-3.5 px-4 text-left font-mono font-bold text-blue-700 text-sm whitespace-nowrap">
                             {calc.weightedScore.toFixed(2)}%
                           </td>
                           <td className="py-3.5 px-4 text-right whitespace-nowrap">

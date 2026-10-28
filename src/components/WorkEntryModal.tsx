@@ -161,7 +161,7 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
               <option value="">-- Tanpa Indikator KPI --</option>
               {departmentIndicators.map((ind) => (
                 <option key={ind.id} value={ind.namaIndikator}>
-                  {ind.namaIndikator} ({ind.periodeBulan}) - Target: {ind.target} {ind.satuan}
+                  {ind.namaIndikator} ({ind.periodeBulan}) - {ind.target} {ind.satuan}
                 </option>
               ))}
             </select>

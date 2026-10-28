@@ -1,9 +1,10 @@
-import { WorkEntry, KpiIndicator } from '../types/kpi';
-import { INITIAL_WORK_ENTRIES, INITIAL_KPI_INDICATORS } from '../data/initialData';
+import { WorkEntry, KpiIndicator, AgendaItem } from '../types/kpi';
+import { INITIAL_WORK_ENTRIES, INITIAL_KPI_INDICATORS, INITIAL_AGENDA_ITEMS } from '../data/initialData';
 import { firebaseDataService, testFirestoreConnection } from './firebase';
 
 const WORK_ENTRIES_KEY = 'parabek_kpi_work_entries_v1';
 const KPI_INDICATORS_KEY = 'parabek_kpi_indicators_v1';
+const AGENDA_ITEMS_KEY = 'parabek_kpi_agenda_items_v1';
 
 // Verify firestore connection on load
 testFirestoreConnection();
@@ -132,14 +133,80 @@ export const storageService = {
     return true;
   },
 
+  // --- Agenda Items Storage API ---
+  getAgendaItems(): AgendaItem[] {
+    try {
+      const data = localStorage.getItem(AGENDA_ITEMS_KEY);
+      if (!data) {
+        this.saveAgendaItems(INITIAL_AGENDA_ITEMS);
+        // Seed initial agenda items to Firestore
+        INITIAL_AGENDA_ITEMS.forEach((ag) => firebaseDataService.saveAgendaItem(ag));
+        return INITIAL_AGENDA_ITEMS;
+      }
+      return JSON.parse(data);
+    } catch (e) {
+      console.error('Error loading agenda items from localStorage:', e);
+      return INITIAL_AGENDA_ITEMS;
+    }
+  },
+
+  saveAgendaItems(items: AgendaItem[]): void {
+    try {
+      localStorage.setItem(AGENDA_ITEMS_KEY, JSON.stringify(items));
+    } catch (e) {
+      console.error('Error saving agenda items to localStorage:', e);
+    }
+  },
+
+  addAgendaItem(item: Omit<AgendaItem, 'id' | 'createdAt'>): AgendaItem {
+    const items = this.getAgendaItems();
+    const newItem: AgendaItem = {
+      ...item,
+      id: 'ag-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+      createdAt: new Date().toISOString(),
+    };
+    items.unshift(newItem);
+    this.saveAgendaItems(items);
+
+    // Sync to Firestore
+    firebaseDataService.saveAgendaItem(newItem);
+    return newItem;
+  },
+
+  updateAgendaItem(id: string, updated: Partial<AgendaItem>): AgendaItem | null {
+    const items = this.getAgendaItems();
+    const index = items.findIndex((item) => item.id === id);
+    if (index === -1) return null;
+    items[index] = { ...items[index], ...updated };
+    this.saveAgendaItems(items);
+
+    // Sync update to Firestore
+    firebaseDataService.updateAgendaItem(id, updated);
+    return items[index];
+  },
+
+  deleteAgendaItem(id: string): boolean {
+    const items = this.getAgendaItems();
+    const filtered = items.filter((item) => item.id !== id);
+    if (filtered.length === items.length) return false;
+    this.saveAgendaItems(filtered);
+
+    // Sync delete to Firestore
+    firebaseDataService.deleteAgendaItem(id);
+    return true;
+  },
+
   resetAllToDefault(): void {
     localStorage.removeItem(WORK_ENTRIES_KEY);
     localStorage.removeItem(KPI_INDICATORS_KEY);
+    localStorage.removeItem(AGENDA_ITEMS_KEY);
     this.saveWorkEntries(INITIAL_WORK_ENTRIES);
     this.saveKpiIndicators(INITIAL_KPI_INDICATORS);
+    this.saveAgendaItems(INITIAL_AGENDA_ITEMS);
 
     // Seed Firestore
     INITIAL_WORK_ENTRIES.forEach((item) => firebaseDataService.saveWorkEntry(item));
     INITIAL_KPI_INDICATORS.forEach((ind) => firebaseDataService.saveKpiIndicator(ind));
+    INITIAL_AGENDA_ITEMS.forEach((ag) => firebaseDataService.saveAgendaItem(ag));
   },
 };

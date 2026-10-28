@@ -1,4 +1,59 @@
-import { WorkEntry, KpiIndicator } from '../types/kpi';
+import { WorkEntry, KpiIndicator, AgendaItem } from '../types/kpi';
+
+export const INITIAL_AGENDA_ITEMS: AgendaItem[] = [
+  {
+    id: 'ag-1',
+    judul: 'Rapat Koordinasi Kesiapan Penerimaan Santri Baru (PSB)',
+    tanggal: '2026-10-28',
+    waktuMulai: '09:00',
+    waktuSelesai: '11:30',
+    lokasi: 'Ruang Rapat Utama Gedung Rektorat Parabek',
+    bidang: 'Humas',
+    penanggungJawab: 'Tim Humas & Panitia PSB',
+    keterangan: 'Pembahasan skenario konferensi pers dan penyebaran brosur digital PSB 2026.',
+    status: 'Mendatang',
+    createdAt: '2026-10-25T10:00:00Z',
+  },
+  {
+    id: 'ag-2',
+    judul: 'Maintenance Rutin Server Core & Mikrotik Pusat',
+    tanggal: '2026-10-29',
+    waktuMulai: '20:00',
+    waktuSelesai: '23:00',
+    lokasi: 'Data Center / Server Room IT Parabek',
+    bidang: 'IT',
+    penanggungJawab: 'Tim Infrastruktur IT',
+    keterangan: 'Pemberitahuan downtime singkat jaringan internal untuk upgrade firmware router.',
+    status: 'Mendatang',
+    createdAt: '2026-10-26T14:20:00Z',
+  },
+  {
+    id: 'ag-3',
+    judul: 'Pelatihan Dan Pendampingan Penggunaan SIAKAD Wali Santri',
+    tanggal: '2026-10-24',
+    waktuMulai: '13:30',
+    waktuSelesai: '16:00',
+    lokasi: 'Aula Besar Pesantren Parabek',
+    bidang: 'Semua',
+    penanggungJawab: 'Tim Humas & Tim IT',
+    keterangan: 'Sosialisasi aplikasi wali santri terintegrasi untuk pimpinan dan wali murid.',
+    status: 'Selesai',
+    createdAt: '2026-10-22T08:00:00Z',
+  },
+  {
+    id: 'ag-4',
+    judul: 'Live Streaming & Liputan Acara Milad Pesantren Parabek',
+    tanggal: '2026-10-31',
+    waktuMulai: '08:00',
+    waktuSelesai: '15:00',
+    lokasi: 'Lapangan Utama Parabek',
+    bidang: 'Humas',
+    penanggungJawab: 'Tim Media & Broadcast Humas',
+    keterangan: 'Penyediaan 3 kamera multi-cam, sound mix feed, dan transmisi Youtube Live.',
+    status: 'Mendatang',
+    createdAt: '2026-10-27T09:00:00Z',
+  },
+];
 
 export const INITIAL_KPI_INDICATORS: KpiIndicator[] = [
   // --- HUMAS (Oktober 2026) ---

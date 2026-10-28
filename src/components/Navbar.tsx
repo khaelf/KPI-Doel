@@ -6,11 +6,12 @@ import {
   Target,
   FileBarChart,
   RefreshCw,
+  Calendar,
 } from 'lucide-react';
 
 interface NavbarProps {
-  activeTab: 'dashboard' | 'catatan' | 'kpi' | 'laporan';
-  setActiveTab: (tab: 'dashboard' | 'catatan' | 'kpi' | 'laporan') => void;
+  activeTab: 'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'laporan';
+  setActiveTab: (tab: 'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'laporan') => void;
   selectedDepartment: 'Semua' | Department;
   setSelectedDepartment: (dept: 'Semua' | Department) => void;
   selectedMonth: string;
@@ -103,7 +104,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* 4 Main Navigation Tabs (Desktop ONLY: hidden on mobile) */}
+        {/* 5 Main Navigation Tabs (Desktop ONLY: hidden on mobile) */}
         <nav className="hidden md:flex items-center gap-2 overflow-x-auto py-2 text-xs font-medium scrollbar-none">
           <button
             onClick={() => setActiveTab('dashboard')}
@@ -139,6 +140,18 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <Target className="w-4 h-4" />
             <span>KPI Bulanan</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('agenda')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg transition-all whitespace-nowrap ${
+              activeTab === 'agenda'
+                ? 'bg-white/10 text-white font-semibold border border-white/20'
+                : 'text-emerald-200 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <Calendar className="w-4 h-4" />
+            <span>Agenda</span>
           </button>
 
           <button
@@ -185,6 +198,16 @@ export const Navbar: React.FC<NavbarProps> = ({
         >
           <Target className="w-5 h-5" />
           <span>KPI</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('agenda')}
+          className={`flex flex-col items-center gap-1 px-3 py-1 text-[11px] ${
+            activeTab === 'agenda' ? 'text-emerald-300 font-bold' : 'text-emerald-200/70'
+          }`}
+        >
+          <Calendar className="w-5 h-5" />
+          <span>Agenda</span>
         </button>
 
         <button

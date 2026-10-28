@@ -13,7 +13,7 @@ import {
   query,
 } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
-import { WorkEntry, KpiIndicator } from '../types/kpi';
+import { WorkEntry, KpiIndicator, AgendaItem } from '../types/kpi';
 
 // Initialize Firebase App
 const app = initializeApp(firebaseConfig);
@@ -69,6 +69,7 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
 // Collections References
 const WORK_ENTRIES_COL = 'workEntries';
 const KPI_INDICATORS_COL = 'kpiIndicators';
+const AGENDA_ITEMS_COL = 'agendaItems';
 
 // Helper to remove undefined fields which cause Firestore setDoc/updateDoc to reject writes
 function sanitizeFirestoreData<T extends Record<string, any>>(data: T): Record<string, any> {
@@ -200,6 +201,65 @@ export const firebaseDataService = {
       },
       (error) => {
         handleFirestoreError(error, OperationType.LIST, KPI_INDICATORS_COL);
+      }
+    );
+  },
+
+  // --- Agenda Items Firestore API ---
+  async fetchAgendaItems(): Promise<AgendaItem[]> {
+    try {
+      const snapshot = await getDocs(collection(db, AGENDA_ITEMS_COL));
+      const items: AgendaItem[] = [];
+      snapshot.forEach((docSnap) => {
+        items.push({ id: docSnap.id, ...docSnap.data() } as AgendaItem);
+      });
+      return items;
+    } catch (err) {
+      handleFirestoreError(err, OperationType.LIST, AGENDA_ITEMS_COL);
+      return [];
+    }
+  },
+
+  async saveAgendaItem(item: AgendaItem): Promise<void> {
+    try {
+      const docRef = doc(db, AGENDA_ITEMS_COL, item.id);
+      await setDoc(docRef, sanitizeFirestoreData(item));
+    } catch (err) {
+      handleFirestoreError(err, OperationType.WRITE, `${AGENDA_ITEMS_COL}/${item.id}`);
+    }
+  },
+
+  async updateAgendaItem(id: string, updated: Partial<AgendaItem>): Promise<void> {
+    try {
+      const docRef = doc(db, AGENDA_ITEMS_COL, id);
+      await updateDoc(docRef, sanitizeFirestoreData(updated));
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, `${AGENDA_ITEMS_COL}/${id}`);
+    }
+  },
+
+  async deleteAgendaItem(id: string): Promise<void> {
+    try {
+      const docRef = doc(db, AGENDA_ITEMS_COL, id);
+      await deleteDoc(docRef);
+    } catch (err) {
+      handleFirestoreError(err, OperationType.DELETE, `${AGENDA_ITEMS_COL}/${id}`);
+    }
+  },
+
+  // --- Realtime Agenda Listener ---
+  subscribeAgendaItems(callback: (items: AgendaItem[]) => void) {
+    return onSnapshot(
+      collection(db, AGENDA_ITEMS_COL),
+      (snapshot) => {
+        const items: AgendaItem[] = [];
+        snapshot.forEach((docSnap) => {
+          items.push({ id: docSnap.id, ...docSnap.data() } as AgendaItem);
+        });
+        callback(items);
+      },
+      (error) => {
+        handleFirestoreError(error, OperationType.LIST, AGENDA_ITEMS_COL);
       }
     );
   },

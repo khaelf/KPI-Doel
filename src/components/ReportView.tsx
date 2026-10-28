@@ -184,8 +184,8 @@ export const ReportView: React.FC<ReportViewProps> = ({
                     <th className="py-2.5 px-3 border-b border-r border-slate-200">No</th>
                     <th className="py-2.5 px-3 border-b border-r border-slate-200">Bidang</th>
                     <th className="py-2.5 px-3 border-b border-r border-slate-200">Indikator KPI</th>
-                    <th className="py-2.5 px-3 border-b border-r border-slate-200 text-right">Target</th>
-                    <th className="py-2.5 px-3 border-b border-r border-slate-200 text-right">Realisasi</th>
+                    <th className="py-2.5 px-3 border-b border-r border-slate-200 text-left">Target</th>
+                    <th className="py-2.5 px-3 border-b border-r border-slate-200 text-left">Realisasi</th>
                     <th className="py-2.5 px-3 border-b border-r border-slate-200 text-right">Bobot</th>
                     <th className="py-2.5 px-3 border-b border-r border-slate-200 text-right">Capaian (%)</th>
                     <th className="py-2.5 px-3 border-b border-slate-200 text-right">Nilai Akhir</th>
@@ -205,10 +205,10 @@ export const ReportView: React.FC<ReportViewProps> = ({
                         <td className="py-2 px-3 border-r border-slate-200 font-medium text-slate-900">
                           {ind.namaIndikator}
                         </td>
-                        <td className="py-2 px-3 border-r border-slate-200 text-right font-mono">
+                        <td className="py-2 px-3 border-r border-slate-200 text-left font-mono">
                           {ind.target} {ind.satuan}
                         </td>
-                        <td className="py-2 px-3 border-r border-slate-200 text-right font-mono">
+                        <td className="py-2 px-3 border-r border-slate-200 text-left font-mono">
                           {ind.realisasi} {ind.satuan}
                         </td>
                         <td className="py-2 px-3 border-r border-slate-200 text-right font-mono font-semibold">

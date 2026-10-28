@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { WorkEntry, KpiIndicator, Department, TaskStatus } from './types/kpi';
+import { WorkEntry, KpiIndicator, AgendaItem, AgendaStatus, Department, TaskStatus } from './types/kpi';
 import { storageService } from './services/storage';
 import { firebaseDataService } from './services/firebase';
 import { Navbar } from './components/Navbar';
 import { DashboardView } from './components/DashboardView';
 import { WorkLogView } from './components/WorkLogView';
 import { KpiMonthlyView } from './components/KpiMonthlyView';
+import { AgendaView } from './components/AgendaView';
 import { ReportView } from './components/ReportView';
 import { WorkEntryModal } from './components/WorkEntryModal';
 import { KpiIndicatorModal } from './components/KpiIndicatorModal';
+import { AgendaModal } from './components/AgendaModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'catatan' | 'kpi' | 'laporan'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'laporan'>('dashboard');
   const [selectedDepartment, setSelectedDepartment] = useState<'Semua' | Department>('Semua');
   const [selectedMonth, setSelectedMonth] = useState<string>('2026-10');
   const [catatanStatusFilter, setCatatanStatusFilter] = useState<'Semua' | TaskStatus>('Semua');
@@ -25,6 +27,7 @@ export default function App() {
   // Data State
   const [workEntries, setWorkEntries] = useState<WorkEntry[]>([]);
   const [kpiIndicators, setKpiIndicators] = useState<KpiIndicator[]>([]);
+  const [agendaItems, setAgendaItems] = useState<AgendaItem[]>([]);
 
   // Modal States
   const [isWorkModalOpen, setIsWorkModalOpen] = useState(false);
@@ -34,13 +37,18 @@ export default function App() {
   const [editingKpiIndicator, setEditingKpiIndicator] = useState<KpiIndicator | null>(null);
   const [kpiModalDept, setKpiModalDept] = useState<Department>('Humas');
 
+  const [isAgendaModalOpen, setIsAgendaModalOpen] = useState(false);
+  const [editingAgenda, setEditingAgenda] = useState<AgendaItem | null>(null);
+
   // Load initial data & subscribe to real-time Firestore updates
   useEffect(() => {
     // Initial local cache load
     const initialEntries = storageService.getWorkEntries();
     const initialIndicators = storageService.getKpiIndicators();
+    const initialAgendas = storageService.getAgendaItems();
     setWorkEntries(initialEntries);
     setKpiIndicators(initialIndicators);
+    setAgendaItems(initialAgendas);
 
     // Realtime Firestore listeners
     const unsubscribeWork = firebaseDataService.subscribeWorkEntries((fsEntries) => {
@@ -57,9 +65,17 @@ export default function App() {
       }
     });
 
+    const unsubscribeAgenda = firebaseDataService.subscribeAgendaItems((fsAgendas) => {
+      if (fsAgendas && fsAgendas.length > 0) {
+        setAgendaItems(fsAgendas);
+        storageService.saveAgendaItems(fsAgendas);
+      }
+    });
+
     return () => {
       unsubscribeWork();
       unsubscribeKpi();
+      unsubscribeAgenda();
     };
   }, []);
 
@@ -131,6 +147,40 @@ export default function App() {
     }
   };
 
+  // Handler: Agenda Save (Add or Edit)
+  const handleSaveAgenda = (
+    data: Omit<AgendaItem, 'id' | 'createdAt'>,
+    editingId?: string
+  ) => {
+    if (editingId) {
+      storageService.updateAgendaItem(editingId, data);
+    } else {
+      storageService.addAgendaItem(data);
+    }
+    setAgendaItems([...storageService.getAgendaItems()]);
+
+    const agendaMonth = (data.tanggal || '').substring(0, 7);
+    if (agendaMonth && agendaMonth !== selectedMonth) {
+      setSelectedMonth(agendaMonth);
+    }
+
+    setEditingAgenda(null);
+  };
+
+  // Handler: Agenda Quick Status Change
+  const handleAgendaQuickStatusChange = (id: string, newStatus: AgendaStatus) => {
+    storageService.updateAgendaItem(id, { status: newStatus });
+    setAgendaItems([...storageService.getAgendaItems()]);
+  };
+
+  // Handler: Agenda Delete
+  const handleDeleteAgenda = (id: string) => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus agenda kegiatan ini?')) {
+      storageService.deleteAgendaItem(id);
+      setAgendaItems([...storageService.getAgendaItems()]);
+    }
+  };
+
   // Handler: Reset Data
   const handleResetData = () => {
     if (
@@ -141,6 +191,7 @@ export default function App() {
       storageService.resetAllToDefault();
       setWorkEntries([...storageService.getWorkEntries()]);
       setKpiIndicators([...storageService.getKpiIndicators()]);
+      setAgendaItems([...storageService.getAgendaItems()]);
     }
   };
 
@@ -218,6 +269,24 @@ export default function App() {
           />
         )}
 
+        {activeTab === 'agenda' && (
+          <AgendaView
+            agendaItems={agendaItems}
+            selectedMonth={selectedMonth}
+            selectedDepartment={selectedDepartment}
+            onAddAgenda={() => {
+              setEditingAgenda(null);
+              setIsAgendaModalOpen(true);
+            }}
+            onEditAgenda={(item) => {
+              setEditingAgenda(item);
+              setIsAgendaModalOpen(true);
+            }}
+            onDeleteAgenda={handleDeleteAgenda}
+            onQuickStatusChange={handleAgendaQuickStatusChange}
+          />
+        )}
+
         {activeTab === 'laporan' && (
           <ReportView
             workEntries={workEntries}
@@ -261,6 +330,17 @@ export default function App() {
         defaultDepartment={kpiModalDept}
         defaultMonth={selectedMonth}
       />
+
+      {/* Agenda Modal */}
+      <AgendaModal
+        isOpen={isAgendaModalOpen}
+        onClose={() => setIsAgendaModalOpen(false)}
+        onSave={handleSaveAgenda}
+        editingAgenda={editingAgenda}
+        defaultDepartment={selectedDepartment === 'Semua' ? 'Humas' : selectedDepartment}
+        defaultDate={selectedMonth ? `${selectedMonth}-15` : undefined}
+      />
+
       {/* Offline Status Toast */}
       <OfflineIndicator />
     </div>
