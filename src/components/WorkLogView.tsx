@@ -104,6 +104,19 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
     return sortOrder === 'terbaru' ? dateB - dateA : dateA - dateB;
   });
 
+  // Summary counts for current month & department selection
+  const monthEntries = workEntries.filter((entry) => {
+    const entryMonth = (entry.tanggalMasuk || entry.tanggal || '').substring(0, 7);
+    const isMonthMatch = !selectedMonth || entryMonth === selectedMonth;
+    const isDeptMatch = selectedDepartment === 'Semua' || entry.bidang === selectedDepartment;
+    return isMonthMatch && isDeptMatch;
+  });
+
+  const totalJobs = monthEntries.length;
+  const countSelesai = monthEntries.filter((e) => e.status === 'Selesai').length;
+  const countProses = monthEntries.filter((e) => e.status === 'Proses').length;
+  const countBelumMulai = monthEntries.filter((e) => e.status === 'Belum dikerjakan').length;
+
   return (
     <div className="space-y-5 sm:space-y-6 pb-6 md:pb-8">
       {/* Top Header & Toolbar */}
@@ -121,6 +134,65 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
         >
           <Plus className="w-4 h-4" />
           <span>Tambah Pekerjaan Baru</span>
+        </button>
+      </div>
+
+      {/* Summary Stat Cards (Request 4 & 5) */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+        <button
+          onClick={() => handleStatusFilterChange('Semua')}
+          className={`text-left bg-white p-3.5 rounded-xl border transition-all cursor-pointer flex justify-between items-center ${
+            activeStatusFilter === 'Semua'
+              ? 'border-slate-800 ring-2 ring-slate-800/10 shadow-sm'
+              : 'border-slate-200/80 hover:border-slate-300'
+          }`}
+        >
+          <div>
+            <span className="text-slate-500 font-medium text-[11px]">Total Pekerjaan</span>
+            <p className="text-xl font-bold font-mono text-slate-900 mt-0.5">{totalJobs}</p>
+          </div>
+        </button>
+
+        <button
+          onClick={() => handleStatusFilterChange('Selesai')}
+          className={`text-left bg-white p-3.5 rounded-xl border transition-all cursor-pointer flex justify-between items-center ${
+            activeStatusFilter === 'Selesai'
+              ? 'border-emerald-600 ring-2 ring-emerald-500/10 shadow-sm'
+              : 'border-emerald-200/80 hover:border-emerald-300'
+          }`}
+        >
+          <div>
+            <span className="text-emerald-700 font-semibold text-[11px]">Pekerjaan Selesai</span>
+            <p className="text-xl font-bold font-mono text-emerald-700 mt-0.5">{countSelesai}</p>
+          </div>
+        </button>
+
+        <button
+          onClick={() => handleStatusFilterChange('Proses')}
+          className={`text-left bg-white p-3.5 rounded-xl border transition-all cursor-pointer flex justify-between items-center ${
+            activeStatusFilter === 'Proses'
+              ? 'border-amber-600 ring-2 ring-amber-500/10 shadow-sm'
+              : 'border-amber-200/80 hover:border-amber-300'
+          }`}
+        >
+          <div>
+            <span className="text-amber-700 font-semibold text-[11px]">Dalam Proses</span>
+            <p className="text-xl font-bold font-mono text-amber-700 mt-0.5">{countProses}</p>
+          </div>
+        </button>
+
+        <button
+          onClick={() => handleStatusFilterChange('Belum dikerjakan')}
+          className={`text-left bg-white p-3.5 rounded-xl border transition-all cursor-pointer flex justify-between items-center ${
+            activeStatusFilter === 'Belum dikerjakan'
+              ? 'border-slate-700 ring-2 ring-slate-700/10 shadow-sm'
+              : 'border-slate-200/80 hover:border-slate-300'
+          }`}
+        >
+          <div>
+            <span className="text-slate-600 font-semibold text-[11px]">Belum Mulai</span>
+            <p className="text-xl font-bold font-mono text-slate-700 mt-0.5">{countBelumMulai}</p>
+          </div>
         </button>
       </div>
 
@@ -167,34 +239,21 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
           </div>
         </div>
 
-        {/* Status Segments & Desktop Kolom Button */}
-        <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-end">
-          {/* Segmented Status Filter Control */}
-          <div className="grid grid-cols-4 bg-slate-100/90 p-1 rounded-xl gap-1 w-full md:w-auto">
-            {[
-              { id: 'Semua', labelMobile: 'Semua', labelFull: 'Semua' },
-              { id: 'Belum dikerjakan', labelMobile: 'Belum', labelFull: 'Belum Selesai' },
-              { id: 'Proses', labelMobile: 'Proses', labelFull: 'Proses' },
-              { id: 'Selesai', labelMobile: 'Selesai', labelFull: 'Selesai' },
-            ].map((opt) => {
-              const isSelected = activeStatusFilter === opt.id;
-              return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => handleStatusFilterChange(opt.id as 'Semua' | TaskStatus)}
-                  className={`py-1.5 px-3 rounded-lg text-center font-medium transition-all text-xs whitespace-nowrap ${
-                    isSelected
-                      ? 'bg-slate-900 text-white font-semibold shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
-                  }`}
-                >
-                  <span className="sm:hidden">{opt.labelMobile}</span>
-                  <span className="hidden sm:inline">{opt.labelFull}</span>
-                </button>
-              );
-            })}
-          </div>
+        {/* Desktop Kolom & Active Filter Indicator */}
+        <div className="flex items-center gap-2 shrink-0">
+          {activeStatusFilter !== 'Semua' && (
+            <div className="flex items-center gap-1.5 text-xs bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-xl">
+              <span className="font-semibold">Filter: {activeStatusFilter === 'Belum dikerjakan' ? 'Belum Mulai' : activeStatusFilter}</span>
+              <button
+                type="button"
+                onClick={() => handleStatusFilterChange('Semua')}
+                className="hover:text-rose-600 font-extrabold ml-1"
+                title="Tampilkan semua"
+              >
+                ✕
+              </button>
+            </div>
+          )}
 
           {/* Kolom Selector Button on Desktop */}
           <div className="relative shrink-0 hidden md:block">
@@ -213,6 +272,7 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
             </button>
           </div>
         </div>
+
 
         {/* Checkbox Column Visibility Popover Dropdown */}
         {showColumnDropdown && (

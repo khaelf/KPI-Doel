@@ -158,15 +158,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </button>
 
-        {/* Belum Dimulai */}
+        {/* Belum Mulai */}
         <button
           onClick={() => onNavigateToCatatanWithStatus?.('Belum dikerjakan')}
           className="bg-white text-left rounded-xl p-3.5 sm:p-4 border border-slate-200/60 hover:border-slate-400 hover:shadow-md transition-all active:scale-[0.99] flex flex-col justify-between cursor-pointer group"
-          title="Klik untuk melihat pekerjaan belum dimulai"
+          title="Klik untuk melihat pekerjaan belum mulai"
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] sm:text-xs font-medium text-slate-500 group-hover:text-slate-800 transition-colors">
-              Belum Dimulai
+              Belum Mulai
             </span>
             <Clock className="w-4 h-4 text-slate-400 group-hover:scale-110 transition-transform" />
           </div>
@@ -342,99 +342,111 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         );
       })()}
 
-      {/* Recent Work Entries Table */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-          <div>
-            <h3 className="text-base font-bold text-slate-900">Daftar Pekerjaan Terbaru</h3>
-            <p className="text-xs text-slate-500">Pekerjaan terkini di bulan {monthLabel}</p>
-          </div>
-          <button
-            onClick={() => onNavigateTab('catatan')}
-            className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1"
-          >
-            <span>Lihat Semua Catatan</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
+      {/* Active Work Entries Table (Sedang Berjalan & Belum Mulai) per Request 3 */}
+      {(() => {
+        const activeEntries = monthWorkEntries
+          .filter((e) => e.status === 'Proses' || e.status === 'Belum dikerjakan')
+          .sort((a, b) => {
+            const dateA = new Date(a.tanggalMasuk || a.tanggal || '').getTime();
+            const dateB = new Date(b.tanggalMasuk || b.tanggal || '').getTime();
+            return dateB - dateA;
+          })
+          .slice(0, 5);
 
-        {recentEntries.length === 0 ? (
-          <div className="p-8 text-center text-slate-500 text-xs">
-            Belum ada catatan pekerjaan untuk bulan {monthLabel}. Catatan dapat ditambahkan melalui menu Catatan Kerja.
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-600">
-              <thead className="bg-slate-50 text-slate-700 uppercase font-semibold text-[11px] border-b border-slate-200">
-                <tr>
-                  <th className="py-3 px-3">Tanggal Masuk</th>
-                  <th className="py-3 px-3">Bidang</th>
-                  <th className="py-3 px-4">Nama Pekerjaan</th>
-                  <th className="py-3 px-3">Status</th>
-                  <th className="py-3 px-3 text-right">Capaian</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {recentEntries.map((entry) => (
-                  <tr key={entry.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3 px-3 font-mono text-slate-500 whitespace-nowrap">
-                      {entry.tanggalMasuk || entry.tanggal}
-                    </td>
-                    <td className="py-3 px-3 whitespace-nowrap">
-                      <span
-                        className={`inline-block px-2 py-0.5 text-[10px] font-bold rounded ${
-                          entry.bidang === 'Humas'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : 'bg-blue-100 text-blue-800'
-                        }`}
-                      >
-                        {entry.bidang}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 font-medium text-slate-900 min-w-[200px]">
-                      <div>{entry.namaPekerjaan}</div>
-                      {entry.catatan && (
-                        <div className="text-[11px] text-slate-400 truncate max-w-xs mt-0.5">
-                          {entry.catatan.startsWith('http') ? (
-                            <a
-                              href={entry.catatan}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-emerald-600 hover:underline flex items-center gap-1"
-                            >
-                              <span>Tautan Dokumentasi</span>
-                              <ExternalLink className="w-3 h-3" />
-                            </a>
-                          ) : (
-                            entry.catatan
+        return (
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Daftar Pekerjaan Aktif</h3>
+                <p className="text-xs text-slate-500">Pekerjaan yang sedang dalam proses & belum mulai di bulan {monthLabel}</p>
+              </div>
+              <button
+                onClick={() => onNavigateTab('catatan')}
+                className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1"
+              >
+                <span>Lihat Semua Catatan</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+
+            {activeEntries.length === 0 ? (
+              <div className="p-8 text-center text-slate-500 text-xs">
+                Tidak ada pekerjaan aktif (proses/belum mulai) untuk bulan {monthLabel}. Semua pekerjaan telah selesai atau belum ada pekerjaan baru.
+              </div>
+            ) : (
+              <div className="overflow-x-auto scrollbar-none">
+                <table className="w-full text-left text-xs text-slate-600">
+                  <thead className="bg-slate-50 text-slate-700 uppercase font-semibold text-[11px] border-b border-slate-200">
+                    <tr>
+                      <th className="py-3 px-3">Tanggal Masuk</th>
+                      <th className="py-3 px-3">Bidang</th>
+                      <th className="py-3 px-4">Nama Pekerjaan</th>
+                      <th className="py-3 px-3">Status</th>
+                      <th className="py-3 px-3 text-right">Capaian</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {activeEntries.map((entry) => (
+                      <tr key={entry.id} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="py-3 px-3 font-mono text-slate-500 whitespace-nowrap">
+                          {entry.tanggalMasuk || entry.tanggal}
+                        </td>
+                        <td className="py-3 px-3 whitespace-nowrap">
+                          <span
+                            className={`inline-block px-2 py-0.5 text-[10px] font-bold rounded ${
+                              entry.bidang === 'Humas'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : 'bg-blue-100 text-blue-800'
+                            }`}
+                          >
+                            {entry.bidang}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 font-medium text-slate-900 min-w-[200px]">
+                          <div>{entry.namaPekerjaan}</div>
+                          {entry.catatan && (
+                            <div className="text-[11px] text-slate-400 truncate max-w-xs mt-0.5">
+                              {entry.catatan.startsWith('http') ? (
+                                <a
+                                  href={entry.catatan}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-emerald-600 hover:underline flex items-center gap-1"
+                                >
+                                  <span>Tautan Dokumentasi</span>
+                                  <ExternalLink className="w-3 h-3" />
+                                </a>
+                              ) : (
+                                entry.catatan
+                              )}
+                            </div>
                           )}
-                        </div>
-                      )}
-                    </td>
-                    <td className="py-3 px-3 whitespace-nowrap">
-                      {/* Read-only status badge as requested in requirement 5 */}
-                      <span
-                        className={`inline-block text-[11px] font-semibold rounded-md px-2.5 py-1 border ${
-                          entry.status === 'Selesai'
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                            : entry.status === 'Proses'
-                            ? 'bg-amber-50 text-amber-700 border-amber-200'
-                            : 'bg-slate-100 text-slate-600 border-slate-300'
-                        }`}
-                      >
-                        {entry.status}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3 text-right font-mono font-bold text-slate-900 whitespace-nowrap">
-                      {entry.persentase}%
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                        </td>
+                        <td className="py-3 px-3 whitespace-nowrap">
+                          <span
+                            className={`inline-block text-[11px] font-semibold rounded-md px-2.5 py-1 border ${
+                              entry.status === 'Selesai'
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : entry.status === 'Proses'
+                                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                : 'bg-slate-100 text-slate-600 border-slate-300'
+                            }`}
+                          >
+                            {entry.status === 'Belum dikerjakan' ? 'Belum Mulai' : entry.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3 text-right font-mono font-bold text-slate-900 whitespace-nowrap">
+                          {entry.persentase}%
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        );
+      })()}
     </div>
   );
 };

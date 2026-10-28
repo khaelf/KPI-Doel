@@ -15,6 +15,10 @@ import {
   Megaphone,
   Monitor,
   Sparkles,
+  FileText,
+  Printer,
+  TrendingUp,
+  Award,
 } from 'lucide-react';
 
 interface KpiMonthlyViewProps {
@@ -36,6 +40,7 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
   onDeleteIndicator,
   onQuickUpdateRealisasi,
 }) => {
+  const [showRekapan, setShowRekapan] = useState(true);
   const monthLabel = formatMonthLabel(selectedMonth);
 
   // Filter indicators by month
@@ -50,23 +55,51 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
   // Calculations for Humas
   let humasTotalBobot = 0;
   let humasTotalScore = 0;
+  let humasAchievedCount = 0;
   humasIndicators.forEach((ind) => {
     humasTotalBobot += ind.bobot;
     const calc = calculateIndicatorAchievement(ind);
     humasTotalScore += calc.weightedScore;
+    if (calc.rawPercentage >= 100) humasAchievedCount++;
   });
 
   // Calculations for IT
   let itTotalBobot = 0;
   let itTotalScore = 0;
+  let itAchievedCount = 0;
   itIndicators.forEach((ind) => {
     itTotalBobot += ind.bobot;
     const calc = calculateIndicatorAchievement(ind);
     itTotalScore += calc.weightedScore;
+    if (calc.rawPercentage >= 100) itAchievedCount++;
   });
 
   const humasBadge = getKpiStatusBadge(humasTotalScore);
   const itBadge = getKpiStatusBadge(itTotalScore);
+
+  // Rekapan Total Calculations
+  const allCurrentIndicators =
+    selectedDepartment === 'Humas'
+      ? humasIndicators
+      : selectedDepartment === 'IT'
+      ? itIndicators
+      : [...humasIndicators, ...itIndicators];
+
+  const totalAchievedCount =
+    selectedDepartment === 'Humas'
+      ? humasAchievedCount
+      : selectedDepartment === 'IT'
+      ? itAchievedCount
+      : humasAchievedCount + itAchievedCount;
+
+  const combinedAvgScore =
+    selectedDepartment === 'Humas'
+      ? humasTotalScore
+      : selectedDepartment === 'IT'
+      ? itTotalScore
+      : (humasTotalScore + itTotalScore) / 2;
+
+  const combinedBadge = getKpiStatusBadge(combinedAvgScore);
 
   return (
     <div className="space-y-8 pb-20 md:pb-8">
@@ -79,7 +112,20 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Toggle Rekapan Bulanan Button */}
+          <button
+            onClick={() => setShowRekapan(!showRekapan)}
+            className={`px-3.5 py-2 font-semibold text-xs rounded-xl transition-all shadow-sm flex items-center gap-1.5 ${
+              showRekapan
+                ? 'bg-slate-900 text-white hover:bg-slate-800'
+                : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-300'
+            }`}
+          >
+            <FileText className="w-4 h-4 text-emerald-400" />
+            <span>{showRekapan ? 'Sembunyikan Rekapan' : 'Rekapan Bulanan'}</span>
+          </button>
+
           {(selectedDepartment === 'Semua' || selectedDepartment === 'Humas') && (
             <button
               onClick={() => onAddIndicator('Humas')}
@@ -101,6 +147,120 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
           )}
         </div>
       </div>
+
+      {/* --- FITUR REKAPAN BULANAN (Request 2) --- */}
+      {showRekapan && (
+        <div className="bg-gradient-to-br from-slate-900 via-emerald-950 to-slate-900 text-white p-6 rounded-2xl border border-emerald-800/80 shadow-md space-y-5 animate-in fade-in duration-200">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-emerald-800/60 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-700 text-white flex items-center justify-center font-bold shrink-0 shadow-sm">
+                <Award className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white">Rekapan Bulanan Kinerja KPI ({monthLabel})</h3>
+                <p className="text-xs text-emerald-200/80">
+                  Ringkasan evaluasi pencapaian indikator kinerja utama Humas & IT Parabek
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => window.print()}
+              className="no-print px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white font-medium text-xs rounded-lg transition-colors flex items-center gap-1.5 self-start sm:self-auto border border-white/20"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span>Cetak Rekapan</span>
+            </button>
+          </div>
+
+          {/* Stat Box Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+            <div className="bg-white/5 border border-white/10 p-3.5 rounded-xl">
+              <span className="text-emerald-200/80 font-medium block text-[11px]">Rata-rata Nilai KPI</span>
+              <div className="flex items-baseline gap-2 mt-1">
+                <span className="text-2xl font-bold font-mono text-white">{combinedAvgScore.toFixed(2)}%</span>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${combinedBadge.badgeClass}`}>
+                  {combinedBadge.label}
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-white/5 border border-white/10 p-3.5 rounded-xl">
+              <span className="text-emerald-200/80 font-medium block text-[11px]">Total Indikator Bulanan</span>
+              <span className="text-2xl font-bold font-mono text-white mt-1 block">
+                {allCurrentIndicators.length} <span className="text-xs font-normal text-emerald-300">indikator</span>
+              </span>
+            </div>
+
+            <div className="bg-white/5 border border-white/10 p-3.5 rounded-xl">
+              <span className="text-emerald-200/80 font-medium block text-[11px]">Indikator 100%+ (Tercapai)</span>
+              <span className="text-2xl font-bold font-mono text-emerald-300 mt-1 block">
+                {totalAchievedCount} / {allCurrentIndicators.length}
+              </span>
+            </div>
+
+            <div className="bg-white/5 border border-white/10 p-3.5 rounded-xl">
+              <span className="text-emerald-200/80 font-medium block text-[11px]">Perlu Ditingkatkan</span>
+              <span className="text-2xl font-bold font-mono text-amber-300 mt-1 block">
+                {allCurrentIndicators.length - totalAchievedCount} <span className="text-xs font-normal text-amber-200">indikator</span>
+              </span>
+            </div>
+          </div>
+
+          {/* Department Breakdown Mini Table */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-2">
+            {(selectedDepartment === 'Semua' || selectedDepartment === 'Humas') && (
+              <div className="bg-white/5 rounded-xl p-4 border border-emerald-700/50 space-y-2">
+                <div className="flex items-center justify-between font-bold text-white border-b border-emerald-800/40 pb-2">
+                  <span className="flex items-center gap-1.5 text-emerald-300">
+                    <Megaphone className="w-4 h-4" /> Bagian Humas
+                  </span>
+                  <span className="font-mono text-emerald-300 text-sm">{humasTotalScore.toFixed(2)}%</span>
+                </div>
+                <div className="flex justify-between text-emerald-100/80 pt-1">
+                  <span>Jumlah Indikator:</span>
+                  <span className="font-mono font-bold text-white">{humasIndicators.length}</span>
+                </div>
+                <div className="flex justify-between text-emerald-100/80">
+                  <span>Target 100%+ Achieved:</span>
+                  <span className="font-mono font-bold text-emerald-300">{humasAchievedCount} Indikator</span>
+                </div>
+                <div className="flex justify-between text-emerald-100/80">
+                  <span>Predikat Evaluasi:</span>
+                  <span className={`px-2 py-0.5 text-[10px] font-bold rounded ${humasBadge.badgeClass}`}>
+                    {humasBadge.label}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {(selectedDepartment === 'Semua' || selectedDepartment === 'IT') && (
+              <div className="bg-white/5 rounded-xl p-4 border border-blue-700/50 space-y-2">
+                <div className="flex items-center justify-between font-bold text-white border-b border-blue-800/40 pb-2">
+                  <span className="flex items-center gap-1.5 text-blue-300">
+                    <Monitor className="w-4 h-4" /> Bagian IT
+                  </span>
+                  <span className="font-mono text-blue-300 text-sm">{itTotalScore.toFixed(2)}%</span>
+                </div>
+                <div className="flex justify-between text-blue-100/80 pt-1">
+                  <span>Jumlah Indikator:</span>
+                  <span className="font-mono font-bold text-white">{itIndicators.length}</span>
+                </div>
+                <div className="flex justify-between text-blue-100/80">
+                  <span>Target 100%+ Achieved:</span>
+                  <span className="font-mono font-bold text-blue-300">{itAchievedCount} Indikator</span>
+                </div>
+                <div className="flex justify-between text-blue-100/80">
+                  <span>Predikat Evaluasi:</span>
+                  <span className={`px-2 py-0.5 text-[10px] font-bold rounded ${itBadge.badgeClass}`}>
+                    {itBadge.label}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* --- HUMAS SECTION --- */}
       {(selectedDepartment === 'Semua' || selectedDepartment === 'Humas') && (
