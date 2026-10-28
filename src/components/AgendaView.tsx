@@ -84,6 +84,7 @@ export const AgendaView: React.FC<AgendaViewProps> = ({
   const countMendatang = totalInMonth.filter((i) => i.status === 'Mendatang').length;
   const countBerlangsung = totalInMonth.filter((i) => i.status === 'Berlangsung').length;
   const countSelesai = totalInMonth.filter((i) => i.status === 'Selesai').length;
+  const countDibatalkan = totalInMonth.filter((i) => i.status === 'Dibatalkan').length;
 
   const getStatusBadge = (status: AgendaStatus) => {
     switch (status) {
@@ -156,7 +157,7 @@ export const AgendaView: React.FC<AgendaViewProps> = ({
             <CalendarDays className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-slate-900">Agenda Kegiatan Humas & IT</h2>
+            <h2 className="text-xl font-bold text-slate-900">Agenda Kegiatan</h2>
             <p className="text-xs text-slate-500 mt-0.5">
               Jadwal rapat, liputan, maintenance, dan kegiatan operasional periode {monthLabel}.
             </p>
@@ -165,60 +166,110 @@ export const AgendaView: React.FC<AgendaViewProps> = ({
 
         <button
           onClick={onAddAgenda}
-          className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-xl transition-all shadow-sm flex items-center justify-center gap-2"
+          className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>Tambah Agenda Baru</span>
         </button>
       </div>
 
-      {/* Summary KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+      {/* Summary KPI Cards (Clickable Filters) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        {/* Total Agenda */}
+        <button
+          onClick={() => setStatusFilter('Semua')}
+          className={`text-left bg-white p-3.5 sm:p-4 rounded-xl border transition-all flex items-center justify-between cursor-pointer ${
+            statusFilter === 'Semua'
+              ? 'border-emerald-600 ring-2 ring-emerald-500/20 shadow-md'
+              : 'border-slate-200/80 hover:border-slate-300 shadow-xs'
+          }`}
+        >
           <div>
-            <p className="text-[11px] font-medium text-slate-500">Total Agenda</p>
-            <p className="text-2xl font-bold font-mono text-slate-900">{totalInMonth.length}</p>
+            <p className="text-[11px] font-semibold text-slate-500">Total Agenda</p>
+            <p className="text-xl sm:text-2xl font-bold font-mono text-slate-900">{totalInMonth.length}</p>
           </div>
-          <div className="w-9 h-9 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
-            <CalendarDays className="w-5 h-5" />
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+            <CalendarDays className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
-        </div>
+        </button>
 
-        <div className="bg-white p-4 rounded-xl border border-blue-200/80 shadow-xs flex items-center justify-between">
+        {/* Mendatang */}
+        <button
+          onClick={() => setStatusFilter('Mendatang')}
+          className={`text-left bg-white p-3.5 sm:p-4 rounded-xl border transition-all flex items-center justify-between cursor-pointer ${
+            statusFilter === 'Mendatang'
+              ? 'border-blue-600 ring-2 ring-blue-500/20 shadow-md'
+              : 'border-blue-200/80 hover:border-blue-300 shadow-xs'
+          }`}
+        >
           <div>
-            <p className="text-[11px] font-medium text-blue-600">Mendatang</p>
-            <p className="text-2xl font-bold font-mono text-blue-700">{countMendatang}</p>
+            <p className="text-[11px] font-semibold text-blue-600">Mendatang</p>
+            <p className="text-xl sm:text-2xl font-bold font-mono text-blue-700">{countMendatang}</p>
           </div>
-          <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-            <CalendarIcon className="w-5 h-5" />
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <CalendarIcon className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
-        </div>
+        </button>
 
-        <div className="bg-white p-4 rounded-xl border border-amber-200/80 shadow-xs flex items-center justify-between">
+        {/* Berlangsung */}
+        <button
+          onClick={() => setStatusFilter('Berlangsung')}
+          className={`text-left bg-white p-3.5 sm:p-4 rounded-xl border transition-all flex items-center justify-between cursor-pointer ${
+            statusFilter === 'Berlangsung'
+              ? 'border-amber-600 ring-2 ring-amber-500/20 shadow-md'
+              : 'border-amber-200/80 hover:border-amber-300 shadow-xs'
+          }`}
+        >
           <div>
-            <p className="text-[11px] font-medium text-amber-600">Berlangsung</p>
-            <p className="text-2xl font-bold font-mono text-amber-700">{countBerlangsung}</p>
+            <p className="text-[11px] font-semibold text-amber-600">Berlangsung</p>
+            <p className="text-xl sm:text-2xl font-bold font-mono text-amber-700">{countBerlangsung}</p>
           </div>
-          <div className="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-            <AlertCircle className="w-5 h-5" />
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+            <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
-        </div>
+        </button>
 
-        <div className="bg-white p-4 rounded-xl border border-emerald-200/80 shadow-xs flex items-center justify-between">
+        {/* Selesai */}
+        <button
+          onClick={() => setStatusFilter('Selesai')}
+          className={`text-left bg-white p-3.5 sm:p-4 rounded-xl border transition-all flex items-center justify-between cursor-pointer ${
+            statusFilter === 'Selesai'
+              ? 'border-emerald-600 ring-2 ring-emerald-500/20 shadow-md'
+              : 'border-emerald-200/80 hover:border-emerald-300 shadow-xs'
+          }`}
+        >
           <div>
-            <p className="text-[11px] font-medium text-emerald-600">Selesai</p>
-            <p className="text-2xl font-bold font-mono text-emerald-700">{countSelesai}</p>
+            <p className="text-[11px] font-semibold text-emerald-600">Selesai</p>
+            <p className="text-xl sm:text-2xl font-bold font-mono text-emerald-700">{countSelesai}</p>
           </div>
-          <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-            <CheckCircle2 className="w-5 h-5" />
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
-        </div>
+        </button>
+
+        {/* Dibatalkan */}
+        <button
+          onClick={() => setStatusFilter('Dibatalkan')}
+          className={`text-left bg-white p-3.5 sm:p-4 rounded-xl border transition-all flex items-center justify-between cursor-pointer ${
+            statusFilter === 'Dibatalkan'
+              ? 'border-rose-600 ring-2 ring-rose-500/20 shadow-md'
+              : 'border-rose-200/80 hover:border-rose-300 shadow-xs'
+          }`}
+        >
+          <div>
+            <p className="text-[11px] font-semibold text-rose-600">Dibatalkan</p>
+            <p className="text-xl sm:text-2xl font-bold font-mono text-rose-700">{countDibatalkan}</p>
+          </div>
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+            <XCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+          </div>
+        </button>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+      {/* Search Bar Container */}
+      <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         {/* Search */}
-        <div className="relative w-full sm:w-72">
+        <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
@@ -229,24 +280,22 @@ export const AgendaView: React.FC<AgendaViewProps> = ({
           />
         </div>
 
-        {/* Status Filter Chips */}
-        <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto scrollbar-none text-xs">
-          {(['Semua', 'Mendatang', 'Berlangsung', 'Selesai', 'Dibatalkan'] as const).map(
-            (status) => (
+        {/* Active Filter Indicator Badge if filtered */}
+        {statusFilter !== 'Semua' && (
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-slate-500">Filter Status:</span>
+            <span className="font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+              <span>{statusFilter}</span>
               <button
-                key={status}
-                onClick={() => setStatusFilter(status)}
-                className={`px-3 py-1.5 rounded-lg font-semibold whitespace-nowrap transition-all ${
-                  statusFilter === status
-                    ? 'bg-emerald-800 text-white shadow-xs'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
+                onClick={() => setStatusFilter('Semua')}
+                className="hover:text-rose-600 ml-1 font-extrabold text-slate-400"
+                title="Tampilkan Semua Status"
               >
-                {status}
+                ✕
               </button>
-            )
-          )}
-        </div>
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Agenda Items List */}

@@ -82,12 +82,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
 
             {/* Month Picker */}
-            <div className="relative">
+            <div className="relative shrink-0">
               <input
                 type="month"
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
-                className="bg-emerald-900/90 border border-emerald-700/60 text-emerald-100 text-[11px] sm:text-xs rounded-lg px-2.5 py-1.5 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                className="bg-emerald-900/90 border border-emerald-700/60 text-emerald-100 text-xs rounded-lg px-2 sm:px-2.5 py-1.5 font-semibold min-w-[135px] sm:min-w-[140px] focus:outline-none focus:ring-2 focus:ring-emerald-400"
               />
             </div>
 

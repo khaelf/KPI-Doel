@@ -1,5 +1,5 @@
 import React from 'react';
-import { WorkEntry, KpiIndicator, Department } from '../types/kpi';
+import { WorkEntry, KpiIndicator, AgendaItem, Department } from '../types/kpi';
 import {
   calculateDepartmentSummary,
   formatMonthLabel,
@@ -13,14 +13,16 @@ import {
   ExternalLink,
   Megaphone,
   Monitor,
+  Calendar,
 } from 'lucide-react';
 
 interface DashboardViewProps {
   workEntries: WorkEntry[];
   kpiIndicators: KpiIndicator[];
+  agendaItems?: AgendaItem[];
   selectedMonth: string;
   selectedDepartment: 'Semua' | Department;
-  onNavigateTab: (tab: 'catatan' | 'kpi' | 'laporan') => void;
+  onNavigateTab: (tab: 'catatan' | 'kpi' | 'agenda' | 'laporan') => void;
   onNavigateToCatatanWithStatus?: (status: 'Semua' | 'Belum dikerjakan' | 'Proses' | 'Selesai') => void;
   onOpenAddModal?: () => void;
   onQuickUpdateStatus: (id: string, newStatus: 'Belum dikerjakan' | 'Proses' | 'Selesai') => void;
@@ -29,6 +31,7 @@ interface DashboardViewProps {
 export const DashboardView: React.FC<DashboardViewProps> = ({
   workEntries,
   kpiIndicators,
+  agendaItems = [],
   selectedMonth,
   selectedDepartment,
   onNavigateTab,
@@ -280,6 +283,64 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Agenda Kegiatan Dashboard Widget (Mendatang - Tanggal & Judul) */}
+      {(() => {
+        const upcomingAgendas = agendaItems
+          .filter((ag) => {
+            const itemMonth = (ag.tanggal || '').substring(0, 7);
+            const isDeptMatch =
+              selectedDepartment === 'Semua' || ag.bidang === 'Semua' || ag.bidang === selectedDepartment;
+            const isUpcoming = ag.status === 'Mendatang';
+            return (!selectedMonth || itemMonth === selectedMonth) && isDeptMatch && isUpcoming;
+          })
+          .sort((a, b) => (a.tanggal || '').localeCompare(b.tanggal || ''))
+          .slice(0, 5);
+
+        return (
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
+                  <Calendar className="w-4 h-4 text-emerald-700" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Agenda Mendatang</h3>
+                  <p className="text-xs text-slate-500">Jadwal kegiatan yang akan datang ({monthLabel})</p>
+                </div>
+              </div>
+              <button
+                onClick={() => onNavigateTab('agenda')}
+                className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1"
+              >
+                <span>Lihat Semua Agenda</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+
+            {upcomingAgendas.length === 0 ? (
+              <div className="p-6 text-center text-slate-500 text-xs">
+                Belum ada agenda mendatang untuk bulan {monthLabel}. Agenda baru dapat ditambahkan melalui menu Agenda.
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100 text-xs">
+                {upcomingAgendas.map((ag) => (
+                  <div key={ag.id} className="p-3.5 px-5 hover:bg-slate-50/80 transition-colors flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <span className="shrink-0 font-mono font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/80 text-xs">
+                        {ag.tanggal}
+                      </span>
+                      <span className="font-semibold text-slate-800 truncate">
+                        {ag.judul}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Recent Work Entries Table */}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">

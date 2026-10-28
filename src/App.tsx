@@ -218,6 +218,7 @@ export default function App() {
           <DashboardView
             workEntries={workEntries}
             kpiIndicators={kpiIndicators}
+            agendaItems={agendaItems}
             selectedMonth={selectedMonth}
             selectedDepartment={selectedDepartment}
             onNavigateTab={(tab) => setActiveTab(tab)}

@@ -81,8 +81,14 @@ export const AgendaModal: React.FC<AgendaModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-lg w-full shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-slate-200">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 cursor-pointer"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white rounded-2xl max-w-lg w-full shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-slate-200 cursor-default"
+      >
         {/* Header */}
         <div className="bg-[#1b4332] text-white p-5 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -104,7 +110,7 @@ export const AgendaModal: React.FC<AgendaModalProps> = ({
           {/* Judul Agenda */}
           <div>
             <label className="block font-semibold text-slate-900 mb-1">
-              Judul Agenda / Kegiatan <span className="text-rose-500">*</span>
+              Judul Agenda <span className="text-rose-500">*</span>
             </label>
             <input
               type="text"
@@ -120,7 +126,7 @@ export const AgendaModal: React.FC<AgendaModalProps> = ({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block font-semibold text-slate-900 mb-1">
-                Bidang / Penanggung Jawab
+                Bidang
               </label>
               <select
                 value={bidang}
@@ -134,7 +140,7 @@ export const AgendaModal: React.FC<AgendaModalProps> = ({
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-900 mb-1">Status Agenda</label>
+              <label className="block font-semibold text-slate-900 mb-1">Status</label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as AgendaStatus)}
@@ -153,7 +159,7 @@ export const AgendaModal: React.FC<AgendaModalProps> = ({
             <div>
               <label className="block font-semibold text-slate-900 mb-1 flex items-center gap-1">
                 <Calendar className="w-3.5 h-3.5 text-emerald-700" />
-                <span>Tanggal Agenda <span className="text-rose-500">*</span></span>
+                <span>Tanggal <span className="text-rose-500">*</span></span>
               </label>
               <input
                 type="date"
@@ -168,7 +174,7 @@ export const AgendaModal: React.FC<AgendaModalProps> = ({
               <div>
                 <label className="block font-semibold text-slate-900 mb-1 flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5 text-slate-600" />
-                  <span>Waktu Mulai</span>
+                  <span>Mulai</span>
                 </label>
                 <input
                   type="time"
@@ -181,7 +187,7 @@ export const AgendaModal: React.FC<AgendaModalProps> = ({
               <div>
                 <label className="block font-semibold text-slate-900 mb-1 flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5 text-slate-600" />
-                  <span>Waktu Selesai</span>
+                  <span>Selesai</span>
                 </label>
                 <input
                   type="time"
@@ -197,7 +203,7 @@ export const AgendaModal: React.FC<AgendaModalProps> = ({
           <div>
             <label className="block font-semibold text-slate-900 mb-1 flex items-center gap-1">
               <MapPin className="w-3.5 h-3.5 text-slate-600" />
-              <span>Lokasi / Tempat</span>
+              <span>Lokasi</span>
             </label>
             <input
               type="text"
@@ -212,7 +218,7 @@ export const AgendaModal: React.FC<AgendaModalProps> = ({
           <div>
             <label className="block font-semibold text-slate-900 mb-1 flex items-center gap-1">
               <User className="w-3.5 h-3.5 text-slate-600" />
-              <span>Penanggung Jawab / PIC (Opsional)</span>
+              <span>Penanggung Jawab / PIC</span>
             </label>
             <input
               type="text"
@@ -223,11 +229,11 @@ export const AgendaModal: React.FC<AgendaModalProps> = ({
             />
           </div>
 
-          {/* Keterangan */}
+          {/* Catatan */}
           <div>
             <label className="block font-semibold text-slate-900 mb-1 flex items-center gap-1">
               <FileText className="w-3.5 h-3.5 text-slate-600" />
-              <span>Keterangan / Catatan Agenda</span>
+              <span>Catatan</span>
             </label>
             <textarea
               rows={3}
