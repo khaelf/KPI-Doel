@@ -6,11 +6,9 @@ import { Navbar } from './components/Navbar';
 import { DashboardView } from './components/DashboardView';
 import { WorkLogView } from './components/WorkLogView';
 import { KpiMonthlyView } from './components/KpiMonthlyView';
-import { AgendaView } from './components/AgendaView';
 import { ReportView } from './components/ReportView';
 import { WorkEntryModal } from './components/WorkEntryModal';
 import { KpiIndicatorModal } from './components/KpiIndicatorModal';
-import { AgendaModal } from './components/AgendaModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
 
 export default function App() {
@@ -18,11 +16,6 @@ export default function App() {
   const [selectedDepartment, setSelectedDepartment] = useState<'Semua' | Department>('Semua');
   const [selectedMonth, setSelectedMonth] = useState<string>('2026-10');
   const [catatanStatusFilter, setCatatanStatusFilter] = useState<'Semua' | TaskStatus>('Semua');
-
-  const handleNavigateToCatatanWithStatus = (filter: 'Semua' | TaskStatus) => {
-    setCatatanStatusFilter(filter);
-    setActiveTab('catatan');
-  };
 
   // Data State
   const [workEntries, setWorkEntries] = useState<WorkEntry[]>([]);
@@ -37,8 +30,72 @@ export default function App() {
   const [editingKpiIndicator, setEditingKpiIndicator] = useState<KpiIndicator | null>(null);
   const [kpiModalDept, setKpiModalDept] = useState<Department>('Humas');
 
-  const [isAgendaModalOpen, setIsAgendaModalOpen] = useState(false);
-  const [editingAgenda, setEditingAgenda] = useState<AgendaItem | null>(null);
+  // Sync state with browser History API so mobile/browser Back button returns to previous screen/modal
+  useEffect(() => {
+    if (!window.history.state) {
+      window.history.replaceState({ activeTab: 'dashboard', modal: null }, '');
+    }
+
+    const handlePopState = (e: PopStateEvent) => {
+      if (e.state) {
+        if (e.state.activeTab) {
+          setActiveTab(e.state.activeTab);
+        }
+        setIsWorkModalOpen(e.state.modal === 'work');
+        setIsKpiModalOpen(e.state.modal === 'kpi');
+      } else {
+        setActiveTab('dashboard');
+        setIsWorkModalOpen(false);
+        setIsKpiModalOpen(false);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const changeTab = (tab: 'dashboard' | 'catatan' | 'kpi' | 'laporan') => {
+    if (activeTab !== tab || isWorkModalOpen || isKpiModalOpen) {
+      setActiveTab(tab);
+      setIsWorkModalOpen(false);
+      setIsKpiModalOpen(false);
+      window.history.pushState({ activeTab: tab, modal: null }, '');
+    }
+  };
+
+  const openWorkModal = (entry?: WorkEntry | null) => {
+    setEditingWorkEntry(entry || null);
+    setIsWorkModalOpen(true);
+    window.history.pushState({ activeTab, modal: 'work' }, '');
+  };
+
+  const closeWorkModal = () => {
+    setIsWorkModalOpen(false);
+    setEditingWorkEntry(null);
+    if (window.history.state?.modal === 'work') {
+      window.history.back();
+    }
+  };
+
+  const openKpiModal = (dept: Department, ind?: KpiIndicator | null) => {
+    setEditingKpiIndicator(ind || null);
+    setKpiModalDept(dept);
+    setIsKpiModalOpen(true);
+    window.history.pushState({ activeTab, modal: 'kpi' }, '');
+  };
+
+  const closeKpiModal = () => {
+    setIsKpiModalOpen(false);
+    setEditingKpiIndicator(null);
+    if (window.history.state?.modal === 'kpi') {
+      window.history.back();
+    }
+  };
+
+  const handleNavigateToCatatanWithStatus = (filter: 'Semua' | TaskStatus) => {
+    setCatatanStatusFilter(filter);
+    changeTab('catatan');
+  };
 
   // Load initial data & subscribe to real-time Firestore updates
   useEffect(() => {
@@ -98,7 +155,7 @@ export default function App() {
       setSelectedMonth(entryMonth);
     }
 
-    setEditingWorkEntry(null);
+    closeWorkModal();
   };
 
   // Handler: Work Entry Status Change
@@ -130,7 +187,7 @@ export default function App() {
       storageService.addKpiIndicator(data);
     }
     setKpiIndicators([...storageService.getKpiIndicators()]);
-    setEditingKpiIndicator(null);
+    closeKpiModal();
   };
 
   // Handler: KPI Indicator Quick Update Realisasi
@@ -144,40 +201,6 @@ export default function App() {
     if (window.confirm('Apakah Anda yakin ingin menghapus indikator KPI ini?')) {
       storageService.deleteKpiIndicator(id);
       setKpiIndicators([...storageService.getKpiIndicators()]);
-    }
-  };
-
-  // Handler: Agenda Save (Add or Edit)
-  const handleSaveAgenda = (
-    data: Omit<AgendaItem, 'id' | 'createdAt'>,
-    editingId?: string
-  ) => {
-    if (editingId) {
-      storageService.updateAgendaItem(editingId, data);
-    } else {
-      storageService.addAgendaItem(data);
-    }
-    setAgendaItems([...storageService.getAgendaItems()]);
-
-    const agendaMonth = (data.tanggal || '').substring(0, 7);
-    if (agendaMonth && agendaMonth !== selectedMonth) {
-      setSelectedMonth(agendaMonth);
-    }
-
-    setEditingAgenda(null);
-  };
-
-  // Handler: Agenda Quick Status Change
-  const handleAgendaQuickStatusChange = (id: string, newStatus: AgendaStatus) => {
-    storageService.updateAgendaItem(id, { status: newStatus });
-    setAgendaItems([...storageService.getAgendaItems()]);
-  };
-
-  // Handler: Agenda Delete
-  const handleDeleteAgenda = (id: string) => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus agenda kegiatan ini?')) {
-      storageService.deleteAgendaItem(id);
-      setAgendaItems([...storageService.getAgendaItems()]);
     }
   };
 
@@ -200,15 +223,12 @@ export default function App() {
       {/* Navigation Header */}
       <Navbar
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={changeTab}
         selectedDepartment={selectedDepartment}
         setSelectedDepartment={setSelectedDepartment}
         selectedMonth={selectedMonth}
         setSelectedMonth={setSelectedMonth}
-        onOpenAddModal={() => {
-          setEditingWorkEntry(null);
-          setIsWorkModalOpen(true);
-        }}
+        onOpenAddModal={() => openWorkModal(null)}
         onResetData={handleResetData}
       />
 
@@ -221,12 +241,9 @@ export default function App() {
             agendaItems={agendaItems}
             selectedMonth={selectedMonth}
             selectedDepartment={selectedDepartment}
-            onNavigateTab={(tab) => setActiveTab(tab)}
+            onNavigateTab={(tab) => changeTab(tab)}
             onNavigateToCatatanWithStatus={handleNavigateToCatatanWithStatus}
-            onOpenAddModal={() => {
-              setEditingWorkEntry(null);
-              setIsWorkModalOpen(true);
-            }}
+            onOpenAddModal={() => openWorkModal(null)}
             onQuickUpdateStatus={handleStatusChange}
           />
         )}
@@ -238,14 +255,8 @@ export default function App() {
             selectedDepartment={selectedDepartment}
             statusFilter={catatanStatusFilter}
             setStatusFilter={setCatatanStatusFilter}
-            onAddEntry={() => {
-              setEditingWorkEntry(null);
-              setIsWorkModalOpen(true);
-            }}
-            onEditEntry={(entry) => {
-              setEditingWorkEntry(entry);
-              setIsWorkModalOpen(true);
-            }}
+            onAddEntry={() => openWorkModal(null)}
+            onEditEntry={(entry) => openWorkModal(entry)}
             onDeleteEntry={handleDeleteWorkEntry}
             onStatusChange={handleStatusChange}
           />
@@ -256,15 +267,8 @@ export default function App() {
             kpiIndicators={kpiIndicators}
             selectedMonth={selectedMonth}
             selectedDepartment={selectedDepartment}
-            onAddIndicator={(dept) => {
-              setEditingKpiIndicator(null);
-              setKpiModalDept(dept);
-              setIsKpiModalOpen(true);
-            }}
-            onEditIndicator={(ind) => {
-              setEditingKpiIndicator(ind);
-              setIsKpiModalOpen(true);
-            }}
+            onAddIndicator={(dept) => openKpiModal(dept, null)}
+            onEditIndicator={(ind) => openKpiModal(ind.bidang, ind)}
             onDeleteIndicator={handleDeleteKpiIndicator}
             onQuickUpdateRealisasi={handleQuickUpdateRealisasi}
           />
@@ -296,7 +300,7 @@ export default function App() {
       {/* Work Entry Modal */}
       <WorkEntryModal
         isOpen={isWorkModalOpen}
-        onClose={() => setIsWorkModalOpen(false)}
+        onClose={closeWorkModal}
         onSave={handleSaveWorkEntry}
         editingEntry={editingWorkEntry}
         defaultDepartment={selectedDepartment === 'Semua' ? 'Humas' : selectedDepartment}
@@ -307,7 +311,7 @@ export default function App() {
       {/* KPI Indicator Modal */}
       <KpiIndicatorModal
         isOpen={isKpiModalOpen}
-        onClose={() => setIsKpiModalOpen(false)}
+        onClose={closeKpiModal}
         onSave={handleSaveKpiIndicator}
         editingIndicator={editingKpiIndicator}
         defaultDepartment={kpiModalDept}

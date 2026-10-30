@@ -1,208 +1,167 @@
 import React, { useState } from 'react';
 import { usePWAInstall } from '../hooks/usePWAInstall';
-import { Download, Smartphone, X, CheckCircle, Info } from 'lucide-react';
+import { Download, Smartphone, X, Check, Share } from 'lucide-react';
 
-export const PWAInstallButton: React.FC = () => {
+interface PWAInstallButtonProps {
+  variant?: 'button' | 'banner' | 'compact';
+  className?: string;
+}
+
+export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
+  variant = 'button',
+  className = '',
+}) => {
   const { isInstallable, isInstalled, isIOS, install } = usePWAInstall();
-  const [showGuide, setShowGuide] = useState(false);
-  const [activeTab, setActiveTab] = useState<'android' | 'ios'>(isIOS ? 'ios' : 'android');
+  const [showGuideModal, setShowGuideModal] = useState(false);
 
-  // If already installed and opened in standalone mode, hide
+  // If app is already installed and running in standalone display mode, hide install button
   if (isInstalled) {
     return null;
   }
 
-  const handleButtonClick = async () => {
+  const handleInstallClick = async () => {
     if (isInstallable) {
-      const outcome = await install();
-      if (!outcome) {
-        setShowGuide(true);
+      const success = await install();
+      if (!success) {
+        setShowGuideModal(true);
       }
     } else {
-      setShowGuide(true);
+      setShowGuideModal(true);
     }
   };
+
+  if (variant === 'compact') {
+    return (
+      <>
+        <button
+          onClick={handleInstallClick}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold text-xs shadow-xs transition-colors ${className}`}
+          title="Instal Aplikasi ke Layar Utama HP / PC"
+        >
+          <Download className="w-3.5 h-3.5" />
+          <span>Instal App</span>
+        </button>
+
+        {showGuideModal && <GuideModal onClose={() => setShowGuideModal(false)} isIOS={isIOS} />}
+      </>
+    );
+  }
+
+  if (variant === 'banner') {
+    return (
+      <>
+        <div className={`bg-gradient-to-r from-emerald-800 to-teal-900 border border-emerald-600/50 rounded-xl p-3.5 sm:p-4 text-white shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${className}`}>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
+              <Smartphone className="w-5 h-5 text-emerald-300" />
+            </div>
+            <div>
+              <h4 className="font-bold text-sm leading-snug">Instal Aplikasi KPI Humas & IT</h4>
+              <p className="text-xs text-emerald-200">
+                Akses cepat dari layar utama HP tanpa buka browser & bekerja offline
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={handleInstallClick}
+            className="w-full sm:w-auto px-4 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-lg font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all"
+          >
+            <Download className="w-4 h-4" />
+            <span>Instal Sekarang</span>
+          </button>
+        </div>
+
+        {showGuideModal && <GuideModal onClose={() => setShowGuideModal(false)} isIOS={isIOS} />}
+      </>
+    );
+  }
 
   return (
     <>
       <button
-        onClick={handleButtonClick}
-        className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-bold text-[11px] sm:text-xs rounded-lg transition-all shadow-sm cursor-pointer shrink-0"
-        title="Pasang Aplikasi KPI di HP"
+        onClick={handleInstallClick}
+        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs shadow-sm transition-all ${className}`}
       >
-        <Download className="w-3.5 h-3.5 stroke-[2.5]" />
-        <span className="whitespace-nowrap">Install di HP</span>
+        <Download className="w-4 h-4" />
+        <span>Instal Aplikasi</span>
       </button>
 
-      {/* Installation Guide Modal (Android + iOS) */}
-      {showGuide && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-xs p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-5 sm:p-6 shadow-2xl text-slate-800 border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
-                  <Smartphone className="w-5 h-5 text-emerald-700" />
-                </div>
-                <div>
-                  <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-tight">
-                    Pasang Aplikasi di HP
-                  </h3>
-                  <p className="text-[11px] text-slate-500">
-                    Akses cepat dari layar utama seperti aplikasi bawaan
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowGuide(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Direct Trigger Button if native prompt is supported */}
-            {isInstallable && (
-              <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between gap-3">
-                <div className="text-xs text-emerald-900">
-                  <span className="font-bold">Browser mendukung instalasi langsung!</span>
-                  <p className="text-[11px] text-emerald-700">Ketuk untuk memasang tanpa manual:</p>
-                </div>
-                <button
-                  onClick={async () => {
-                    await install();
-                    setShowGuide(false);
-                  }}
-                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg shadow-sm whitespace-nowrap"
-                >
-                  Instal Sekarang
-                </button>
-              </div>
-            )}
-
-            {/* Platform Selector Tabs */}
-            <div className="flex rounded-lg bg-slate-100 p-1 mb-4 text-xs font-semibold">
-              <button
-                type="button"
-                onClick={() => setActiveTab('android')}
-                className={`flex-1 py-1.5 rounded-md transition-all text-center ${
-                  activeTab === 'android'
-                    ? 'bg-white text-emerald-800 shadow-xs font-bold'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Android / Chrome
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('ios')}
-                className={`flex-1 py-1.5 rounded-md transition-all text-center ${
-                  activeTab === 'ios'
-                    ? 'bg-white text-emerald-800 shadow-xs font-bold'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                iPhone / iPad (Safari)
-              </button>
-            </div>
-
-            {/* Android Instructions */}
-            {activeTab === 'android' && (
-              <div className="space-y-3 text-xs text-slate-700">
-                <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[11px] font-bold shrink-0 mt-0.5">
-                    1
-                  </span>
-                  <div>
-                    <span className="font-semibold text-slate-900">Buka Menu Browser</span>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      Ketuk ikon titik tiga (<strong>⋮</strong>) di pojok kanan atas browser Google Chrome atau browser HP Anda.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[11px] font-bold shrink-0 mt-0.5">
-                    2
-                  </span>
-                  <div>
-                    <span className="font-semibold text-slate-900">Pilih &quot;Instal Aplikasi&quot;</span>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      Pilih opsi <strong>&quot;Instal aplikasi&quot;</strong> atau <strong>&quot;Tambahkan ke Layar Utama&quot;</strong> (<em>Add to Home screen</em>).
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[11px] font-bold shrink-0 mt-0.5">
-                    3
-                  </span>
-                  <div>
-                    <span className="font-semibold text-slate-900">Konfirmasi Pemasangan</span>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      Tekan tombol <strong>&quot;Instal&quot;</strong>. Ikon aplikasi akan langsung muncul di layar HP Anda dan dapat digunakan offline!
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* iOS Safari Instructions */}
-            {activeTab === 'ios' && (
-              <div className="space-y-3 text-xs text-slate-700">
-                <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[11px] font-bold shrink-0 mt-0.5">
-                    1
-                  </span>
-                  <div>
-                    <span className="font-semibold text-slate-900">Buka di Browser Safari</span>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      Pastikan tautan dibuka melalui browser Safari resmi bawaan iPhone / iPad.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[11px] font-bold shrink-0 mt-0.5">
-                    2
-                  </span>
-                  <div>
-                    <span className="font-semibold text-slate-900">Tekan Tombol Share (Bagikan)</span>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      Ketuk tombol <strong>Share</strong> (ikon kotak dengan tanda panah ke atas) di bagian bawah layar Safari.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[11px] font-bold shrink-0 mt-0.5">
-                    3
-                  </span>
-                  <div>
-                    <span className="font-semibold text-slate-900">Pilih &quot;Tambah ke Layar Utama&quot;</span>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      Geser ke bawah lalu ketuk <strong>&quot;Tambah ke Layar Utama&quot;</strong> (<em>Add to Home Screen</em>), lalu tekan <strong>Tambah</strong>.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Benefits Badge */}
-            <div className="mt-4 p-2.5 bg-emerald-50 rounded-xl border border-emerald-100 flex items-center gap-2 text-[11px] text-emerald-800">
-              <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>Aplikasi berjalan lancar tanpa kuota tambahan dengan ikon tersendiri di HP.</span>
-            </div>
-
-            <button
-              onClick={() => setShowGuide(false)}
-              className="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-xs font-bold text-white hover:bg-slate-800 transition"
-            >
-              Tutup Panduan
-            </button>
-          </div>
-        </div>
-      )}
+      {showGuideModal && <GuideModal onClose={() => setShowGuideModal(false)} isIOS={isIOS} />}
     </>
+  );
+};
+
+// Guide Modal for Android/iOS if native beforeinstallprompt wasn't automatically opened
+const GuideModal: React.FC<{ onClose: () => void; isIOS: boolean }> = ({ onClose, isIOS }) => {
+  return (
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 cursor-pointer"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white rounded-2xl max-w-sm w-full shadow-2xl p-5 border border-slate-200 text-slate-800 animate-in fade-in zoom-in-95 cursor-default"
+      >
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+          <div className="flex items-center gap-2">
+            <Smartphone className="w-5 h-5 text-emerald-600" />
+            <h3 className="font-bold text-sm text-slate-900">Petunjuk Instal Aplikasi</h3>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {isIOS ? (
+          <div className="space-y-3 text-xs text-slate-600">
+            <p className="font-medium text-slate-800">
+              Untuk menginstal di iPhone / iPad (Safari):
+            </p>
+            <ol className="space-y-2 list-decimal list-inside pl-1">
+              <li className="leading-tight">
+                Tekan tombol <strong className="text-slate-900">Bagikan (Share)</strong>{' '}
+                <Share className="w-3.5 h-3.5 inline text-emerald-600" /> di bagian bawah layar Safari.
+              </li>
+              <li className="leading-tight">
+                Gulir ke bawah dan pilih <strong className="text-slate-900">Tambahkan ke Layar Utama (Add to Home Screen)</strong>.
+              </li>
+              <li className="leading-tight">
+                Tekan <strong className="text-emerald-700">Tambah</strong> di pojok kanan atas.
+              </li>
+            </ol>
+          </div>
+        ) : (
+          <div className="space-y-3 text-xs text-slate-600">
+            <p className="font-medium text-slate-800">
+              Cara menginstal di HP Android / Google Chrome:
+            </p>
+            <ol className="space-y-2 list-decimal list-inside pl-1">
+              <li className="leading-tight">
+                Tekan titik tiga <strong className="text-slate-900">(⋮)</strong> di pojok kanan atas browser Chrome.
+              </li>
+              <li className="leading-tight">
+                Pilih menu <strong className="text-emerald-700">"Instal aplikasi"</strong> atau <strong className="text-emerald-700">"Tambahkan ke Layar Utama"</strong>.
+              </li>
+              <li className="leading-tight">
+                Tekan <strong className="text-slate-900">Instal</strong> pada konfirmasi pop-up.
+              </li>
+            </ol>
+          </div>
+        )}
+
+        <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end">
+          <button
+            onClick={onClose}
+            className="w-full py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-semibold text-xs flex items-center justify-center gap-1.5"
+          >
+            <Check className="w-4 h-4" />
+            <span>Saya Mengerti</span>
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
