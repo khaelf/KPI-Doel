@@ -28,8 +28,10 @@ export async function testFirestoreConnection() {
     await getDocFromServer(doc(db, 'test', 'connection'));
     console.log('Connected to Firestore successfully.');
   } catch (error) {
-    if (error instanceof Error && error.message.includes('offline')) {
-      console.warn('Firestore is offline or unreachable.');
+    if (error instanceof Error && (error.message.includes('offline') || error.message.includes('unavailable'))) {
+      console.info('Firestore backend unreachable; operating with local storage persistence.');
+    } else {
+      console.warn('Firestore connection check notice:', error);
     }
   }
 }

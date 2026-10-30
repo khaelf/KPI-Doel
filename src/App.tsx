@@ -14,7 +14,7 @@ import { AgendaModal } from './components/AgendaModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'laporan'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'catatan' | 'kpi' | 'laporan'>('dashboard');
   const [selectedDepartment, setSelectedDepartment] = useState<'Semua' | Department>('Semua');
   const [selectedMonth, setSelectedMonth] = useState<string>('2026-10');
   const [catatanStatusFilter, setCatatanStatusFilter] = useState<'Semua' | TaskStatus>('Semua');
@@ -270,24 +270,6 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'agenda' && (
-          <AgendaView
-            agendaItems={agendaItems}
-            selectedMonth={selectedMonth}
-            selectedDepartment={selectedDepartment}
-            onAddAgenda={() => {
-              setEditingAgenda(null);
-              setIsAgendaModalOpen(true);
-            }}
-            onEditAgenda={(item) => {
-              setEditingAgenda(item);
-              setIsAgendaModalOpen(true);
-            }}
-            onDeleteAgenda={handleDeleteAgenda}
-            onQuickStatusChange={handleAgendaQuickStatusChange}
-          />
-        )}
-
         {activeTab === 'laporan' && (
           <ReportView
             workEntries={workEntries}
@@ -330,16 +312,6 @@ export default function App() {
         editingIndicator={editingKpiIndicator}
         defaultDepartment={kpiModalDept}
         defaultMonth={selectedMonth}
-      />
-
-      {/* Agenda Modal */}
-      <AgendaModal
-        isOpen={isAgendaModalOpen}
-        onClose={() => setIsAgendaModalOpen(false)}
-        onSave={handleSaveAgenda}
-        editingAgenda={editingAgenda}
-        defaultDepartment={selectedDepartment === 'Semua' ? 'Humas' : selectedDepartment}
-        defaultDate={selectedMonth ? `${selectedMonth}-15` : undefined}
       />
 
       {/* Offline Status Toast */}

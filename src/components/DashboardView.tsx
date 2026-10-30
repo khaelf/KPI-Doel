@@ -14,6 +14,7 @@ import {
   Megaphone,
   Monitor,
   Calendar,
+  MapPin,
 } from 'lucide-react';
 
 interface DashboardViewProps {
@@ -22,7 +23,7 @@ interface DashboardViewProps {
   agendaItems?: AgendaItem[];
   selectedMonth: string;
   selectedDepartment: 'Semua' | Department;
-  onNavigateTab: (tab: 'catatan' | 'kpi' | 'agenda' | 'laporan') => void;
+  onNavigateTab: (tab: 'catatan' | 'kpi' | 'laporan') => void;
   onNavigateToCatatanWithStatus?: (status: 'Semua' | 'Belum dikerjakan' | 'Proses' | 'Selesai') => void;
   onOpenAddModal?: () => void;
   onQuickUpdateStatus: (id: string, newStatus: 'Belum dikerjakan' | 'Proses' | 'Selesai') => void;
@@ -284,65 +285,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* Agenda Kegiatan Dashboard Widget (Mendatang - Tanggal & Judul) */}
-      {(() => {
-        const upcomingAgendas = agendaItems
-          .filter((ag) => {
-            const itemMonth = (ag.tanggal || '').substring(0, 7);
-            const isDeptMatch =
-              selectedDepartment === 'Semua' || ag.bidang === 'Semua' || ag.bidang === selectedDepartment;
-            const isUpcoming = ag.status === 'Mendatang';
-            return (!selectedMonth || itemMonth === selectedMonth) && isDeptMatch && isUpcoming;
-          })
-          .sort((a, b) => (a.tanggal || '').localeCompare(b.tanggal || ''))
-          .slice(0, 5);
 
-        return (
-          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
-                  <Calendar className="w-4 h-4 text-emerald-700" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-slate-900">Agenda Mendatang</h3>
-                  <p className="text-xs text-slate-500">Jadwal kegiatan yang akan datang ({monthLabel})</p>
-                </div>
-              </div>
-              <button
-                onClick={() => onNavigateTab('agenda')}
-                className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1"
-              >
-                <span>Lihat Semua Agenda</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-
-            {upcomingAgendas.length === 0 ? (
-              <div className="p-6 text-center text-slate-500 text-xs">
-                Belum ada agenda mendatang untuk bulan {monthLabel}. Agenda baru dapat ditambahkan melalui menu Agenda.
-              </div>
-            ) : (
-              <div className="divide-y divide-slate-100 text-xs">
-                {upcomingAgendas.map((ag) => (
-                  <div key={ag.id} className="p-3.5 px-5 hover:bg-slate-50/80 transition-colors flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      <span className="shrink-0 font-mono font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/80 text-xs">
-                        {ag.tanggalSelesaiAgenda && ag.tanggalSelesaiAgenda !== ag.tanggal
-                          ? `${ag.tanggal.split('-')[2]} - ${ag.tanggalSelesaiAgenda.split('-')[2]} ${formatMonthLabel(ag.tanggal.substring(0, 7)).split(' ')[0]}`
-                          : ag.tanggal}
-                      </span>
-                      <span className="font-semibold text-slate-800 truncate">
-                        {ag.judul}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        );
-      })()}
 
       {/* Active Work Entries Table (Sedang Berjalan & Belum Mulai) per Request 3 */}
       {(() => {
@@ -406,23 +349,37 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         </td>
                         <td className="py-3 px-4 font-medium text-slate-900 min-w-[200px]">
                           <div>{entry.namaPekerjaan}</div>
-                          {entry.catatan && (
-                            <div className="text-[11px] text-slate-400 truncate max-w-xs mt-0.5">
-                              {entry.catatan.startsWith('http') ? (
-                                <a
-                                  href={entry.catatan}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="text-emerald-600 hover:underline flex items-center gap-1"
-                                >
-                                  <span>Tautan Dokumentasi</span>
-                                  <ExternalLink className="w-3 h-3" />
-                                </a>
-                              ) : (
-                                entry.catatan
-                              )}
-                            </div>
-                          )}
+                          <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                            {(entry.jamMulai || entry.jamSelesai) && (
+                              <span className="inline-flex items-center gap-1 text-[10px] text-slate-600 bg-slate-100 font-mono px-1.5 py-0.5 rounded">
+                                <Clock className="w-3 h-3 text-slate-500" />
+                                <span>{entry.jamMulai || ''}{entry.jamSelesai ? ` - ${entry.jamSelesai}` : ''}</span>
+                              </span>
+                            )}
+                            {entry.lokasi && (
+                              <span className="inline-flex items-center gap-1 text-[10px] text-rose-700 bg-rose-50 border border-rose-200/80 px-1.5 py-0.5 rounded">
+                                <MapPin className="w-3 h-3 text-rose-600" />
+                                <span>{entry.lokasi}</span>
+                              </span>
+                            )}
+                            {entry.catatan && (
+                              <div className="text-[11px] text-slate-400 truncate max-w-xs">
+                                {entry.catatan.startsWith('http') ? (
+                                  <a
+                                    href={entry.catatan}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-emerald-600 hover:underline flex items-center gap-1"
+                                  >
+                                    <span>Tautan Dokumentasi</span>
+                                    <ExternalLink className="w-3 h-3" />
+                                  </a>
+                                ) : (
+                                  entry.catatan
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </td>
                         <td className="py-3 px-3 whitespace-nowrap">
                           <span

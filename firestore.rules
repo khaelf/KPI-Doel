@@ -16,5 +16,11 @@ service cloud.firestore {
     match /kpiIndicators/{indicatorId} {
       allow read, write: if true;
     }
+
+    // Agenda Items collection rules
+    match /agendaItems/{agendaId} {
+      allow read, write: if true;
+    }
   }
 }
+

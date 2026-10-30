@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { WorkEntry, KpiIndicator, Department, TaskStatus } from '../types/kpi';
 import { autoCapitalizeText } from '../utils/textUtils';
-import { X, Save, Calendar, Target } from 'lucide-react';
+import { X, Save, Calendar, Target, Clock, MapPin } from 'lucide-react';
 
 interface WorkEntryModalProps {
   isOpen: boolean;
@@ -25,6 +25,9 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
   const [tanggalMasuk, setTanggalMasuk] = useState('');
   const [tanggalMulai, setTanggalMulai] = useState('');
   const [tanggalSelesai, setTanggalSelesai] = useState('');
+  const [jamMulai, setJamMulai] = useState('');
+  const [jamSelesai, setJamSelesai] = useState('');
+  const [lokasi, setLokasi] = useState('');
   const [jumlahRevisi, setJumlahRevisi] = useState<number>(0);
   const [bidang, setBidang] = useState<Department>('Humas');
   const [namaPekerjaan, setNamaPekerjaan] = useState('');
@@ -39,6 +42,9 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
       setTanggalMasuk(editingEntry.tanggalMasuk || editingEntry.tanggal || today);
       setTanggalMulai(editingEntry.tanggalMulai || editingEntry.tanggal || today);
       setTanggalSelesai(editingEntry.tanggalSelesai || '');
+      setJamMulai(editingEntry.jamMulai || '');
+      setJamSelesai(editingEntry.jamSelesai || '');
+      setLokasi(autoCapitalizeText(editingEntry.lokasi || ''));
       setJumlahRevisi(editingEntry.jumlahRevisi ?? 0);
       setBidang(editingEntry.bidang);
       setNamaPekerjaan(autoCapitalizeText(editingEntry.namaPekerjaan));
@@ -50,6 +56,9 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
       setTanggalMasuk(today);
       setTanggalMulai(today);
       setTanggalSelesai('');
+      setJamMulai('');
+      setJamSelesai('');
+      setLokasi('');
       setJumlahRevisi(0);
       setBidang(defaultDepartment);
       setNamaPekerjaan('');
@@ -80,6 +89,9 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
         tanggalMasuk,
         tanggalMulai: tanggalMulai || tanggalMasuk,
         tanggalSelesai: tanggalSelesai.trim() ? tanggalSelesai.trim() : '',
+        jamMulai: jamMulai.trim(),
+        jamSelesai: jamSelesai.trim(),
+        lokasi: autoCapitalizeText(lokasi.trim()),
         jumlahRevisi: Number(jumlahRevisi) || 0,
         tanggal: tanggalMasuk, // fallback for month filters
         bidang,
@@ -242,6 +254,50 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
                 />
               </div>
             </div>
+
+            {/* Jam Pekerjaan */}
+            <div className="pt-2 border-t border-slate-200/60 grid grid-cols-2 gap-3">
+              <div>
+                <label className="block font-semibold text-slate-900 mb-1 flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-slate-600" />
+                  <span>Jam Mulai</span>
+                </label>
+                <input
+                  type="time"
+                  value={jamMulai}
+                  onChange={(e) => setJamMulai(e.target.value)}
+                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-900 mb-1 flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-slate-600" />
+                  <span>Jam Selesai</span>
+                </label>
+                <input
+                  type="time"
+                  value={jamSelesai}
+                  onChange={(e) => setJamSelesai(e.target.value)}
+                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Lokasi Pekerjaan */}
+          <div>
+            <label className="block font-semibold text-slate-900 mb-1 flex items-center gap-1">
+              <MapPin className="w-3.5 h-3.5 text-slate-600" />
+              <span>Lokasi Pekerjaan</span>
+            </label>
+            <input
+              type="text"
+              placeholder="Contoh: Kantor Humas / Ruang IT / Lab Komputer"
+              value={lokasi}
+              onChange={(e) => setLokasi(autoCapitalizeText(e.target.value))}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+            />
           </div>
 
           {/* Nama Pekerjaan */}
@@ -303,10 +359,10 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
             />
           </div>
 
-          {/* Catatan / Documentation Link */}
+          {/* Catatan */}
           <div>
             <label className="block font-semibold text-slate-900 mb-1">
-              Catatan / Tautan Dokumentasi (Opsional)
+              Catatan
             </label>
             <input
               type="text"

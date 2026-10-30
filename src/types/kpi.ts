@@ -7,6 +7,9 @@ export interface WorkEntry {
   tanggalMasuk: string; // YYYY-MM-DD (Tanggal Permintaan/Masuk)
   tanggalMulai?: string; // YYYY-MM-DD (Tanggal Pengerjaan Dimulai)
   tanggalSelesai?: string; // YYYY-MM-DD (Tanggal Selesai)
+  jamMulai?: string; // HH:mm (Jam Mulai Pekerjaan)
+  jamSelesai?: string; // HH:mm (Jam Selesai Pekerjaan)
+  lokasi?: string; // Lokasi Pekerjaan
   jumlahRevisi?: number; // Jumlah revisi (0, 1, 2, dst)
   tanggal?: string; // Fallback helper YYYY-MM-DD
   bidang: Department;

@@ -10,6 +10,8 @@ import {
   SlidersHorizontal,
   ArrowUpDown,
   X,
+  Clock,
+  MapPin,
 } from 'lucide-react';
 
 interface WorkLogViewProps {
@@ -448,13 +450,25 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
                       {visibleColumns.namaPekerjaan && (
                         <td className="py-3.5 px-4 font-semibold text-slate-900 max-w-sm">
                           <div>{entry.namaPekerjaan}</div>
-                          {entry.indikatorKpi && (
-                            <div className="mt-0.5">
+                          <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                            {entry.indikatorKpi && (
                               <span className="inline-block bg-emerald-50 text-emerald-800 border border-emerald-200 px-1.5 py-0.5 rounded text-[10px] font-medium">
                                 KPI: {entry.indikatorKpi}
                               </span>
-                            </div>
-                          )}
+                            )}
+                            {(entry.jamMulai || entry.jamSelesai) && (
+                              <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[10px] font-mono font-medium border border-slate-200/60">
+                                <Clock className="w-3 h-3 text-slate-500" />
+                                <span>{entry.jamMulai || ''}{entry.jamSelesai ? ` - ${entry.jamSelesai}` : ''}</span>
+                              </span>
+                            )}
+                            {entry.lokasi && (
+                              <span className="inline-flex items-center gap-1 bg-rose-50 text-rose-800 border border-rose-200/80 px-1.5 py-0.5 rounded text-[10px] font-medium">
+                                <MapPin className="w-3 h-3 text-rose-600" />
+                                <span>{entry.lokasi}</span>
+                              </span>
+                            )}
+                          </div>
                         </td>
                       )}
                       {visibleColumns.status && (
@@ -558,11 +572,25 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
                   {visibleColumns.namaPekerjaan && (
                     <div>
                       <h4 className="font-bold text-slate-900 text-sm">{entry.namaPekerjaan}</h4>
-                      {entry.indikatorKpi && (
-                        <span className="inline-block mt-1 bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded text-[10px] font-medium">
-                          KPI: {entry.indikatorKpi}
-                        </span>
-                      )}
+                      <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                        {entry.indikatorKpi && (
+                          <span className="inline-block bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded text-[10px] font-medium">
+                            KPI: {entry.indikatorKpi}
+                          </span>
+                        )}
+                        {(entry.jamMulai || entry.jamSelesai) && (
+                          <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[10px] font-mono font-medium border border-slate-200/60">
+                            <Clock className="w-3 h-3 text-slate-500" />
+                            <span>{entry.jamMulai || ''}{entry.jamSelesai ? ` - ${entry.jamSelesai}` : ''}</span>
+                          </span>
+                        )}
+                        {entry.lokasi && (
+                          <span className="inline-flex items-center gap-1 bg-rose-50 text-rose-800 border border-rose-200/80 px-1.5 py-0.5 rounded text-[10px] font-medium">
+                            <MapPin className="w-3 h-3 text-rose-600" />
+                            <span>{entry.lokasi}</span>
+                          </span>
+                        )}
+                      </div>
                     </div>
                   )}
 
