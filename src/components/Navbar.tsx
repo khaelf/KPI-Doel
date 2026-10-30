@@ -9,7 +9,7 @@ import {
   Calendar,
 } from 'lucide-react';
 
-import { PWAInstallButton } from './PWAInstallButton';
+
 
 interface NavbarProps {
   activeTab: 'dashboard' | 'catatan' | 'kpi' | 'laporan';
@@ -54,7 +54,6 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Mobile Quick Controls */}
             <div className="flex md:hidden items-center gap-1.5 shrink-0">
-              <PWAInstallButton variant="compact" />
               <button
                 onClick={onResetData}
                 className="p-1.5 text-emerald-300 hover:text-white hover:bg-emerald-800/60 rounded-lg transition-colors"
@@ -94,9 +93,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               />
             </div>
 
-            {/* Desktop Controls: Install App & Reset */}
+            {/* Desktop-only Reset */}
             <div className="hidden md:flex items-center gap-2">
-              <PWAInstallButton variant="button" />
               <button
                 onClick={onResetData}
                 className="p-1.5 text-emerald-300 hover:text-white hover:bg-emerald-800/60 rounded-lg transition-colors"

@@ -160,6 +160,22 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
             </select>
           </div>
 
+          {/* Nama Pekerjaan */}
+          <div>
+            <label className="block font-semibold text-slate-900 mb-1">
+              Nama Pekerjaan / Tugas <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              autoCapitalize="sentences"
+              placeholder="Contoh: Pembuatan Banner Publikasi Milad Parabek"
+              value={namaPekerjaan}
+              onChange={(e) => setNamaPekerjaan(autoCapitalizeText(e.target.value))}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+            />
+          </div>
+
           {/* Indikator KPI */}
           <div>
             <label className="block font-semibold text-slate-900 mb-1 flex items-center justify-between">
@@ -300,21 +316,7 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
             />
           </div>
 
-          {/* Nama Pekerjaan */}
-          <div>
-            <label className="block font-semibold text-slate-900 mb-1">
-              Nama Pekerjaan / Tugas <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="text"
-              required
-              autoCapitalize="sentences"
-              placeholder="Contoh: Pembuatan Banner Publikasi Milad Parabek"
-              value={namaPekerjaan}
-              onChange={(e) => setNamaPekerjaan(autoCapitalizeText(e.target.value))}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-            />
-          </div>
+
 
           {/* Status & Persentase */}
           <div className="grid grid-cols-2 gap-4">

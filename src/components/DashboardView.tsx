@@ -16,7 +16,6 @@ import {
   Calendar,
   MapPin,
 } from 'lucide-react';
-import { PWAInstallButton } from './PWAInstallButton';
 
 interface DashboardViewProps {
   workEntries: WorkEntry[];
@@ -95,9 +94,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           Irsyadul Fuadi
         </h2>
       </div>
-
-      {/* PWA Install Banner */}
-      <PWAInstallButton variant="banner" />
 
       {/* 4 Main Summary Stat Cards (Clickable to Filter Catatan) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
