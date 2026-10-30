@@ -22,8 +22,10 @@ export const AgendaModal: React.FC<AgendaModalProps> = ({
 }) => {
   const today = new Date().toISOString().substring(0, 10);
 
+  const [jenisJadwal, setJenisJadwal] = useState<'1hari' | 'rentang'>('1hari');
   const [judul, setJudul] = useState('');
   const [tanggal, setTanggal] = useState(today);
+  const [tanggalSelesaiAgenda, setTanggalSelesaiAgenda] = useState('');
   const [waktuMulai, setWaktuMulai] = useState('09:00');
   const [waktuSelesai, setWaktuSelesai] = useState('11:00');
   const [lokasi, setLokasi] = useState('');
@@ -34,8 +36,13 @@ export const AgendaModal: React.FC<AgendaModalProps> = ({
 
   useEffect(() => {
     if (editingAgenda) {
+      const isRange =
+        editingAgenda.jenisJadwal === 'rentang' ||
+        (!!editingAgenda.tanggalSelesaiAgenda && editingAgenda.tanggalSelesaiAgenda !== editingAgenda.tanggal);
+      setJenisJadwal(isRange ? 'rentang' : '1hari');
       setJudul(autoCapitalizeText(editingAgenda.judul));
       setTanggal(editingAgenda.tanggal || today);
+      setTanggalSelesaiAgenda(editingAgenda.tanggalSelesaiAgenda || editingAgenda.tanggal || '');
       setWaktuMulai(editingAgenda.waktuMulai || '09:00');
       setWaktuSelesai(editingAgenda.waktuSelesai || '11:00');
       setLokasi(autoCapitalizeText(editingAgenda.lokasi || ''));
@@ -44,8 +51,10 @@ export const AgendaModal: React.FC<AgendaModalProps> = ({
       setKeterangan(autoCapitalizeText(editingAgenda.keterangan || ''));
       setStatus(editingAgenda.status);
     } else {
+      setJenisJadwal('1hari');
       setJudul('');
       setTanggal(defaultDate || today);
+      setTanggalSelesaiAgenda('');
       setWaktuMulai('09:00');
       setWaktuSelesai('11:00');
       setLokasi('');
@@ -62,10 +71,14 @@ export const AgendaModal: React.FC<AgendaModalProps> = ({
     e.preventDefault();
     if (!judul.trim()) return;
 
+    const endDate = jenisJadwal === 'rentang' ? (tanggalSelesaiAgenda || tanggal) : undefined;
+
     onSave(
       {
         judul: autoCapitalizeText(judul.trim()),
+        jenisJadwal,
         tanggal,
+        tanggalSelesaiAgenda: endDate,
         waktuMulai: waktuMulai.trim(),
         waktuSelesai: waktuSelesai.trim(),
         lokasi: autoCapitalizeText(lokasi.trim()),
@@ -155,20 +168,96 @@ export const AgendaModal: React.FC<AgendaModalProps> = ({
           </div>
 
           {/* Tanggal & Waktu */}
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+          <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+            {/* Pilihan Jenis Jadwal Agenda */}
             <div>
-              <label className="block font-semibold text-slate-900 mb-1 flex items-center gap-1">
+              <label className="block font-semibold text-slate-900 mb-1.5 flex items-center gap-1">
                 <Calendar className="w-3.5 h-3.5 text-emerald-700" />
-                <span>Tanggal <span className="text-rose-500">*</span></span>
+                <span>Jadwal Agenda <span className="text-rose-500">*</span></span>
               </label>
-              <input
-                type="date"
-                required
-                value={tanggal}
-                onChange={(e) => setTanggal(e.target.value)}
-                className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
-              />
+              <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-200/70 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setJenisJadwal('1hari');
+                    setTanggalSelesaiAgenda('');
+                  }}
+                  className={`py-1.5 px-3 rounded-lg font-bold text-xs transition-all ${
+                    jenisJadwal === '1hari'
+                      ? 'bg-white text-emerald-800 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  1 Hari
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setJenisJadwal('rentang');
+                    if (!tanggalSelesaiAgenda) {
+                      setTanggalSelesaiAgenda(tanggal);
+                    }
+                  }}
+                  className={`py-1.5 px-3 rounded-lg font-bold text-xs transition-all ${
+                    jenisJadwal === 'rentang'
+                      ? 'bg-white text-emerald-800 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Rentang Tanggal
+                </button>
+              </div>
             </div>
+
+            {/* Inputs Tanggal */}
+            {jenisJadwal === '1hari' ? (
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1 text-[11px]">
+                  Tanggal Agenda
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={tanggal}
+                  onChange={(e) => setTanggal(e.target.value)}
+                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
+                />
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1 text-[11px]">
+                    Dari Tanggal
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={tanggal}
+                    onChange={(e) => {
+                      setTanggal(e.target.value);
+                      if (tanggalSelesaiAgenda && e.target.value > tanggalSelesaiAgenda) {
+                        setTanggalSelesaiAgenda(e.target.value);
+                      }
+                    }}
+                    className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1 text-[11px]">
+                    Sampai Tanggal
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    min={tanggal}
+                    value={tanggalSelesaiAgenda || tanggal}
+                    onChange={(e) => setTanggalSelesaiAgenda(e.target.value)}
+                    className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-3">
               <div>

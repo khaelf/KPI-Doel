@@ -41,11 +41,46 @@ export const AgendaView: React.FC<AgendaViewProps> = ({
 
   const monthLabel = formatMonthLabel(selectedMonth);
 
+  const formatAgendaDateDisplay = (item: AgendaItem) => {
+    if (!item.tanggal) return '';
+    if (item.tanggalSelesaiAgenda && item.tanggalSelesaiAgenda !== item.tanggal) {
+      const [y1, m1, d1] = item.tanggal.split('-');
+      const [y2, m2, d2] = item.tanggalSelesaiAgenda.split('-');
+      if (y1 === y2 && m1 === m2) {
+        return `${parseInt(d1, 10)} - ${formatDateIndo(item.tanggalSelesaiAgenda)}`;
+      }
+      return `${formatDateIndo(item.tanggal)} - ${formatDateIndo(item.tanggalSelesaiAgenda)}`;
+    }
+    return formatDateIndo(item.tanggal);
+  };
+
+  const getAgendaDateBadgeText = (item: AgendaItem) => {
+    if (!item.tanggal) return { dayText: '01', monthText: 'Bulan' };
+    const dayStart = parseInt(item.tanggal.split('-')[2], 10);
+    const monthStart = formatDateIndo(item.tanggal).split(' ')[1] || '';
+
+    if (item.tanggalSelesaiAgenda && item.tanggalSelesaiAgenda !== item.tanggal) {
+      const dayEnd = parseInt(item.tanggalSelesaiAgenda.split('-')[2], 10);
+      return {
+        dayText: `${dayStart}-${dayEnd}`,
+        monthText: monthStart,
+      };
+    }
+    return {
+      dayText: `${dayStart}`,
+      monthText: monthStart,
+    };
+  };
+
   // Filter items based on month, department, status, search
   const filteredItems = agendaItems.filter((item) => {
-    // Month match check
-    const itemMonth = (item.tanggal || '').substring(0, 7);
-    const matchesMonth = !selectedMonth || itemMonth === selectedMonth;
+    // Month match check (start date or end date matches selected month)
+    const startMonth = (item.tanggal || '').substring(0, 7);
+    const endMonth = (item.tanggalSelesaiAgenda || '').substring(0, 7);
+    const matchesMonth =
+      !selectedMonth ||
+      startMonth === selectedMonth ||
+      (!!endMonth && endMonth === selectedMonth);
 
     // Department match check
     const matchesDept =
@@ -321,6 +356,7 @@ export const AgendaView: React.FC<AgendaViewProps> = ({
           sortedItems.map((item) => {
             const statusBadge = getStatusBadge(item.status);
             const deptBadge = getDepartmentBadge(item.bidang);
+            const dateBadgeInfo = getAgendaDateBadgeText(item);
 
             return (
               <div
@@ -330,12 +366,12 @@ export const AgendaView: React.FC<AgendaViewProps> = ({
                 {/* Left Side: Date Box & Info */}
                 <div className="flex items-start gap-4 flex-1">
                   {/* Date Badge */}
-                  <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-xl p-3 text-center min-w-[70px] shrink-0">
-                    <span className="block text-xl font-extrabold font-mono leading-none">
-                      {item.tanggal ? item.tanggal.split('-')[2] : '01'}
+                  <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-xl p-2.5 text-center min-w-[72px] shrink-0">
+                    <span className="block text-lg sm:text-xl font-extrabold font-mono leading-none">
+                      {dateBadgeInfo.dayText}
                     </span>
                     <span className="block text-[10px] uppercase font-bold text-emerald-700 mt-1">
-                      {formatDateIndo(item.tanggal).split(' ')[1] || 'Bulan'}
+                      {dateBadgeInfo.monthText}
                     </span>
                   </div>
 
@@ -365,11 +401,12 @@ export const AgendaView: React.FC<AgendaViewProps> = ({
                       <span className="flex items-center gap-1 font-medium">
                         <Clock className="w-3.5 h-3.5 text-slate-400" />
                         <span>
-                          {formatDateIndo(item.tanggal)}
+                          {formatAgendaDateDisplay(item)}
                           {item.waktuMulai && ` · ${item.waktuMulai}`}
                           {item.waktuSelesai && ` - ${item.waktuSelesai} WIB`}
                         </span>
                       </span>
+
 
                       {/* Lokasi */}
                       {item.lokasi && (

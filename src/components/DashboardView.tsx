@@ -328,7 +328,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <div key={ag.id} className="p-3.5 px-5 hover:bg-slate-50/80 transition-colors flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3.5 min-w-0">
                       <span className="shrink-0 font-mono font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/80 text-xs">
-                        {ag.tanggal}
+                        {ag.tanggalSelesaiAgenda && ag.tanggalSelesaiAgenda !== ag.tanggal
+                          ? `${ag.tanggal.split('-')[2]} - ${ag.tanggalSelesaiAgenda.split('-')[2]} ${formatMonthLabel(ag.tanggal.substring(0, 7)).split(' ')[0]}`
+                          : ag.tanggal}
                       </span>
                       <span className="font-semibold text-slate-800 truncate">
                         {ag.judul}

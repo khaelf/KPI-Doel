@@ -35,7 +35,9 @@ export type AgendaStatus = 'Mendatang' | 'Berlangsung' | 'Selesai' | 'Dibatalkan
 export interface AgendaItem {
   id: string;
   judul: string;
-  tanggal: string; // YYYY-MM-DD
+  jenisJadwal?: '1hari' | 'rentang';
+  tanggal: string; // YYYY-MM-DD (Tanggal / Tanggal Mulai)
+  tanggalSelesaiAgenda?: string; // YYYY-MM-DD (Tanggal Selesai, for date range)
   waktuMulai?: string; // HH:mm
   waktuSelesai?: string; // HH:mm
   lokasi?: string;
