@@ -23,6 +23,7 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
   kpiIndicators = [],
 }) => {
   const [tanggalMasuk, setTanggalMasuk] = useState('');
+  const [tanggalAcara, setTanggalAcara] = useState('');
   const [tanggalMulai, setTanggalMulai] = useState('');
   const [tanggalSelesai, setTanggalSelesai] = useState('');
   const [jamMulai, setJamMulai] = useState('');
@@ -40,6 +41,7 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
     const today = new Date().toISOString().substring(0, 10);
     if (editingEntry) {
       setTanggalMasuk(editingEntry.tanggalMasuk || editingEntry.tanggal || today);
+      setTanggalAcara(editingEntry.tanggalAcara || '');
       setTanggalMulai(editingEntry.tanggalMulai || editingEntry.tanggal || today);
       setTanggalSelesai(editingEntry.tanggalSelesai || '');
       setJamMulai(editingEntry.jamMulai || '');
@@ -54,6 +56,7 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
       setCatatan(editingEntry.catatan || '');
     } else {
       setTanggalMasuk(today);
+      setTanggalAcara('');
       setTanggalMulai(today);
       setTanggalSelesai('');
       setJamMulai('');
@@ -87,6 +90,7 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
     onSave(
       {
         tanggalMasuk,
+        tanggalAcara: tanggalAcara.trim() ? tanggalAcara.trim() : '',
         tanggalMulai: tanggalMulai || tanggalMasuk,
         tanggalSelesai: tanggalSelesai.trim() ? tanggalSelesai.trim() : '',
         jamMulai: jamMulai.trim(),
@@ -206,14 +210,15 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
             )}
           </div>
 
-          {/* Group 4 Dates & Revision Fields */}
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+          {/* Group: Tanggal Masuk, Tanggal Acara, Jadwal & Jam */}
+          <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-3.5">
             <h4 className="font-bold text-slate-800 text-xs flex items-center gap-1.5">
               <Calendar className="w-4 h-4 text-emerald-700" />
-              <span>Jadwal & Riwayat Revisi</span>
+              <span>Jadwal, Tanggal Acara & Riwayat Revisi</span>
             </h4>
 
-            <div className="grid grid-cols-2 gap-3">
+            {/* Row 1: Tanggal Masuk, Tanggal Acara, Jumlah Revisi */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {/* Tanggal Masuk */}
               <div>
                 <label className="block font-semibold text-slate-900 mb-1">
@@ -224,34 +229,23 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
                   required
                   value={tanggalMasuk}
                   onChange={(e) => setTanggalMasuk(e.target.value)}
-                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
                 />
               </div>
 
-              {/* Tanggal Mulai */}
+              {/* Tanggal Acara */}
               <div>
-                <label className="block font-semibold text-slate-900 mb-1">
-                  Tanggal Mulai <span className="text-rose-500">*</span>
+                <label className="block font-semibold text-slate-900 mb-1 flex items-center justify-between">
+                  <span>Tanggal Acara</span>
+                  <span className="text-[10px] text-rose-700 font-bold bg-rose-50 border border-rose-200 px-1.5 py-0.2 rounded">
+                    Deadline
+                  </span>
                 </label>
                 <input
                   type="date"
-                  required
-                  value={tanggalMulai}
-                  onChange={(e) => setTanggalMulai(e.target.value)}
-                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                />
-              </div>
-
-              {/* Tanggal Selesai */}
-              <div>
-                <label className="block font-semibold text-slate-900 mb-1">
-                  Tanggal Selesai <span className="text-slate-400 font-normal">(Opsional)</span>
-                </label>
-                <input
-                  type="date"
-                  value={tanggalSelesai}
-                  onChange={(e) => setTanggalSelesai(e.target.value)}
-                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  value={tanggalAcara}
+                  onChange={(e) => setTanggalAcara(e.target.value)}
+                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
                 />
               </div>
 
@@ -266,37 +260,64 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
                   required
                   value={jumlahRevisi}
                   onChange={(e) => setJumlahRevisi(Math.max(0, parseInt(e.target.value) || 0))}
-                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-slate-900 font-bold font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-slate-900 font-bold font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
                 />
               </div>
             </div>
 
-            {/* Jam Pekerjaan */}
-            <div className="pt-2 border-t border-slate-200/60 grid grid-cols-2 gap-3">
-              <div>
-                <label className="block font-semibold text-slate-900 mb-1 flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-slate-600" />
-                  <span>Jam Mulai</span>
-                </label>
-                <input
-                  type="time"
-                  value={jamMulai}
-                  onChange={(e) => setJamMulai(e.target.value)}
-                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
-                />
+            {/* Row 2: Jadwal */}
+            <div className="pt-2 border-t border-slate-200/70">
+              <label className="block font-semibold text-slate-900 mb-1.5">
+                Jadwal
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div className="flex items-center gap-2 bg-white px-2.5 py-1.5 rounded-lg border border-slate-300">
+                  <span className="text-[11px] font-medium text-slate-500 shrink-0">Dari:</span>
+                  <input
+                    type="date"
+                    required
+                    value={tanggalMulai}
+                    onChange={(e) => setTanggalMulai(e.target.value)}
+                    className="w-full text-slate-900 font-medium focus:outline-none bg-transparent"
+                  />
+                </div>
+                <div className="flex items-center gap-2 bg-white px-2.5 py-1.5 rounded-lg border border-slate-300">
+                  <span className="text-[11px] font-medium text-slate-500 shrink-0">Sampai:</span>
+                  <input
+                    type="date"
+                    value={tanggalSelesai}
+                    onChange={(e) => setTanggalSelesai(e.target.value)}
+                    className="w-full text-slate-900 font-medium focus:outline-none bg-transparent"
+                  />
+                </div>
               </div>
+            </div>
 
-              <div>
-                <label className="block font-semibold text-slate-900 mb-1 flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-slate-600" />
-                  <span>Jam Selesai</span>
-                </label>
-                <input
-                  type="time"
-                  value={jamSelesai}
-                  onChange={(e) => setJamSelesai(e.target.value)}
-                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
-                />
+            {/* Row 3: Jam */}
+            <div className="pt-2 border-t border-slate-200/70">
+              <label className="block font-semibold text-slate-900 mb-1.5 flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5 text-slate-600" />
+                <span>Jam</span>
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div className="flex items-center gap-2 bg-white px-2.5 py-1.5 rounded-lg border border-slate-300">
+                  <span className="text-[11px] font-medium text-slate-500 shrink-0">Dari:</span>
+                  <input
+                    type="time"
+                    value={jamMulai}
+                    onChange={(e) => setJamMulai(e.target.value)}
+                    className="w-full text-slate-900 font-medium focus:outline-none bg-transparent"
+                  />
+                </div>
+                <div className="flex items-center gap-2 bg-white px-2.5 py-1.5 rounded-lg border border-slate-300">
+                  <span className="text-[11px] font-medium text-slate-500 shrink-0">Sampai:</span>
+                  <input
+                    type="time"
+                    value={jamSelesai}
+                    onChange={(e) => setJamSelesai(e.target.value)}
+                    className="w-full text-slate-900 font-medium focus:outline-none bg-transparent"
+                  />
+                </div>
               </div>
             </div>
           </div>

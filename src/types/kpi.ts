@@ -7,6 +7,7 @@ export interface WorkEntry {
   tanggalMasuk: string; // YYYY-MM-DD (Tanggal Permintaan/Masuk)
   tanggalMulai?: string; // YYYY-MM-DD (Tanggal Pengerjaan Dimulai)
   tanggalSelesai?: string; // YYYY-MM-DD (Tanggal Selesai)
+  tanggalAcara?: string; // YYYY-MM-DD (Tanggal Pelaksanaan Acara / Deadline)
   jamMulai?: string; // HH:mm (Jam Mulai Pekerjaan)
   jamSelesai?: string; // HH:mm (Jam Selesai Pekerjaan)
   lokasi?: string; // Lokasi Pekerjaan

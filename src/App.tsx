@@ -146,8 +146,12 @@ export default function App() {
     } else {
       storageService.addWorkEntry(data);
     }
-    // Optimistic immediate update to local state
-    setWorkEntries([...storageService.getWorkEntries()]);
+    const currentEntries = storageService.getWorkEntries();
+    setWorkEntries([...currentEntries]);
+
+    // Auto-update KPI indicator realisasi for linked tasks
+    const syncedIndicators = storageService.recalculateKpiRealisasi(currentEntries);
+    setKpiIndicators(syncedIndicators);
 
     // If entry date belongs to a different month than currently selected, switch month to view it
     const entryMonth = (data.tanggalMasuk || data.tanggal || '').substring(0, 7);
@@ -165,14 +169,24 @@ export default function App() {
     if (newStatus === 'Belum dikerjakan') persentase = 0;
 
     storageService.updateWorkEntry(id, { status: newStatus, persentase });
-    setWorkEntries([...storageService.getWorkEntries()]);
+    const currentEntries = storageService.getWorkEntries();
+    setWorkEntries([...currentEntries]);
+
+    // Auto-update KPI indicator realisasi when task status changes to Selesai
+    const syncedIndicators = storageService.recalculateKpiRealisasi(currentEntries);
+    setKpiIndicators(syncedIndicators);
   };
 
   // Handler: Work Entry Delete
   const handleDeleteWorkEntry = (id: string) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus catatan pekerjaan ini?')) {
       storageService.deleteWorkEntry(id);
-      setWorkEntries([...storageService.getWorkEntries()]);
+      const currentEntries = storageService.getWorkEntries();
+      setWorkEntries([...currentEntries]);
+
+      // Auto-update KPI indicator realisasi upon task deletion
+      const syncedIndicators = storageService.recalculateKpiRealisasi(currentEntries);
+      setKpiIndicators(syncedIndicators);
     }
   };
 

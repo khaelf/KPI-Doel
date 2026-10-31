@@ -30,7 +30,6 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
   onAddIndicator,
   onEditIndicator,
   onDeleteIndicator,
-  onQuickUpdateRealisasi,
 }) => {
   const monthLabel = formatMonthLabel(selectedMonth);
 
@@ -64,37 +63,63 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
   const humasBadge = getKpiStatusBadge(humasAvgScore);
   const itBadge = getKpiStatusBadge(itAvgScore);
 
+  // Combined average score for Humas & IT
+  const allIndicators = [...humasIndicators, ...itIndicators];
+  const combinedAvgScore =
+    allIndicators.length > 0
+      ? allIndicators.reduce(
+          (acc, ind) => acc + calculateIndicatorAchievement(ind).cappedPercentage,
+          0
+        ) / allIndicators.length
+      : 0;
+
+  const combinedBadge = getKpiStatusBadge(combinedAvgScore);
+
   return (
     <div className="space-y-8 pb-20 md:pb-8">
       {/* Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm">
         <div>
-          <h2 className="text-xl font-bold text-slate-900">Indikator KPI Bulanan</h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Pengaturan target dan realisasi indikator kinerja bulan {monthLabel}.
-          </p>
+          <h2 className="text-lg sm:text-xl font-bold text-slate-900">Indikator KPI Bulanan</h2>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          {(selectedDepartment === 'Semua' || selectedDepartment === 'Humas') && (
-            <button
-              onClick={() => onAddIndicator('Humas')}
-              className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-xl transition-all shadow-sm flex items-center gap-1.5"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Tambah Indikator Humas</span>
-            </button>
-          )}
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 sm:gap-3">
+          {/* Combined Average Metric Badge (Minimalist on Mobile) */}
+          <div className="bg-emerald-50 border border-emerald-200/90 rounded-xl px-2.5 sm:px-3.5 py-1.5 sm:py-2 flex items-center justify-between sm:justify-start gap-2 sm:gap-3 shadow-2xs">
+            <div>
+              <div className="text-[9px] sm:text-[10px] uppercase font-bold text-emerald-800 tracking-wider">
+                Rata-rata Capaian (Humas & IT)
+              </div>
+              <div className="text-base sm:text-lg font-extrabold font-mono text-emerald-900 leading-tight">
+                {combinedAvgScore.toFixed(2)}%
+              </div>
+            </div>
+            <span className={`px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-bold rounded shrink-0 ${combinedBadge.badgeClass}`}>
+              {combinedBadge.label}
+            </span>
+          </div>
 
-          {(selectedDepartment === 'Semua' || selectedDepartment === 'IT') && (
-            <button
-              onClick={() => onAddIndicator('IT')}
-              className="px-3.5 py-2 bg-blue-700 hover:bg-blue-800 text-white font-semibold text-xs rounded-xl transition-all shadow-sm flex items-center gap-1.5"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Tambah Indikator IT</span>
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {(selectedDepartment === 'Semua' || selectedDepartment === 'Humas') && (
+              <button
+                onClick={() => onAddIndicator('Humas')}
+                className="flex-1 sm:flex-initial px-3 sm:px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Tambah Indikator Humas</span>
+              </button>
+            )}
+
+            {(selectedDepartment === 'Semua' || selectedDepartment === 'IT') && (
+              <button
+                onClick={() => onAddIndicator('IT')}
+                className="flex-1 sm:flex-initial px-3 sm:px-3.5 py-2 bg-blue-700 hover:bg-blue-800 text-white font-semibold text-xs rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Tambah Indikator IT</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -142,12 +167,12 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                 <table className="w-full text-left text-xs text-slate-600">
                   <thead className="bg-emerald-50/70 text-emerald-900 uppercase font-semibold text-[11px] border-b border-emerald-100">
                     <tr>
-                      <th className="py-3 px-4">No</th>
+                      <th className="py-3 px-4 w-12 text-center">No</th>
                       <th className="py-3 px-4">Indikator KPI Humas</th>
-                      <th className="py-3 px-4 text-left">Target</th>
-                      <th className="py-3 px-4 text-left">Realisasi</th>
-                      <th className="py-3 px-4 text-left">Pencapaian (%)</th>
-                      <th className="py-3 px-4 text-right">Aksi</th>
+                      <th className="py-3 px-3 text-left">Target</th>
+                      <th className="py-3 px-3 text-center w-24">Realisasi</th>
+                      <th className="py-3 px-4 text-center w-28">Pencapaian (%)</th>
+                      <th className="py-3 px-4 text-right w-24">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -155,29 +180,20 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                       const calc = calculateIndicatorAchievement(ind);
                       return (
                         <tr key={ind.id} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="py-3.5 px-4 font-mono text-slate-400">{idx + 1}</td>
+                          <td className="py-3.5 px-4 font-mono text-slate-400 text-center">{idx + 1}</td>
                           <td className="py-3.5 px-4 font-semibold text-slate-900">
                             {ind.namaIndikator}
                           </td>
-                          <td className="py-3.5 px-4 text-left font-mono font-medium text-slate-700 whitespace-nowrap">
-                            {ind.target} {ind.satuan}
-                          </td>
-                          <td className="py-3.5 px-4 text-left font-mono whitespace-nowrap">
-                            <div className="flex items-center justify-start gap-1.5">
-                              <input
-                                type="number"
-                                min="0"
-                                step="any"
-                                value={ind.realisasi}
-                                onChange={(e) =>
-                                  onQuickUpdateRealisasi(ind.id, parseFloat(e.target.value) || 0)
-                                }
-                                className="w-16 px-2 py-1 text-center border border-slate-300 rounded-md font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-slate-50 hover:bg-white"
-                              />
-                              <span className="text-[11px] text-slate-500 font-normal">{ind.satuan}</span>
+                          <td className="py-3.5 px-3 text-left font-mono text-slate-800 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-slate-900 min-w-[2.75rem] shrink-0 text-left">{ind.target}</span>
+                              <span className="text-slate-600 font-normal">{ind.satuan}</span>
                             </div>
                           </td>
-                          <td className="py-3.5 px-4 text-left font-mono font-bold text-slate-900 whitespace-nowrap">
+                          <td className="py-3.5 px-3 text-center font-mono font-extrabold text-slate-900 whitespace-nowrap bg-slate-50/60">
+                            {ind.realisasi}
+                          </td>
+                          <td className="py-3.5 px-4 text-center font-mono font-bold text-slate-900 whitespace-nowrap">
                             <span
                               className={`px-2.5 py-1 rounded text-xs font-bold ${
                                 calc.rawPercentage >= 100
@@ -195,7 +211,7 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                               <button
                                 onClick={() => onEditIndicator(ind)}
                                 className="p-1.5 text-slate-600 hover:text-emerald-700 rounded-md hover:bg-emerald-50 transition-colors"
-                                title="Edit Indikator"
+                                title="Edit Indikator & Realisasi"
                               >
                                 <Edit2 className="w-4 h-4" />
                               </button>
@@ -263,12 +279,12 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                 <table className="w-full text-left text-xs text-slate-600">
                   <thead className="bg-blue-50/70 text-blue-900 uppercase font-semibold text-[11px] border-b border-blue-100">
                     <tr>
-                      <th className="py-3 px-4">No</th>
+                      <th className="py-3 px-4 w-12 text-center">No</th>
                       <th className="py-3 px-4">Indikator KPI IT</th>
-                      <th className="py-3 px-4 text-left">Target</th>
-                      <th className="py-3 px-4 text-left">Realisasi</th>
-                      <th className="py-3 px-4 text-left">Pencapaian (%)</th>
-                      <th className="py-3 px-4 text-right">Aksi</th>
+                      <th className="py-3 px-3 text-left">Target</th>
+                      <th className="py-3 px-3 text-center w-24">Realisasi</th>
+                      <th className="py-3 px-4 text-center w-28">Pencapaian (%)</th>
+                      <th className="py-3 px-4 text-right w-24">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -276,29 +292,20 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                       const calc = calculateIndicatorAchievement(ind);
                       return (
                         <tr key={ind.id} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="py-3.5 px-4 font-mono text-slate-400">{idx + 1}</td>
+                          <td className="py-3.5 px-4 font-mono text-slate-400 text-center">{idx + 1}</td>
                           <td className="py-3.5 px-4 font-semibold text-slate-900">
                             {ind.namaIndikator}
                           </td>
-                          <td className="py-3.5 px-4 text-left font-mono font-medium text-slate-700 whitespace-nowrap">
-                            {ind.target} {ind.satuan}
-                          </td>
-                          <td className="py-3.5 px-4 text-left font-mono whitespace-nowrap">
-                            <div className="flex items-center justify-start gap-1.5">
-                              <input
-                                type="number"
-                                min="0"
-                                step="any"
-                                value={ind.realisasi}
-                                onChange={(e) =>
-                                  onQuickUpdateRealisasi(ind.id, parseFloat(e.target.value) || 0)
-                                }
-                                className="w-16 px-2 py-1 text-center border border-slate-300 rounded-md font-bold text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none bg-slate-50 hover:bg-white"
-                              />
-                              <span className="text-[11px] text-slate-500 font-normal">{ind.satuan}</span>
+                          <td className="py-3.5 px-3 text-left font-mono text-slate-800 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-slate-900 min-w-[2.75rem] shrink-0 text-left">{ind.target}</span>
+                              <span className="text-slate-600 font-normal">{ind.satuan}</span>
                             </div>
                           </td>
-                          <td className="py-3.5 px-4 text-left font-mono font-bold text-slate-900 whitespace-nowrap">
+                          <td className="py-3.5 px-3 text-center font-mono font-extrabold text-slate-900 whitespace-nowrap bg-slate-50/60">
+                            {ind.realisasi}
+                          </td>
+                          <td className="py-3.5 px-4 text-center font-mono font-bold text-slate-900 whitespace-nowrap">
                             <span
                               className={`px-2.5 py-1 rounded text-xs font-bold ${
                                 calc.rawPercentage >= 100
@@ -316,7 +323,7 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                               <button
                                 onClick={() => onEditIndicator(ind)}
                                 className="p-1.5 text-slate-600 hover:text-blue-700 rounded-md hover:bg-blue-50 transition-colors"
-                                title="Edit Indikator"
+                                title="Edit Indikator & Realisasi"
                               >
                                 <Edit2 className="w-4 h-4" />
                               </button>

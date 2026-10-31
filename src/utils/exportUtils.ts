@@ -48,6 +48,7 @@ export function exportToExcel(
   // Sheet 2: Work Logs
   const workRows = filteredEntries.map((entry, idx) => ({
     No: idx + 1,
+    'Tanggal Acara': entry.tanggalAcara || '-',
     'Tanggal Masuk': entry.tanggalMasuk || entry.tanggal || '-',
     'Tanggal Mulai': entry.tanggalMulai || '-',
     'Tanggal Selesai': entry.tanggalSelesai || 'Proses',
@@ -93,7 +94,7 @@ export function exportToPDF(
   doc.setFont('helvetica', 'normal');
   doc.text('BAGIAN HUMAS DAN TEKNOLOGI INFORMASI (IT)', 105, 16, { align: 'center' });
   doc.setFontSize(8);
-  doc.text('Jl. Raya Bukittinggi - Payakumbuh Km. 3 Parabek, Agam, Sumatera Barat', 105, 21, { align: 'center' });
+  doc.text('Parabek, Nagari Ladang Laweh, Kec. Banuhampu, Kab. Agam, Sumatera Barat', 105, 21, { align: 'center' });
 
   // 2. Document Info
   doc.setTextColor(30, 41, 59);
@@ -136,7 +137,7 @@ export function exportToPDF(
         ind.bidang,
         ind.namaIndikator,
         `${ind.target} ${ind.satuan}`,
-        `${ind.realisasi} ${ind.satuan}`,
+        `${ind.realisasi}`,
         `${calc.cappedPercentage.toFixed(1)}%`,
       ];
     });
@@ -268,17 +269,14 @@ export function exportToPDF(
   doc.text('Parabek, ' + new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }), 140, currentY);
   currentY += 6;
 
-  doc.text('Mengetahui,', 20, currentY);
   doc.text('Dibuat oleh,', 140, currentY);
 
   currentY += 4;
   doc.setFont('helvetica', 'bold');
-  doc.text('Kepala Bagian / Pimpinan Pesantren', 20, currentY);
-  doc.text('Penanggung Jawab Humas & IT', 140, currentY);
+  doc.text('Staff Humas & IT', 140, currentY);
 
   currentY += 22;
-  doc.text('( _________________________ )', 20, currentY);
-  doc.text('( _________________________ )', 140, currentY);
+  doc.text('( Irsyadul Fuadi, S.Pd. )', 140, currentY);
 
   // Save PDF
   doc.save(`Laporan_KPI_Parabek_${selectedDepartment}_${periodeBulan}.pdf`);

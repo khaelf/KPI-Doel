@@ -133,6 +133,44 @@ export const storageService = {
     return true;
   },
 
+  recalculateKpiRealisasi(allWorkEntries?: WorkEntry[]): KpiIndicator[] {
+    const entries = allWorkEntries || this.getWorkEntries();
+    const indicators = this.getKpiIndicators();
+    let changed = false;
+
+    const updatedIndicators = indicators.map((ind) => {
+      // Find all completed work entries linked to this indicator for department and month
+      const completedCount = entries.filter((e) => {
+        const entryMonth = (e.tanggalMasuk || e.tanggal || '').substring(0, 7);
+        const isDeptMatch = e.bidang === ind.bidang;
+        const isMonthMatch = entryMonth === ind.periodeBulan;
+        const isKpiMatch = e.indikatorKpi && e.indikatorKpi.trim().toLowerCase() === ind.namaIndikator.trim().toLowerCase();
+        const isDone = e.status === 'Selesai';
+        return isDeptMatch && isMonthMatch && isKpiMatch && isDone;
+      }).length;
+
+      const hasLinkedEntries = entries.some(
+        (e) =>
+          e.bidang === ind.bidang &&
+          (e.tanggalMasuk || e.tanggal || '').substring(0, 7) === ind.periodeBulan &&
+          e.indikatorKpi &&
+          e.indikatorKpi.trim().toLowerCase() === ind.namaIndikator.trim().toLowerCase()
+      );
+
+      if (hasLinkedEntries && ind.realisasi !== completedCount) {
+        changed = true;
+        firebaseDataService.updateKpiIndicator(ind.id, { realisasi: completedCount });
+        return { ...ind, realisasi: completedCount };
+      }
+      return ind;
+    });
+
+    if (changed) {
+      this.saveKpiIndicators(updatedIndicators);
+    }
+    return updatedIndicators;
+  },
+
   // --- Agenda Items Storage API ---
   getAgendaItems(): AgendaItem[] {
     try {

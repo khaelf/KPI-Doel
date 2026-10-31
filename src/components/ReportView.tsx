@@ -69,9 +69,6 @@ export const ReportView: React.FC<ReportViewProps> = ({
       <div className="no-print bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-slate-900">Laporan Evaluasi KPI & Kinerja</h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Rekapitulasi pencapaian KPI bulanan bagian Humas & IT Parabek untuk periode {monthLabel}.
-          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -117,7 +114,7 @@ export const ReportView: React.FC<ReportViewProps> = ({
             BAGIAN HUBUNGAN MASYARAKAT (HUMAS) & TEKNOLOGI INFORMASI (IT)
           </h3>
           <p className="text-[11px] text-slate-500">
-            Jl. Raya Bukittinggi - Payakumbuh Km. 3 Parabek, Kabupaten Agam, Sumatera Barat
+            Parabek, Nagari Ladang Laweh, Kec. Banuhampu, Kab. Agam, Sumatera Barat
           </p>
         </div>
 
@@ -207,7 +204,7 @@ export const ReportView: React.FC<ReportViewProps> = ({
                           {ind.target} {ind.satuan}
                         </td>
                         <td className="py-2 px-3 border-r border-slate-200 text-left font-mono">
-                          {ind.realisasi} {ind.satuan}
+                          {ind.realisasi}
                         </td>
                         <td className="py-2 px-3 text-right font-mono font-bold text-emerald-800">
                           {calc.cappedPercentage.toFixed(1)}%
@@ -344,15 +341,8 @@ export const ReportView: React.FC<ReportViewProps> = ({
         </div>
 
         {/* Signature Endorsement Block */}
-        <div className="pt-8 border-t border-slate-200 text-xs text-slate-700 grid grid-cols-2 gap-8 print-break-inside-avoid">
-          <div>
-            <p className="font-medium">Mengetahui,</p>
-            <p className="font-bold text-slate-900">Kepala Bagian / Pimpinan Pesantren</p>
-            <div className="h-16"></div>
-            <p className="font-bold text-slate-900">( _________________________ )</p>
-          </div>
-
-          <div className="text-right">
+        <div className="pt-8 border-t border-slate-200 text-xs text-slate-700 flex justify-end print-break-inside-avoid">
+          <div className="text-right w-64">
             <p className="font-medium">
               Parabek,{' '}
               {new Date().toLocaleDateString('id-ID', {
@@ -361,9 +351,9 @@ export const ReportView: React.FC<ReportViewProps> = ({
                 year: 'numeric',
               })}
             </p>
-            <p className="font-bold text-slate-900">Penanggung Jawab Humas & IT</p>
+            <p className="font-bold text-slate-900 mt-1">Staff Humas & IT</p>
             <div className="h-16"></div>
-            <p className="font-bold text-slate-900">( _________________________ )</p>
+            <p className="font-bold text-slate-900">( Irsyadul Fuadi, S.Pd. )</p>
           </div>
         </div>
       </div>
