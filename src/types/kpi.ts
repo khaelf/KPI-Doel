@@ -29,7 +29,7 @@ export interface KpiIndicator {
   satuan: string; // e.g., 'Berita', 'Konten', 'Kegiatan', 'Laporan', '%', 'Perangkat'
   target: number;
   realisasi: number;
-  bobot: number; // percentage, sum should be 100% per department
+  bobot?: number; // optional, deprecated
   periodeBulan: string; // YYYY-MM
 }
 
@@ -57,6 +57,6 @@ export interface DepartmentSummary {
   pekerjaanSelesai: number;
   pekerjaanProses: number;
   pekerjaanBelum: number;
-  nilaiKpi: number; // overall weighted % (0 - 100)
-  totalBobot: number;
+  nilaiKpi: number; // overall % (0 - 100)
+  totalBobot?: number;
 }

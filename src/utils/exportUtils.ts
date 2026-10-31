@@ -38,9 +38,7 @@ export function exportToExcel(
       'Nama Indikator KPI': ind.namaIndikator,
       Target: `${ind.target} ${ind.satuan}`,
       Realisasi: `${ind.realisasi} ${ind.satuan}`,
-      'Bobot (%)': `${ind.bobot}%`,
       'Pencapaian (%)': `${calc.cappedPercentage.toFixed(1)}%`,
-      'Nilai Terbobot (%)': `${calc.weightedScore.toFixed(2)}%`,
     };
   });
 
@@ -129,39 +127,36 @@ export function exportToPDF(
 
     currentY += 4;
 
-    let totalScore = 0;
+    let totalScoreSum = 0;
     const tableBody = filteredIndicators.map((ind, idx) => {
       const calc = calculateIndicatorAchievement(ind);
-      totalScore += calc.weightedScore;
+      totalScoreSum += calc.cappedPercentage;
       return [
         (idx + 1).toString(),
         ind.bidang,
         ind.namaIndikator,
         `${ind.target} ${ind.satuan}`,
         `${ind.realisasi} ${ind.satuan}`,
-        `${ind.bobot}%`,
         `${calc.cappedPercentage.toFixed(1)}%`,
-        `${calc.weightedScore.toFixed(2)}%`,
       ];
     });
 
-    const statusBadge = getKpiStatusBadge(totalScore);
+    const avgScore = totalScoreSum / filteredIndicators.length;
+    const statusBadge = getKpiStatusBadge(avgScore);
 
     // Append summary row
     tableBody.push([
       '',
       '',
-      'TOTAL NILAI KPI BULANAN',
+      'RATA-RATA NIKAI KPI BULANAN',
       '',
       '',
-      '100%',
-      '',
-      `${totalScore.toFixed(2)}% (${statusBadge.label})`,
+      `${avgScore.toFixed(2)}% (${statusBadge.label})`,
     ]);
 
     autoTable(doc, {
       startY: currentY,
-      head: [['No', 'Bidang', 'Indikator Performance', 'Target', 'Realisasi', 'Bobot', 'Pencapaian', 'Nilai Akhir']],
+      head: [['No', 'Bidang', 'Indikator Performance', 'Target', 'Realisasi', 'Pencapaian']],
       body: tableBody,
       theme: 'grid',
       headStyles: {
@@ -178,12 +173,10 @@ export function exportToPDF(
       columnStyles: {
         0: { cellWidth: 8, halign: 'center' },
         1: { cellWidth: 18, halign: 'center' },
-        2: { cellWidth: 65 },
-        3: { cellWidth: 22, halign: 'right' },
-        4: { cellWidth: 22, halign: 'right' },
-        5: { cellWidth: 15, halign: 'right' },
-        6: { cellWidth: 18, halign: 'right' },
-        7: { cellWidth: 24, halign: 'right', fontStyle: 'bold' },
+        2: { cellWidth: 80 },
+        3: { cellWidth: 25, halign: 'right' },
+        4: { cellWidth: 25, halign: 'right' },
+        5: { cellWidth: 26, halign: 'right', fontStyle: 'bold' },
       },
       didParseCell: function (data) {
         if (data.row.index === tableBody.length - 1) {

@@ -25,7 +25,6 @@ export const KpiIndicatorModal: React.FC<KpiIndicatorModalProps> = ({
   const [satuan, setSatuan] = useState('Kegiatan');
   const [target, setTarget] = useState<number>(10);
   const [realisasi, setRealisasi] = useState<number>(10);
-  const [bobot, setBobot] = useState<number>(20);
   const [periodeBulan, setPeriodeBulan] = useState('2026-10');
 
   useEffect(() => {
@@ -35,7 +34,6 @@ export const KpiIndicatorModal: React.FC<KpiIndicatorModalProps> = ({
       setSatuan(autoCapitalizeText(editingIndicator.satuan));
       setTarget(editingIndicator.target);
       setRealisasi(editingIndicator.realisasi);
-      setBobot(editingIndicator.bobot);
       setPeriodeBulan(editingIndicator.periodeBulan);
     } else {
       setBidang(defaultDepartment);
@@ -43,7 +41,6 @@ export const KpiIndicatorModal: React.FC<KpiIndicatorModalProps> = ({
       setSatuan('Kegiatan');
       setTarget(10);
       setRealisasi(0);
-      setBobot(20);
       setPeriodeBulan(defaultMonth);
     }
   }, [editingIndicator, isOpen, defaultDepartment, defaultMonth]);
@@ -61,7 +58,6 @@ export const KpiIndicatorModal: React.FC<KpiIndicatorModalProps> = ({
         satuan: autoCapitalizeText(satuan.trim()),
         target: Number(target),
         realisasi: Number(realisasi),
-        bobot: Number(bobot),
         periodeBulan,
       },
       editingIndicator?.id
@@ -160,8 +156,8 @@ export const KpiIndicatorModal: React.FC<KpiIndicatorModalProps> = ({
             />
           </div>
 
-          {/* Target, Realisasi, Bobot */}
-          <div className="grid grid-cols-3 gap-3">
+          {/* Target & Realisasi */}
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block font-semibold text-slate-900 mb-1">Target Bulanan</label>
               <input
@@ -184,20 +180,6 @@ export const KpiIndicatorModal: React.FC<KpiIndicatorModalProps> = ({
                 required
                 value={realisasi}
                 onChange={(e) => setRealisasi(parseFloat(e.target.value) || 0)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-bold font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block font-semibold text-slate-900 mb-1">Bobot (%)</label>
-              <input
-                type="number"
-                min="0"
-                max="100"
-                step="any"
-                required
-                value={bobot}
-                onChange={(e) => setBobot(parseFloat(e.target.value) || 0)}
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-bold font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
             </div>

@@ -9,12 +9,11 @@ export function calculateIndicatorAchievement(indicator: KpiIndicator): {
   const realisasi = Math.max(0, indicator.realisasi);
   const rawPercentage = (realisasi / target) * 100;
   const cappedPercentage = Math.min(100, rawPercentage);
-  const weightedScore = (cappedPercentage * indicator.bobot) / 100;
 
   return {
     rawPercentage,
     cappedPercentage,
-    weightedScore,
+    weightedScore: cappedPercentage,
   };
 }
 
@@ -39,15 +38,15 @@ export function calculateDepartmentSummary(
   const pekerjaanProses = deptEntries.filter((e) => e.status === 'Proses').length;
   const pekerjaanBelum = deptEntries.filter((e) => e.status === 'Belum dikerjakan').length;
 
-  let totalBobot = 0;
-  deptIndicators.forEach((ind) => {
-    totalBobot += ind.bobot;
-  });
-
-  // Hitungan persentase diambil dari berapa banyak pekerjaan selesai dari total pekerjaan ditugaskan dalam bulan tersebut
-  const nilaiKpi = totalPekerjaan > 0
-    ? (pekerjaanSelesai / totalPekerjaan) * 100
-    : 0;
+  let nilaiKpi = 0;
+  if (deptIndicators.length > 0) {
+    const totalAch = deptIndicators.reduce((acc, ind) => {
+      return acc + calculateIndicatorAchievement(ind).cappedPercentage;
+    }, 0);
+    nilaiKpi = totalAch / deptIndicators.length;
+  } else if (totalPekerjaan > 0) {
+    nilaiKpi = (pekerjaanSelesai / totalPekerjaan) * 100;
+  }
 
   return {
     bidang,
@@ -56,7 +55,7 @@ export function calculateDepartmentSummary(
     pekerjaanProses,
     pekerjaanBelum,
     nilaiKpi: Number(nilaiKpi.toFixed(2)),
-    totalBobot: Number(totalBobot.toFixed(2)),
+    totalBobot: 100,
   };
 }
 

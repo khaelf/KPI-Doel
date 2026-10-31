@@ -186,9 +186,7 @@ export const ReportView: React.FC<ReportViewProps> = ({
                     <th className="py-2.5 px-3 border-b border-r border-slate-200">Indikator KPI</th>
                     <th className="py-2.5 px-3 border-b border-r border-slate-200 text-left">Target</th>
                     <th className="py-2.5 px-3 border-b border-r border-slate-200 text-left">Realisasi</th>
-                    <th className="py-2.5 px-3 border-b border-r border-slate-200 text-right">Bobot</th>
-                    <th className="py-2.5 px-3 border-b border-r border-slate-200 text-right">Capaian (%)</th>
-                    <th className="py-2.5 px-3 border-b border-slate-200 text-right">Nilai Akhir</th>
+                    <th className="py-2.5 px-3 border-b border-slate-200 text-right">Capaian (%)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -211,14 +209,8 @@ export const ReportView: React.FC<ReportViewProps> = ({
                         <td className="py-2 px-3 border-r border-slate-200 text-left font-mono">
                           {ind.realisasi} {ind.satuan}
                         </td>
-                        <td className="py-2 px-3 border-r border-slate-200 text-right font-mono font-semibold">
-                          {ind.bobot}%
-                        </td>
-                        <td className="py-2 px-3 border-r border-slate-200 text-right font-mono font-semibold">
-                          {calc.cappedPercentage.toFixed(1)}%
-                        </td>
                         <td className="py-2 px-3 text-right font-mono font-bold text-emerald-800">
-                          {calc.weightedScore.toFixed(2)}%
+                          {calc.cappedPercentage.toFixed(1)}%
                         </td>
                       </tr>
                     );
