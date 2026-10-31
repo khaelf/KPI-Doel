@@ -105,8 +105,9 @@ export const KpiIndicatorModal: React.FC<KpiIndicatorModalProps> = ({
                 onChange={(e) => setBidang(e.target.value as Department)}
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               >
-                <option value="Humas">Humas</option>
+                <option value="Humas">HUMAS</option>
                 <option value="IT">IT</option>
+                <option value="Umum">UMUM</option>
               </select>
             </div>
 

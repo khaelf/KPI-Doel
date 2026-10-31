@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AgendaItem, AgendaStatus, Department } from '../types/kpi';
-import { formatMonthLabel } from '../utils/kpiCalculations';
+import { formatMonthLabel, formatDateIndo } from '../utils/kpiCalculations';
 import {
   Calendar as CalendarIcon,
   Clock,

@@ -7,13 +7,15 @@ import { Navbar } from './components/Navbar';
 import { DashboardView } from './components/DashboardView';
 import { WorkLogView } from './components/WorkLogView';
 import { KpiMonthlyView } from './components/KpiMonthlyView';
+import { AgendaView } from './components/AgendaView';
 import { ReportView } from './components/ReportView';
 import { WorkEntryModal } from './components/WorkEntryModal';
 import { KpiIndicatorModal } from './components/KpiIndicatorModal';
+import { AgendaModal } from './components/AgendaModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'catatan' | 'kpi' | 'laporan'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'laporan'>('dashboard');
   const [selectedDepartment, setSelectedDepartment] = useState<'Semua' | Department>('Semua');
   const [selectedMonth, setSelectedMonth] = useState<string>('2026-10');
   const [catatanStatusFilter, setCatatanStatusFilter] = useState<'Semua' | TaskStatus>('Semua');
@@ -32,6 +34,9 @@ export default function App() {
   const [editingKpiIndicator, setEditingKpiIndicator] = useState<KpiIndicator | null>(null);
   const [kpiModalDept, setKpiModalDept] = useState<Department>('Humas');
 
+  const [isAgendaModalOpen, setIsAgendaModalOpen] = useState(false);
+  const [editingAgenda, setEditingAgenda] = useState<AgendaItem | null>(null);
+
   // Sync state with browser History API so mobile/browser Back button returns to previous screen/modal
   useEffect(() => {
     if (!window.history.state) {
@@ -45,10 +50,12 @@ export default function App() {
         }
         setIsWorkModalOpen(e.state.modal === 'work');
         setIsKpiModalOpen(e.state.modal === 'kpi');
+        setIsAgendaModalOpen(e.state.modal === 'agenda');
       } else {
         setActiveTab('dashboard');
         setIsWorkModalOpen(false);
         setIsKpiModalOpen(false);
+        setIsAgendaModalOpen(false);
       }
     };
 
@@ -56,11 +63,12 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  const changeTab = (tab: 'dashboard' | 'catatan' | 'kpi' | 'laporan') => {
-    if (activeTab !== tab || isWorkModalOpen || isKpiModalOpen) {
+  const changeTab = (tab: 'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'laporan') => {
+    if (activeTab !== tab || isWorkModalOpen || isKpiModalOpen || isAgendaModalOpen) {
       setActiveTab(tab);
       setIsWorkModalOpen(false);
       setIsKpiModalOpen(false);
+      setIsAgendaModalOpen(false);
       window.history.pushState({ activeTab: tab, modal: null }, '');
     }
   };
@@ -90,6 +98,20 @@ export default function App() {
     setIsKpiModalOpen(false);
     setEditingKpiIndicator(null);
     if (window.history.state?.modal === 'kpi') {
+      window.history.back();
+    }
+  };
+
+  const openAgendaModal = (item?: AgendaItem | null) => {
+    setEditingAgenda(item || null);
+    setIsAgendaModalOpen(true);
+    window.history.pushState({ activeTab, modal: 'agenda' }, '');
+  };
+
+  const closeAgendaModal = () => {
+    setIsAgendaModalOpen(false);
+    setEditingAgenda(null);
+    if (window.history.state?.modal === 'agenda') {
       window.history.back();
     }
   };
@@ -235,6 +257,34 @@ export default function App() {
     }
   };
 
+  // Handler: Agenda Save (Add or Edit)
+  const handleSaveAgenda = (
+    data: Omit<AgendaItem, 'id' | 'createdAt'>,
+    editingId?: string
+  ) => {
+    if (editingId) {
+      storageService.updateAgendaItem(editingId, data);
+    } else {
+      storageService.addAgendaItem(data);
+    }
+    setAgendaItems([...storageService.getAgendaItems()]);
+    closeAgendaModal();
+  };
+
+  // Handler: Agenda Delete
+  const handleDeleteAgenda = (id: string) => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus agenda kegiatan ini?')) {
+      storageService.deleteAgendaItem(id);
+      setAgendaItems([...storageService.getAgendaItems()]);
+    }
+  };
+
+  // Handler: Agenda Quick Status Change
+  const handleQuickStatusAgenda = (id: string, newStatus: AgendaStatus) => {
+    storageService.updateAgendaItem(id, { status: newStatus });
+    setAgendaItems([...storageService.getAgendaItems()]);
+  };
+
   // Handler: Reset Data
   const handleResetData = () => {
     if (
@@ -317,6 +367,18 @@ export default function App() {
           />
         )}
 
+        {activeTab === 'agenda' && (
+          <AgendaView
+            agendaItems={agendaItems}
+            selectedMonth={selectedMonth}
+            selectedDepartment={selectedDepartment}
+            onAddAgenda={() => openAgendaModal(null)}
+            onEditAgenda={(item) => openAgendaModal(item)}
+            onDeleteAgenda={handleDeleteAgenda}
+            onQuickStatusChange={handleQuickStatusAgenda}
+          />
+        )}
+
         {activeTab === 'laporan' && (
           <ReportView
             workEntries={workEntries}
@@ -359,6 +421,16 @@ export default function App() {
         editingIndicator={editingKpiIndicator}
         defaultDepartment={kpiModalDept}
         defaultMonth={selectedMonth}
+      />
+
+      {/* Agenda Modal */}
+      <AgendaModal
+        isOpen={isAgendaModalOpen}
+        onClose={closeAgendaModal}
+        onSave={handleSaveAgenda}
+        editingAgenda={editingAgenda}
+        defaultDepartment={selectedDepartment === 'Semua' ? 'Humas' : selectedDepartment}
+        defaultDate={selectedMonth ? `${selectedMonth}-01` : undefined}
       />
 
       {/* Offline Status Toast */}

@@ -112,6 +112,29 @@ export function formatMonthLabel(monthString: string): string {
   return `${months[mIndex] || month} ${year}`;
 }
 
+export function formatDateIndo(dateStr: string): string {
+  if (!dateStr) return '';
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return dateStr;
+  const [year, month, day] = parts;
+  const months = [
+    'Januari',
+    'Februari',
+    'Maret',
+    'April',
+    'Mei',
+    'Juni',
+    'Juli',
+    'Agustus',
+    'September',
+    'Oktober',
+    'November',
+    'Desember',
+  ];
+  const mIndex = parseInt(month, 10) - 1;
+  return `${parseInt(day, 10)} ${months[mIndex] || month} ${year}`;
+}
+
 export function getKpiStatusBadge(score: number): {
   label: string;
   bgClass: string;

@@ -625,10 +625,12 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
                               className={`inline-block px-2.5 py-0.5 text-[10px] font-bold rounded ${
                                 entry.bidang === 'Humas'
                                   ? 'bg-emerald-100 text-emerald-800'
-                                  : 'bg-blue-100 text-blue-800'
+                                  : entry.bidang === 'IT'
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-purple-100 text-purple-800'
                               }`}
                             >
-                              {entry.bidang}
+                              {entry.bidang.toUpperCase()}
                             </span>
                           </td>
                         )}
@@ -648,6 +650,24 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
                                 <span className="inline-block bg-emerald-50 text-emerald-800 border border-emerald-200 px-1.5 py-0.5 rounded text-[10px] font-medium">
                                   KPI: {entry.indikatorKpi}
                                 </span>
+                              )}
+                              {entry.spesifikasiFormat && (
+                                <span className="inline-block bg-purple-50 text-purple-800 border border-purple-200 px-1.5 py-0.5 rounded text-[10px] font-medium">
+                                  Format: {entry.spesifikasiFormat}
+                                </span>
+                              )}
+                              {entry.linkMasterFile && (
+                                <a
+                                  href={entry.linkMasterFile.startsWith('http') ? entry.linkMasterFile : `https://${entry.linkMasterFile}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors"
+                                  title="Buka Link Master File"
+                                >
+                                  <span>Master File</span>
+                                  <ExternalLink className="w-2.5 h-2.5" />
+                                </a>
                               )}
                               {(entry.jamMulai || entry.jamSelesai) && (
                                 <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[10px] font-mono font-medium border border-slate-200/60">

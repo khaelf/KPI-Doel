@@ -14,6 +14,7 @@ import {
   ExternalLink,
   Megaphone,
   Monitor,
+  Building2,
   Calendar,
   MapPin,
 } from 'lucide-react';
@@ -24,7 +25,7 @@ interface DashboardViewProps {
   agendaItems?: AgendaItem[];
   selectedMonth: string;
   selectedDepartment: 'Semua' | Department;
-  onNavigateTab: (tab: 'catatan' | 'kpi' | 'laporan') => void;
+  onNavigateTab: (tab: 'catatan' | 'kpi' | 'laporan' | 'agenda') => void;
   onNavigateToCatatanWithStatus?: (status: 'Semua' | 'Belum dikerjakan' | 'Proses' | 'Selesai') => void;
   onOpenAddModal?: () => void;
   onQuickUpdateStatus: (id: string, newStatus: 'Belum dikerjakan' | 'Proses' | 'Selesai') => void;
@@ -57,6 +58,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   // Summaries per department
   const humasSummary = calculateDepartmentSummary('Humas', kpiIndicators, workEntries, selectedMonth);
   const itSummary = calculateDepartmentSummary('IT', kpiIndicators, workEntries, selectedMonth);
+  const umumSummary = calculateDepartmentSummary('Umum', kpiIndicators, workEntries, selectedMonth);
 
   // Overall KPI Score calculation: total pekerjaan selesai / total pekerjaan ditugaskan
   let overallKpiScore = 0;
@@ -64,6 +66,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     overallKpiScore = humasSummary.nilaiKpi;
   } else if (selectedDepartment === 'IT') {
     overallKpiScore = itSummary.nilaiKpi;
+  } else if (selectedDepartment === 'Umum') {
+    overallKpiScore = umumSummary.nilaiKpi;
   } else {
     overallKpiScore = totalPekerjaan > 0 ? (pekerjaanSelesai / totalPekerjaan) * 100 : 0;
   }
@@ -180,43 +184,43 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* Department Breakdown Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {/* Humas KPI Breakdown Card */}
-        <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
-                  <Megaphone className="w-5 h-5" />
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
+                  <Megaphone className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900">Bagian Humas</h3>
-                  <p className="text-xs text-slate-500">Hubungan Masyarakat & Media</p>
+                  <h3 className="text-sm font-bold text-slate-900">Bagian Humas</h3>
+                  <p className="text-[11px] text-slate-500">Hubungan Masyarakat & Media</p>
                 </div>
               </div>
-              <span className="text-xl font-bold font-mono text-emerald-700">
+              <span className="text-lg font-bold font-mono text-emerald-700">
                 {humasSummary.nilaiKpi.toFixed(1)}%
               </span>
             </div>
 
-            <div className="space-y-3 text-xs">
+            <div className="space-y-2.5 text-xs">
               <div className="flex justify-between text-slate-600">
-                <span>Total Pekerjaan Ditugaskan</span>
+                <span>Total Tugas Ditugaskan</span>
                 <span className="font-semibold text-slate-900 font-mono">
                   {humasSummary.totalPekerjaan} Pekerjaan
                 </span>
               </div>
               <div className="flex justify-between text-slate-600">
-                <span>Status Pekerjaan Selesai</span>
+                <span>Pekerjaan Selesai</span>
                 <span className="font-semibold text-emerald-700 font-mono">
                   {humasSummary.pekerjaanSelesai} Selesai
                 </span>
               </div>
 
               {/* Progress bar */}
-              <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+              <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
                 <div
-                  className="bg-emerald-600 h-2.5 rounded-full transition-all duration-500"
+                  className="bg-emerald-600 h-2 rounded-full transition-all duration-500"
                   style={{ width: `${Math.min(100, humasSummary.nilaiKpi)}%` }}
                 ></div>
               </div>
@@ -225,7 +229,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
           <button
             onClick={() => onNavigateTab('kpi')}
-            className="mt-5 w-full py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs rounded-lg transition-colors border border-slate-200 flex items-center justify-center gap-1.5"
+            className="mt-4 w-full py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs rounded-lg transition-colors border border-slate-200 flex items-center justify-center gap-1.5"
           >
             <span>Rincian Indikator Humas</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -233,41 +237,41 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         {/* IT KPI Breakdown Card */}
-        <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center font-bold">
-                  <Monitor className="w-5 h-5" />
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center font-bold">
+                  <Monitor className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900">Bagian IT</h3>
-                  <p className="text-xs text-slate-500">Teknologi Informasi & Infrastruktur</p>
+                  <h3 className="text-sm font-bold text-slate-900">Bagian IT</h3>
+                  <p className="text-[11px] text-slate-500">Teknologi & Komputer</p>
                 </div>
               </div>
-              <span className="text-xl font-bold font-mono text-emerald-700">
+              <span className="text-lg font-bold font-mono text-emerald-700">
                 {itSummary.nilaiKpi.toFixed(1)}%
               </span>
             </div>
 
-            <div className="space-y-3 text-xs">
+            <div className="space-y-2.5 text-xs">
               <div className="flex justify-between text-slate-600">
-                <span>Total Pekerjaan Ditugaskan</span>
+                <span>Total Tugas Ditugaskan</span>
                 <span className="font-semibold text-slate-900 font-mono">
                   {itSummary.totalPekerjaan} Pekerjaan
                 </span>
               </div>
               <div className="flex justify-between text-slate-600">
-                <span>Status Pekerjaan Selesai</span>
+                <span>Pekerjaan Selesai</span>
                 <span className="font-semibold text-emerald-700 font-mono">
                   {itSummary.pekerjaanSelesai} Selesai
                 </span>
               </div>
 
               {/* Progress bar */}
-              <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+              <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
                 <div
-                  className="bg-emerald-600 h-2.5 rounded-full transition-all duration-500"
+                  className="bg-emerald-600 h-2 rounded-full transition-all duration-500"
                   style={{ width: `${Math.min(100, itSummary.nilaiKpi)}%` }}
                 ></div>
               </div>
@@ -276,9 +280,60 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
           <button
             onClick={() => onNavigateTab('kpi')}
-            className="mt-5 w-full py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs rounded-lg transition-colors border border-slate-200 flex items-center justify-center gap-1.5"
+            className="mt-4 w-full py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs rounded-lg transition-colors border border-slate-200 flex items-center justify-center gap-1.5"
           >
             <span>Rincian Indikator IT</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {/* Bagian Umum KPI Breakdown Card */}
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center font-bold">
+                  <Building2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Bagian Umum</h3>
+                  <p className="text-[11px] text-slate-500">Administrasi & Urusan Umum</p>
+                </div>
+              </div>
+              <span className="text-lg font-bold font-mono text-emerald-700">
+                {umumSummary.nilaiKpi.toFixed(1)}%
+              </span>
+            </div>
+
+            <div className="space-y-2.5 text-xs">
+              <div className="flex justify-between text-slate-600">
+                <span>Total Tugas Ditugaskan</span>
+                <span className="font-semibold text-slate-900 font-mono">
+                  {umumSummary.totalPekerjaan} Pekerjaan
+                </span>
+              </div>
+              <div className="flex justify-between text-slate-600">
+                <span>Pekerjaan Selesai</span>
+                <span className="font-semibold text-emerald-700 font-mono">
+                  {umumSummary.pekerjaanSelesai} Selesai
+                </span>
+              </div>
+
+              {/* Progress bar */}
+              <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                <div
+                  className="bg-emerald-600 h-2 rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min(100, umumSummary.nilaiKpi)}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={() => onNavigateTab('kpi')}
+            className="mt-4 w-full py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs rounded-lg transition-colors border border-slate-200 flex items-center justify-center gap-1.5"
+          >
+            <span>Rincian Indikator Umum</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -400,6 +455,79 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     ))}
                   </tbody>
                 </table>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* Agenda Kegiatan Terdekat Widget */}
+      {(() => {
+        const upcomingAgendas = agendaItems
+          .filter((item) => {
+            const matchesDept =
+              selectedDepartment === 'Semua' ||
+              item.bidang === 'Semua' ||
+              item.bidang === selectedDepartment;
+            return matchesDept && item.status !== 'Dibatalkan';
+          })
+          .sort((a, b) => a.tanggal.localeCompare(b.tanggal))
+          .slice(0, 3);
+
+        return (
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden p-5">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-emerald-700" />
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Agenda Kegiatan Terdekat</h3>
+                  <p className="text-xs text-slate-500">Jadwal kegiatan penting Humas & IT</p>
+                </div>
+              </div>
+              <button
+                onClick={() => onNavigateTab('agenda')}
+                className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 cursor-pointer"
+              >
+                <span>Buka Menu Agenda</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+
+            {upcomingAgendas.length === 0 ? (
+              <p className="text-xs text-slate-500 py-3 text-center">Belum ada agenda kegiatan mendatang.</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {upcomingAgendas.map((item) => (
+                  <div
+                    key={item.id}
+                    onClick={() => onNavigateTab('agenda')}
+                    className="p-3.5 rounded-xl border border-slate-200/90 hover:border-emerald-400 hover:bg-emerald-50/40 transition-all cursor-pointer text-xs space-y-1.5"
+                  >
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="font-mono text-[11px] font-bold text-emerald-800 bg-emerald-100/70 px-2 py-0.5 rounded">
+                        {item.tanggal}
+                      </span>
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                          item.status === 'Selesai'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : item.status === 'Berlangsung'
+                            ? 'bg-amber-100 text-amber-800'
+                            : 'bg-blue-100 text-blue-800'
+                        }`}
+                      >
+                        {item.status}
+                      </span>
+                    </div>
+                    <div className="font-bold text-slate-900 line-clamp-1">{item.judul}</div>
+                    {item.lokasi && (
+                      <div className="text-slate-500 flex items-center gap-1 text-[11px] truncate">
+                        <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                        <span className="truncate">{item.lokasi}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
           </div>

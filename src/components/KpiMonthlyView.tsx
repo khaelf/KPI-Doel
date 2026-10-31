@@ -11,6 +11,7 @@ import {
   Trash2,
   Megaphone,
   Monitor,
+  Briefcase,
 } from 'lucide-react';
 
 interface KpiMonthlyViewProps {
@@ -42,6 +43,10 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
     (i) => i.bidang === 'IT' && i.periodeBulan === selectedMonth
   );
 
+  const umumIndicators = kpiIndicators.filter(
+    (i) => i.bidang === 'Umum' && i.periodeBulan === selectedMonth
+  );
+
   // Average score for Humas
   const humasAvgScore =
     humasIndicators.length > 0
@@ -60,11 +65,21 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
         ) / itIndicators.length
       : 0;
 
+  // Average score for Umum
+  const umumAvgScore =
+    umumIndicators.length > 0
+      ? umumIndicators.reduce(
+          (acc, ind) => acc + calculateIndicatorAchievement(ind).cappedPercentage,
+          0
+        ) / umumIndicators.length
+      : 0;
+
   const humasBadge = getKpiStatusBadge(humasAvgScore);
   const itBadge = getKpiStatusBadge(itAvgScore);
+  const umumBadge = getKpiStatusBadge(umumAvgScore);
 
-  // Combined average score for Humas & IT
-  const allIndicators = [...humasIndicators, ...itIndicators];
+  // Combined average score
+  const allIndicators = [...humasIndicators, ...itIndicators, ...umumIndicators];
   const combinedAvgScore =
     allIndicators.length > 0
       ? allIndicators.reduce(
@@ -88,7 +103,7 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
           <div className="bg-emerald-50 border border-emerald-200/90 rounded-xl px-2.5 sm:px-3.5 py-1.5 sm:py-2 flex items-center justify-between sm:justify-start gap-2 sm:gap-3 shadow-2xs">
             <div>
               <div className="text-[9px] sm:text-[10px] uppercase font-bold text-emerald-800 tracking-wider">
-                Rata-rata Capaian (Humas & IT)
+                Rata-rata Capaian Keseluruhan
               </div>
               <div className="text-base sm:text-lg font-extrabold font-mono text-emerald-900 leading-tight">
                 {combinedAvgScore.toFixed(2)}%
@@ -99,24 +114,34 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {(selectedDepartment === 'Semua' || selectedDepartment === 'Humas') && (
               <button
                 onClick={() => onAddIndicator('Humas')}
-                className="flex-1 sm:flex-initial px-3 sm:px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5"
+                className="flex-1 sm:flex-initial px-3 sm:px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
-                <span>Tambah Indikator Humas</span>
+                <span>Tambah Indikator HUMAS</span>
               </button>
             )}
 
             {(selectedDepartment === 'Semua' || selectedDepartment === 'IT') && (
               <button
                 onClick={() => onAddIndicator('IT')}
-                className="flex-1 sm:flex-initial px-3 sm:px-3.5 py-2 bg-blue-700 hover:bg-blue-800 text-white font-semibold text-xs rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5"
+                className="flex-1 sm:flex-initial px-3 sm:px-3.5 py-2 bg-blue-700 hover:bg-blue-800 text-white font-semibold text-xs rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>Tambah Indikator IT</span>
+              </button>
+            )}
+
+            {(selectedDepartment === 'Semua' || selectedDepartment === 'Umum') && (
+              <button
+                onClick={() => onAddIndicator('Umum')}
+                className="flex-1 sm:flex-initial px-3 sm:px-3.5 py-2 bg-purple-700 hover:bg-purple-800 text-white font-semibold text-xs rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Tambah Indikator UMUM</span>
               </button>
             )}
           </div>
@@ -342,6 +367,124 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                               <button
                                 onClick={() => onDeleteIndicator(ind.id)}
                                 className="p-1.5 text-slate-400 hover:text-rose-600 rounded-md hover:bg-rose-50 transition-colors"
+                                title="Hapus Indikator"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* --- UMUM SECTION --- */}
+      {(selectedDepartment === 'Semua' || selectedDepartment === 'Umum') && (
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-purple-950 text-white p-4 rounded-xl shadow-sm border border-purple-900">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-purple-800 flex items-center justify-center text-white">
+                <Briefcase className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-base">KPI Bagian Umum</h3>
+                <p className="text-xs text-purple-200">
+                  {umumIndicators.length} Indikator Kinerja Terdaftar
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <div className="text-xs text-purple-200">Rata-rata Capaian Umum</div>
+                <div className="text-2xl font-bold font-mono">{umumAvgScore.toFixed(2)}%</div>
+              </div>
+              <span className={`px-2.5 py-1 text-xs font-bold rounded-md ${umumBadge.badgeClass}`}>
+                {umumBadge.label}
+              </span>
+            </div>
+          </div>
+
+          {/* Table for Umum */}
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            {umumIndicators.length === 0 ? (
+              <div className="p-8 text-center text-xs text-slate-500">
+                Belum ada indikator KPI Umum untuk bulan ini.{' '}
+                <button
+                  onClick={() => onAddIndicator('Umum')}
+                  className="text-purple-700 underline font-semibold cursor-pointer"
+                >
+                  Tambah Indikator Umum
+                </button>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-slate-600">
+                  <thead className="bg-purple-50/70 text-purple-900 uppercase font-semibold text-[11px] border-b border-purple-100">
+                    <tr>
+                      <th className="py-3 px-4 w-12 text-center">No</th>
+                      <th className="py-3 px-4">Indikator KPI Umum</th>
+                      <th className="py-3 px-3 text-left">Target</th>
+                      <th className="py-3 px-3 text-center w-24">Realisasi</th>
+                      <th className="py-3 px-4 text-center w-28">Pencapaian (%)</th>
+                      <th className="py-3 px-4 text-right w-24">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {umumIndicators.map((ind, idx) => {
+                      const calc = calculateIndicatorAchievement(ind);
+                      return (
+                        <tr key={ind.id} className="hover:bg-slate-50/80 transition-colors">
+                          <td className="py-3.5 px-4 font-mono text-slate-400 text-center">{idx + 1}</td>
+                          <td className="py-3.5 px-4 font-semibold text-slate-900">
+                            {ind.namaIndikator}
+                          </td>
+                          <td className="py-3.5 px-3 text-left font-mono text-slate-800 whitespace-nowrap">
+                            <button
+                              type="button"
+                              onClick={() => onEditIndicator(ind)}
+                              className="group/tgt flex items-center gap-2 px-2 py-1 -mx-2 rounded-lg hover:bg-purple-50 transition-colors text-left cursor-pointer"
+                              title={`Klik untuk mengedit target bulan ${monthLabel}`}
+                            >
+                              <span className="font-bold text-slate-900 min-w-[2.5rem] shrink-0 text-left group-hover/tgt:text-purple-700">{ind.target}</span>
+                              <span className="text-slate-600 font-normal">{ind.satuan}</span>
+                              <Edit2 className="w-3 h-3 text-slate-400 opacity-0 group-hover/tgt:opacity-100 transition-opacity ml-1" />
+                            </button>
+                          </td>
+                          <td className="py-3.5 px-3 text-center font-mono font-extrabold text-slate-900 whitespace-nowrap bg-slate-50/60">
+                            {ind.realisasi}
+                          </td>
+                          <td className="py-3.5 px-4 text-center font-mono font-bold text-slate-900 whitespace-nowrap">
+                            <span
+                              className={`px-2.5 py-1 rounded text-xs font-bold ${
+                                calc.rawPercentage >= 100
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : calc.rawPercentage >= 75
+                                  ? 'bg-green-100 text-green-800'
+                                  : 'bg-amber-100 text-amber-800'
+                              }`}
+                            >
+                              {calc.cappedPercentage.toFixed(1)}%
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                            <div className="flex items-center justify-end gap-1">
+                              <button
+                                onClick={() => onEditIndicator(ind)}
+                                className="p-1.5 text-slate-600 hover:text-purple-700 rounded-md hover:bg-purple-50 transition-colors cursor-pointer"
+                                title="Edit Target Bulan Ini & Indikator"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => onDeleteIndicator(ind.id)}
+                                className="p-1.5 text-slate-400 hover:text-rose-600 rounded-md hover:bg-rose-50 transition-colors cursor-pointer"
                                 title="Hapus Indikator"
                               >
                                 <Trash2 className="w-4 h-4" />

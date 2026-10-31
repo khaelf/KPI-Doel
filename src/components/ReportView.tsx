@@ -33,6 +33,7 @@ export const ReportView: React.FC<ReportViewProps> = ({
   // Department Summaries
   const humasSummary = calculateDepartmentSummary('Humas', kpiIndicators, workEntries, selectedMonth);
   const itSummary = calculateDepartmentSummary('IT', kpiIndicators, workEntries, selectedMonth);
+  const umumSummary = calculateDepartmentSummary('Umum', kpiIndicators, workEntries, selectedMonth);
 
   // Month Work Entries (including ongoing tasks carried over to this month)
   const monthWorkEntries = workEntries.filter((e) => {
@@ -56,8 +57,10 @@ export const ReportView: React.FC<ReportViewProps> = ({
     overallScore = humasSummary.nilaiKpi;
   } else if (selectedDepartment === 'IT') {
     overallScore = itSummary.nilaiKpi;
+  } else if (selectedDepartment === 'Umum') {
+    overallScore = umumSummary.nilaiKpi;
   } else {
-    overallScore = (humasSummary.nilaiKpi + itSummary.nilaiKpi) / 2;
+    overallScore = (humasSummary.nilaiKpi + itSummary.nilaiKpi + umumSummary.nilaiKpi) / 3;
   }
 
   const overallBadge = getKpiStatusBadge(overallScore);

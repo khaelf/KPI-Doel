@@ -1,4 +1,4 @@
-export type Department = 'Humas' | 'IT';
+export type Department = 'Humas' | 'IT' | 'Umum';
 
 export type TaskStatus = 'Belum dikerjakan' | 'Proses' | 'Selesai';
 
@@ -12,6 +12,11 @@ export interface WorkEntry {
   jamSelesai?: string; // HH:mm (Jam Selesai Pekerjaan)
   lokasi?: string; // Lokasi Pekerjaan
   jumlahRevisi?: number; // Jumlah revisi (0, 1, 2, dst)
+  jamDeadline?: string; // HH:mm (Jam Batas Selesai)
+  opsiPengingat?: string; // e.g. "1 hari sebelumnya"
+  spesifikasiFormat?: string; // Spesifikasi / Ukuran Format (Desain Grafis)
+  linkMasterFile?: string; // Link File Master / Cloud Storage (Desain Grafis)
+  durasiPengerjaan?: string; // Durasi Pengerjaan Text
   tanggal?: string; // Fallback helper YYYY-MM-DD
   bidang: Department;
   namaPekerjaan: string;

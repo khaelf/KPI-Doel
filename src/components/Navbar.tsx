@@ -11,8 +11,8 @@ import {
 } from 'lucide-react';
 
 interface NavbarProps {
-  activeTab: 'dashboard' | 'catatan' | 'kpi' | 'laporan';
-  setActiveTab: (tab: 'dashboard' | 'catatan' | 'kpi' | 'laporan') => void;
+  activeTab: 'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'laporan';
+  setActiveTab: (tab: 'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'laporan') => void;
   selectedDepartment: 'Semua' | Department;
   setSelectedDepartment: (dept: 'Semua' | Department) => void;
   selectedMonth: string;
@@ -90,19 +90,22 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="flex items-center justify-between md:justify-end gap-2 w-full md:w-auto">
             {/* Department Filter Toggle */}
             <div className="bg-emerald-900/90 p-1 rounded-lg border border-emerald-700/60 flex items-center gap-1 text-[11px] sm:text-xs">
-              {(['Semua', 'Humas', 'IT'] as const).map((dept) => (
-                <button
-                  key={dept}
-                  onClick={() => setSelectedDepartment(dept)}
-                  className={`px-2.5 py-1 rounded-md font-medium transition-all ${
-                    selectedDepartment === dept
-                      ? 'bg-emerald-500 text-white shadow-xs font-bold'
-                      : 'text-emerald-200 hover:text-white hover:bg-emerald-800/50'
-                  }`}
-                >
-                  {dept}
-                </button>
-              ))}
+              {(['Semua', 'Humas', 'IT', 'Umum'] as const).map((dept) => {
+                const label = dept === 'Semua' ? 'SEMUA' : dept.toUpperCase();
+                return (
+                  <button
+                    key={dept}
+                    onClick={() => setSelectedDepartment(dept)}
+                    className={`px-2.5 py-1 rounded-md font-medium transition-all ${
+                      selectedDepartment === dept
+                        ? 'bg-emerald-500 text-white shadow-xs font-bold'
+                        : 'text-emerald-200 hover:text-white hover:bg-emerald-800/50'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Month Picker */}
@@ -192,6 +195,18 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
           <button
+            onClick={() => setActiveTab('agenda')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg transition-all whitespace-nowrap ${
+              activeTab === 'agenda'
+                ? 'bg-white/10 text-white font-semibold border border-white/20'
+                : 'text-emerald-200 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <Calendar className="w-4 h-4" />
+            <span>Agenda</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('laporan')}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-lg transition-all whitespace-nowrap ${
               activeTab === 'laporan'
@@ -206,44 +221,54 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* Mobile Bottom Navigation Bar (Hidden on desktop) */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#1b4332] border-t border-emerald-800 flex items-center justify-around py-2 px-2 shadow-lg no-print">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#1b4332] border-t border-emerald-800 flex items-center justify-around py-2 px-1 shadow-lg no-print">
         <button
           onClick={() => setActiveTab('dashboard')}
-          className={`flex flex-col items-center gap-1 px-3 py-1 text-[11px] ${
+          className={`flex flex-col items-center gap-1 px-2.5 py-1 text-[10px] ${
             activeTab === 'dashboard' ? 'text-emerald-300 font-bold' : 'text-emerald-200/70'
           }`}
         >
-          <LayoutDashboard className="w-5 h-5" />
+          <LayoutDashboard className="w-4 h-4" />
           <span>Dashboard</span>
         </button>
 
         <button
           onClick={() => setActiveTab('catatan')}
-          className={`flex flex-col items-center gap-1 px-3 py-1 text-[11px] ${
+          className={`flex flex-col items-center gap-1 px-2.5 py-1 text-[10px] ${
             activeTab === 'catatan' ? 'text-emerald-300 font-bold' : 'text-emerald-200/70'
           }`}
         >
-          <ClipboardList className="w-5 h-5" />
+          <ClipboardList className="w-4 h-4" />
           <span>Catatan</span>
         </button>
 
         <button
           onClick={() => setActiveTab('kpi')}
-          className={`flex flex-col items-center gap-1 px-3 py-1 text-[11px] ${
+          className={`flex flex-col items-center gap-1 px-2.5 py-1 text-[10px] ${
             activeTab === 'kpi' ? 'text-emerald-300 font-bold' : 'text-emerald-200/70'
           }`}
         >
-          <Target className="w-5 h-5" />
+          <Target className="w-4 h-4" />
           <span>KPI</span>
         </button>
 
         <button
+          onClick={() => setActiveTab('agenda')}
+          className={`flex flex-col items-center gap-1 px-2.5 py-1 text-[10px] ${
+            activeTab === 'agenda' ? 'text-emerald-300 font-bold' : 'text-emerald-200/70'
+          }`}
+        >
+          <Calendar className="w-4 h-4" />
+          <span>Agenda</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('laporan')}
-          className={`flex flex-col items-center gap-1 px-3 py-1 text-[11px] ${
+          className={`flex flex-col items-center gap-1 px-2.5 py-1 text-[10px] ${
             activeTab === 'laporan' ? 'text-emerald-300 font-bold' : 'text-emerald-200/70'
           }`}
         >
-          <FileBarChart className="w-5 h-5" />
+          <FileBarChart className="w-4 h-4" />
           <span>Laporan</span>
         </button>
       </div>

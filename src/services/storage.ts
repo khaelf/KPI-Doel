@@ -3,7 +3,7 @@ import { INITIAL_WORK_ENTRIES, INITIAL_KPI_INDICATORS, INITIAL_AGENDA_ITEMS } fr
 import { firebaseDataService, testFirestoreConnection } from './firebase';
 
 const WORK_ENTRIES_KEY = 'parabek_kpi_work_entries_v1';
-const KPI_INDICATORS_KEY = 'parabek_kpi_indicators_v1';
+const KPI_INDICATORS_KEY = 'parabek_kpi_indicators_v5';
 const AGENDA_ITEMS_KEY = 'parabek_kpi_agenda_items_v1';
 
 // Verify firestore connection on load
@@ -75,13 +75,57 @@ export const storageService = {
   getKpiIndicators(): KpiIndicator[] {
     try {
       const data = localStorage.getItem(KPI_INDICATORS_KEY);
+      let list: KpiIndicator[];
       if (!data) {
-        this.saveKpiIndicators(INITIAL_KPI_INDICATORS);
-        // Seed initial indicators to Firestore
+        list = INITIAL_KPI_INDICATORS;
+        this.saveKpiIndicators(list);
         INITIAL_KPI_INDICATORS.forEach((ind) => firebaseDataService.saveKpiIndicator(ind));
-        return INITIAL_KPI_INDICATORS;
+        return list;
+      } else {
+        list = JSON.parse(data);
       }
-      return JSON.parse(data);
+
+      // Sanitize indicators per user requests:
+      // Humas: strictly 4 indicators (Dokumentasi Kegiatan, Desain Grafis, Pembuatan Konten Medsos, Publikasi Berita)
+      const allowedHumas = [
+        'dokumentasi kegiatan',
+        'desain grafis',
+        'pembuatan konten medsos',
+        'publikasi berita',
+      ];
+
+      let modified = false;
+      const sanitized = list.filter((ind) => {
+        const nameLower = ind.namaIndikator.trim().toLowerCase();
+        if (ind.bidang === 'Humas') {
+          if (nameLower === 'pembuatan konten media sosial') {
+            ind.namaIndikator = 'Pembuatan Konten Medsos';
+            modified = true;
+            return true;
+          }
+          if (!allowedHumas.includes(nameLower)) {
+            // Remove items 5-7 (Pengelolaan media komunikasi, duplicate Desain grafis, Pelatihan)
+            modified = true;
+            return false;
+          }
+        }
+        if (ind.bidang === 'Umum') {
+          if (
+            nameLower === 'pelayanan & administrasi umum' ||
+            nameLower === 'pelayanan dan administrasi umum'
+          ) {
+            ind.namaIndikator = 'Insidentil';
+            modified = true;
+          }
+        }
+        return true;
+      });
+
+      if (modified) {
+        this.saveKpiIndicators(sanitized);
+      }
+
+      return sanitized;
     } catch (e) {
       console.error('Error loading KPI indicators from localStorage:', e);
       return INITIAL_KPI_INDICATORS;
