@@ -1,9 +1,10 @@
 import React from 'react';
-import { KpiIndicator, Department } from '../types/kpi';
+import { WorkEntry, KpiIndicator, Department } from '../types/kpi';
 import {
   calculateIndicatorAchievement,
   formatMonthLabel,
   getKpiStatusBadge,
+  isWorkEntryInMonth,
 } from '../utils/kpiCalculations';
 import {
   Plus,
@@ -21,7 +22,8 @@ interface KpiMonthlyViewProps {
   onAddIndicator: (dept: Department) => void;
   onEditIndicator: (indicator: KpiIndicator) => void;
   onDeleteIndicator: (id: string) => void;
-  onQuickUpdateRealisasi: (id: string, newRealisasi: number) => void;
+  onQuickUpdateRealisasi?: (id: string, newRealisasi: number) => void;
+  workEntries?: WorkEntry[];
 }
 
 export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
@@ -31,21 +33,40 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
   onAddIndicator,
   onEditIndicator,
   onDeleteIndicator,
+  workEntries = [],
 }) => {
   const monthLabel = formatMonthLabel(selectedMonth);
 
+  const getEffectiveIndicator = (ind: KpiIndicator): KpiIndicator => {
+    if (!workEntries || workEntries.length === 0) return ind;
+    const indName = ind.namaIndikator.trim().toLowerCase();
+    const completedCount = workEntries.filter((e) => {
+      const isDeptMatch = e.bidang === ind.bidang;
+      const isKpiMatch =
+        (e.indikatorKpi && e.indikatorKpi.trim().toLowerCase() === indName) ||
+        (e.namaPekerjaan && e.namaPekerjaan.toLowerCase().includes(indName));
+      const isDone = e.status === 'Selesai';
+      return isDeptMatch && isKpiMatch && isDone && isWorkEntryInMonth(e, ind.periodeBulan);
+    }).length;
+
+    return {
+      ...ind,
+      realisasi: completedCount,
+    };
+  };
+
   // Filter indicators by month
-  const humasIndicators = kpiIndicators.filter(
-    (i) => i.bidang === 'Humas' && i.periodeBulan === selectedMonth
-  );
+  const humasIndicators = kpiIndicators
+    .filter((i) => i.bidang === 'Humas' && i.periodeBulan === selectedMonth)
+    .map(getEffectiveIndicator);
 
-  const itIndicators = kpiIndicators.filter(
-    (i) => i.bidang === 'IT' && i.periodeBulan === selectedMonth
-  );
+  const itIndicators = kpiIndicators
+    .filter((i) => i.bidang === 'IT' && i.periodeBulan === selectedMonth)
+    .map(getEffectiveIndicator);
 
-  const umumIndicators = kpiIndicators.filter(
-    (i) => i.bidang === 'Umum' && i.periodeBulan === selectedMonth
-  );
+  const umumIndicators = kpiIndicators
+    .filter((i) => i.bidang === 'Umum' && i.periodeBulan === selectedMonth)
+    .map(getEffectiveIndicator);
 
   // Average score for Humas
   const humasAvgScore =
@@ -192,12 +213,12 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                 <table className="w-full text-left text-xs text-slate-600">
                   <thead className="bg-emerald-50/70 text-emerald-900 uppercase font-semibold text-[11px] border-b border-emerald-100">
                     <tr>
-                      <th className="py-3 px-4 w-12 text-center">No</th>
-                      <th className="py-3 px-4">Indikator KPI Humas</th>
-                      <th className="py-3 px-3 text-left">Target</th>
-                      <th className="py-3 px-3 text-center w-24">Realisasi</th>
-                      <th className="py-3 px-4 text-center w-28">Pencapaian (%)</th>
-                      <th className="py-3 px-4 text-right w-24">Aksi</th>
+                      <th className="py-3 px-4 w-12 text-center sticky left-0 z-20 bg-emerald-50 shadow-[1px_0_2px_rgba(0,0,0,0.05)]">No</th>
+                      <th className="py-3 px-4 min-w-[180px] sticky left-12 z-20 bg-emerald-50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Indikator KPI Humas</th>
+                      <th className="py-3 px-3 text-left whitespace-nowrap">Target</th>
+                      <th className="py-3 px-3 text-center w-24 whitespace-nowrap">Realisasi</th>
+                      <th className="py-3 px-4 text-center w-28 whitespace-nowrap">Pencapaian (%)</th>
+                      <th className="py-3 px-4 text-right w-24 whitespace-nowrap">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -205,8 +226,8 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                       const calc = calculateIndicatorAchievement(ind);
                       return (
                         <tr key={ind.id} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="py-3.5 px-4 font-mono text-slate-400 text-center">{idx + 1}</td>
-                          <td className="py-3.5 px-4 font-semibold text-slate-900">
+                          <td className="py-3.5 px-4 font-mono text-slate-400 text-center sticky left-0 z-10 bg-white shadow-[1px_0_2px_rgba(0,0,0,0.05)]">{idx + 1}</td>
+                          <td className="py-3.5 px-4 font-semibold text-slate-900 min-w-[180px] sticky left-12 z-10 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                             {ind.namaIndikator}
                           </td>
                           <td className="py-3.5 px-3 text-left font-mono text-slate-800 whitespace-nowrap">
@@ -310,12 +331,12 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                 <table className="w-full text-left text-xs text-slate-600">
                   <thead className="bg-blue-50/70 text-blue-900 uppercase font-semibold text-[11px] border-b border-blue-100">
                     <tr>
-                      <th className="py-3 px-4 w-12 text-center">No</th>
-                      <th className="py-3 px-4">Indikator KPI IT</th>
-                      <th className="py-3 px-3 text-left">Target</th>
-                      <th className="py-3 px-3 text-center w-24">Realisasi</th>
-                      <th className="py-3 px-4 text-center w-28">Pencapaian (%)</th>
-                      <th className="py-3 px-4 text-right w-24">Aksi</th>
+                      <th className="py-3 px-4 w-12 text-center sticky left-0 z-20 bg-blue-50 shadow-[1px_0_2px_rgba(0,0,0,0.05)]">No</th>
+                      <th className="py-3 px-4 min-w-[180px] sticky left-12 z-20 bg-blue-50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Indikator KPI IT</th>
+                      <th className="py-3 px-3 text-left whitespace-nowrap">Target</th>
+                      <th className="py-3 px-3 text-center w-24 whitespace-nowrap">Realisasi</th>
+                      <th className="py-3 px-4 text-center w-28 whitespace-nowrap">Pencapaian (%)</th>
+                      <th className="py-3 px-4 text-right w-24 whitespace-nowrap">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -323,8 +344,8 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                       const calc = calculateIndicatorAchievement(ind);
                       return (
                         <tr key={ind.id} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="py-3.5 px-4 font-mono text-slate-400 text-center">{idx + 1}</td>
-                          <td className="py-3.5 px-4 font-semibold text-slate-900">
+                          <td className="py-3.5 px-4 font-mono text-slate-400 text-center sticky left-0 z-10 bg-white shadow-[1px_0_2px_rgba(0,0,0,0.05)]">{idx + 1}</td>
+                          <td className="py-3.5 px-4 font-semibold text-slate-900 min-w-[180px] sticky left-12 z-10 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                             {ind.namaIndikator}
                           </td>
                           <td className="py-3.5 px-3 text-left font-mono text-slate-800 whitespace-nowrap">
@@ -428,12 +449,12 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                 <table className="w-full text-left text-xs text-slate-600">
                   <thead className="bg-purple-50/70 text-purple-900 uppercase font-semibold text-[11px] border-b border-purple-100">
                     <tr>
-                      <th className="py-3 px-4 w-12 text-center">No</th>
-                      <th className="py-3 px-4">Indikator KPI Umum</th>
-                      <th className="py-3 px-3 text-left">Target</th>
-                      <th className="py-3 px-3 text-center w-24">Realisasi</th>
-                      <th className="py-3 px-4 text-center w-28">Pencapaian (%)</th>
-                      <th className="py-3 px-4 text-right w-24">Aksi</th>
+                      <th className="py-3 px-4 w-12 text-center sticky left-0 z-20 bg-purple-50 shadow-[1px_0_2px_rgba(0,0,0,0.05)]">No</th>
+                      <th className="py-3 px-4 min-w-[180px] sticky left-12 z-20 bg-purple-50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Indikator KPI Umum</th>
+                      <th className="py-3 px-3 text-left whitespace-nowrap">Target</th>
+                      <th className="py-3 px-3 text-center w-24 whitespace-nowrap">Realisasi</th>
+                      <th className="py-3 px-4 text-center w-28 whitespace-nowrap">Pencapaian (%)</th>
+                      <th className="py-3 px-4 text-right w-24 whitespace-nowrap">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -441,8 +462,8 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                       const calc = calculateIndicatorAchievement(ind);
                       return (
                         <tr key={ind.id} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="py-3.5 px-4 font-mono text-slate-400 text-center">{idx + 1}</td>
-                          <td className="py-3.5 px-4 font-semibold text-slate-900">
+                          <td className="py-3.5 px-4 font-mono text-slate-400 text-center sticky left-0 z-10 bg-white shadow-[1px_0_2px_rgba(0,0,0,0.05)]">{idx + 1}</td>
+                          <td className="py-3.5 px-4 font-semibold text-slate-900 min-w-[180px] sticky left-12 z-10 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                             {ind.namaIndikator}
                           </td>
                           <td className="py-3.5 px-3 text-left font-mono text-slate-800 whitespace-nowrap">

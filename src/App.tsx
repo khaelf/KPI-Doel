@@ -384,6 +384,7 @@ export default function App() {
         {activeTab === 'kpi' && (
           <KpiMonthlyView
             kpiIndicators={kpiIndicators}
+            workEntries={workEntries}
             selectedMonth={selectedMonth}
             selectedDepartment={selectedDepartment}
             onAddIndicator={(dept) => openKpiModal(dept, null)}

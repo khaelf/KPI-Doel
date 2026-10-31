@@ -70,14 +70,30 @@ export function calculateDepartmentSummary(
   const pekerjaanProses = deptEntries.filter((e) => e.status === 'Proses').length;
   const pekerjaanBelum = deptEntries.filter((e) => e.status === 'Belum dikerjakan').length;
 
-  let nilaiKpi = 0;
+  let totalIndicatorScore = 0;
   if (deptIndicators.length > 0) {
-    const totalAch = deptIndicators.reduce((acc, ind) => {
-      return acc + calculateIndicatorAchievement(ind).cappedPercentage;
+    totalIndicatorScore = deptIndicators.reduce((acc, ind) => {
+      const indName = ind.namaIndikator.trim().toLowerCase();
+      // Count completed entries matching this indicator in this month
+      const completedForInd = deptEntries.filter((e) => {
+        if (e.status !== 'Selesai') return false;
+        if (e.indikatorKpi) {
+          return e.indikatorKpi.trim().toLowerCase() === indName;
+        }
+        return e.namaPekerjaan.toLowerCase().includes(indName);
+      }).length;
+
+      const effectiveRealisasi = completedForInd > 0 ? completedForInd : (ind.realisasi || 0);
+      const cap = Math.min(100, (effectiveRealisasi / Math.max(0.0001, ind.target)) * 100);
+      return acc + cap;
     }, 0);
-    nilaiKpi = totalAch / deptIndicators.length;
-  } else if (totalPekerjaan > 0) {
+  }
+
+  let nilaiKpi = 0;
+  if (totalPekerjaan > 0) {
     nilaiKpi = (pekerjaanSelesai / totalPekerjaan) * 100;
+  } else if (deptIndicators.length > 0) {
+    nilaiKpi = totalIndicatorScore / deptIndicators.length;
   }
 
   return {

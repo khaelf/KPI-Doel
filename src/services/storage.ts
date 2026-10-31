@@ -1,6 +1,7 @@
 import { WorkEntry, KpiIndicator, AgendaItem, Department } from '../types/kpi';
 import { INITIAL_WORK_ENTRIES, INITIAL_KPI_INDICATORS, INITIAL_AGENDA_ITEMS } from '../data/initialData';
 import { firebaseDataService, testFirestoreConnection } from './firebase';
+import { isWorkEntryInMonth } from '../utils/kpiCalculations';
 
 const WORK_ENTRIES_KEY = 'parabek_kpi_work_entries_v1';
 const KPI_INDICATORS_KEY = 'parabek_kpi_indicators_v5';
@@ -261,10 +262,12 @@ export const storageService = {
       // Calculate completed entries for this indicator in this month
       const completedCount = entries.filter((e) => {
         const isDeptMatch = e.bidang === master.bidang;
-        const isKpiMatch = e.indikatorKpi && e.indikatorKpi.trim().toLowerCase() === master.namaIndikator.trim().toLowerCase();
+        const indName = master.namaIndikator.trim().toLowerCase();
+        const isKpiMatch =
+          (e.indikatorKpi && e.indikatorKpi.trim().toLowerCase() === indName) ||
+          (e.namaPekerjaan && e.namaPekerjaan.toLowerCase().includes(indName));
         const isDone = e.status === 'Selesai';
-        const doneMonth = (e.tanggalSelesai || e.tanggalMulai || e.tanggalMasuk || e.tanggal || '').substring(0, 7);
-        return isDeptMatch && isKpiMatch && isDone && doneMonth === month;
+        return isDeptMatch && isKpiMatch && isDone && isWorkEntryInMonth(e, month);
       }).length;
 
       if (!existing) {
@@ -288,6 +291,7 @@ export const storageService = {
           existing.satuan = master.satuan;
           indChanged = true;
         }
+        // Update realisasi to match completed entries count
         if (existing.realisasi !== completedCount) {
           existing.realisasi = completedCount;
           indChanged = true;
@@ -314,24 +318,18 @@ export const storageService = {
     let changed = false;
 
     const updatedIndicators = indicators.map((ind) => {
+      const indName = ind.namaIndikator.trim().toLowerCase();
       // Find all completed work entries linked to this indicator for department and month
       const completedCount = entries.filter((e) => {
         const isDeptMatch = e.bidang === ind.bidang;
-        const isKpiMatch = e.indikatorKpi && e.indikatorKpi.trim().toLowerCase() === ind.namaIndikator.trim().toLowerCase();
+        const isKpiMatch =
+          (e.indikatorKpi && e.indikatorKpi.trim().toLowerCase() === indName) ||
+          (e.namaPekerjaan && e.namaPekerjaan.toLowerCase().includes(indName));
         const isDone = e.status === 'Selesai';
-        const doneMonth = (e.tanggalSelesai || e.tanggalMulai || e.tanggalMasuk || e.tanggal || '').substring(0, 7);
-        return isDeptMatch && isKpiMatch && isDone && doneMonth === ind.periodeBulan;
+        return isDeptMatch && isKpiMatch && isDone && isWorkEntryInMonth(e, ind.periodeBulan);
       }).length;
 
-      const hasLinkedEntries = entries.some(
-        (e) =>
-          e.bidang === ind.bidang &&
-          (e.tanggalSelesai || e.tanggalMulai || e.tanggalMasuk || '').substring(0, 7) === ind.periodeBulan &&
-          e.indikatorKpi &&
-          e.indikatorKpi.trim().toLowerCase() === ind.namaIndikator.trim().toLowerCase()
-      );
-
-      if (hasLinkedEntries && ind.realisasi !== completedCount) {
+      if (ind.realisasi !== completedCount) {
         changed = true;
         firebaseDataService.updateKpiIndicator(ind.id, { realisasi: completedCount });
         return { ...ind, realisasi: completedCount };

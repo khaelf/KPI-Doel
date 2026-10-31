@@ -17,7 +17,18 @@ import {
   Building2,
   Calendar,
   MapPin,
+  TrendingUp,
 } from 'lucide-react';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 
 interface DashboardViewProps {
   workEntries: WorkEntry[];
@@ -82,6 +93,60 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       return dateB - dateA;
     })
     .slice(0, 5);
+
+  // Generate last 6 months list ending at selectedMonth
+  const getLast6Months = (targetMonth: string) => {
+    const months: string[] = [];
+    const [yStr, mStr] = (targetMonth || '2026-10').split('-');
+    const year = parseInt(yStr, 10) || 2026;
+    const month = parseInt(mStr, 10) || 10;
+
+    for (let i = 5; i >= 0; i--) {
+      let m = month - i;
+      let y = year;
+      if (m <= 0) {
+        m += 12;
+        y -= 1;
+      }
+      const mFormatted = m < 10 ? `0${m}` : `${m}`;
+      months.push(`${y}-${mFormatted}`);
+    }
+    return months;
+  };
+
+  const trendMonths = getLast6Months(selectedMonth);
+
+  const shortMonthLabels: Record<string, string> = {
+    '01': 'Jan',
+    '02': 'Feb',
+    '03': 'Mar',
+    '04': 'Apr',
+    '05': 'Mei',
+    '06': 'Jun',
+    '07': 'Jul',
+    '08': 'Agu',
+    '09': 'Sep',
+    '10': 'Okt',
+    '11': 'Nov',
+    '12': 'Des',
+  };
+
+  const trendChartData = trendMonths.map((mStr) => {
+    const [y, m] = mStr.split('-');
+    const label = `${shortMonthLabels[m] || m} '${y.substring(2)}`;
+
+    const hSum = calculateDepartmentSummary('Humas', kpiIndicators, workEntries, mStr);
+    const iSum = calculateDepartmentSummary('IT', kpiIndicators, workEntries, mStr);
+    const uSum = calculateDepartmentSummary('Umum', kpiIndicators, workEntries, mStr);
+
+    return {
+      monthStr: mStr,
+      label,
+      Humas: hSum.nilaiKpi,
+      IT: iSum.nilaiKpi,
+      Umum: uSum.nilaiKpi,
+    };
+  });
 
   return (
     <div className="space-y-5 sm:space-y-6 pb-6 md:pb-8">
@@ -336,6 +401,107 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span>Rincian Indikator Umum</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
+        </div>
+      </div>
+
+      {/* 6-Month Performance Trend Chart Section using Recharts */}
+      <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
+              <TrendingUp className="w-5 h-5 text-emerald-700" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-slate-900">Grafik Tren Pekerjaan Selesai (6 Bulan)</h3>
+              <p className="text-xs text-slate-500">
+                Persentase capaian per bagian dari {trendChartData[0]?.label} hingga {trendChartData[5]?.label}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 sm:gap-3 text-xs font-semibold">
+            {(selectedDepartment === 'Semua' || selectedDepartment === 'Humas') && (
+              <span className="flex items-center gap-1.5 text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+                Humas
+              </span>
+            )}
+            {(selectedDepartment === 'Semua' || selectedDepartment === 'IT') && (
+              <span className="flex items-center gap-1.5 text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
+                <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                IT
+              </span>
+            )}
+            {(selectedDepartment === 'Semua' || selectedDepartment === 'Umum') && (
+              <span className="flex items-center gap-1.5 text-purple-700 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200">
+                <span className="w-2.5 h-2.5 rounded-full bg-purple-600"></span>
+                Umum
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="h-64 sm:h-72 w-full pt-2">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={trendChartData} margin={{ top: 10, right: 15, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+              <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={{ stroke: '#cbd5e1' }} />
+              <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: '#64748b' }} unit="%" axisLine={{ stroke: '#cbd5e1' }} />
+              <Tooltip
+                content={({ active, payload, label }) => {
+                  if (active && payload && payload.length) {
+                    return (
+                      <div className="bg-slate-900 text-white p-3 rounded-xl shadow-lg border border-slate-700 text-xs space-y-1.5">
+                        <p className="font-bold border-b border-slate-700 pb-1 text-slate-300">{label}</p>
+                        {payload.map((entry: any) => (
+                          <div key={entry.name} className="flex items-center justify-between gap-4">
+                            <span style={{ color: entry.color }} className="font-medium">
+                              Bagian {entry.name}:
+                            </span>
+                            <span className="font-mono font-bold">{Number(entry.value).toFixed(1)}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Legend verticalAlign="top" height={36} iconType="circle" />
+              {(selectedDepartment === 'Semua' || selectedDepartment === 'Humas') && (
+                <Line
+                  type="monotone"
+                  dataKey="Humas"
+                  name="Humas"
+                  stroke="#10b981"
+                  strokeWidth={3}
+                  dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
+                  activeDot={{ r: 6, strokeWidth: 0 }}
+                />
+              )}
+              {(selectedDepartment === 'Semua' || selectedDepartment === 'IT') && (
+                <Line
+                  type="monotone"
+                  dataKey="IT"
+                  name="IT"
+                  stroke="#3b82f6"
+                  strokeWidth={3}
+                  dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
+                  activeDot={{ r: 6, strokeWidth: 0 }}
+                />
+              )}
+              {(selectedDepartment === 'Semua' || selectedDepartment === 'Umum') && (
+                <Line
+                  type="monotone"
+                  dataKey="Umum"
+                  name="Umum"
+                  stroke="#a855f7"
+                  strokeWidth={3}
+                  dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
+                  activeDot={{ r: 6, strokeWidth: 0 }}
+                />
+              )}
+            </LineChart>
+          </ResponsiveContainer>
         </div>
       </div>
 

@@ -8,8 +8,7 @@ import {
   setDoc,
   deleteDoc,
   onSnapshot,
-  getDocFromServer,
-  query,
+  enableIndexedDbPersistence,
 } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 import { WorkEntry, KpiIndicator, AgendaItem } from '../types/kpi';
@@ -20,6 +19,17 @@ const app = initializeApp(firebaseConfig);
 // Initialize Firestore with specific database ID
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const auth = getAuth();
+
+// Enable IndexedDb persistence for offline capability
+enableIndexedDbPersistence(db).catch((err) => {
+  if (err.code === 'failed-precondition') {
+    // Multiple tabs open, persistence can only be enabled in one tab at a time.
+    console.info('Firestore offline persistence skipped (multiple tabs active).');
+  } else if (err.code === 'unimplemented') {
+    // The current browser does not support all of the features required to enable persistence
+    console.info('Firestore offline persistence is not supported by this browser environment.');
+  }
+});
 
 // Sign in anonymously to establish active Firebase session across devices
 signInAnonymously(auth).catch((err) => {
@@ -32,14 +42,14 @@ export async function testFirestoreConnection() {
     await setDoc(doc(db, 'test', 'connection'), { lastPing: new Date().toISOString() }, { merge: true });
     console.log('Connected to Firestore successfully.');
   } catch (error) {
-    if (error instanceof Error && (error.message.includes('offline') || error.message.includes('unavailable'))) {
-      console.info('Firestore backend unreachable; operating with local storage persistence.');
+    const errMsg = error instanceof Error ? error.message : String(error);
+    if (errMsg.includes('offline') || errMsg.includes('unavailable') || errMsg.includes('could not reach')) {
+      console.info('Firestore network notice: Operating in offline mode using local storage persistence.');
     } else {
       console.warn('Firestore connection check notice:', error);
     }
   }
 }
-
 
 enum OperationType {
   CREATE = 'create',
@@ -61,8 +71,13 @@ interface FirestoreErrorInfo {
 }
 
 function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errMsg = error instanceof Error ? error.message : String(error);
+  if (errMsg.includes('offline') || errMsg.includes('unavailable') || errMsg.includes('could not reach')) {
+    console.info(`Firestore operating offline during ${operationType} on ${path}. Data cached locally.`);
+    return;
+  }
   const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
+    error: errMsg,
     authInfo: {
       userId: auth.currentUser?.uid,
       email: auth.currentUser?.email,
@@ -70,7 +85,7 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
     operationType,
     path,
   };
-  console.error('Firestore Error Details: ', JSON.stringify(errInfo));
+  console.warn('Firestore Operation Notice: ', JSON.stringify(errInfo));
 }
 
 // Collections References
