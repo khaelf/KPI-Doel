@@ -5,6 +5,7 @@ import {
   calculateIndicatorAchievement,
   formatMonthLabel,
   getKpiStatusBadge,
+  isWorkEntryInMonth,
 } from '../utils/kpiCalculations';
 import { exportToPDF, exportToExcel } from '../utils/exportUtils';
 import {
@@ -33,12 +34,10 @@ export const ReportView: React.FC<ReportViewProps> = ({
   const humasSummary = calculateDepartmentSummary('Humas', kpiIndicators, workEntries, selectedMonth);
   const itSummary = calculateDepartmentSummary('IT', kpiIndicators, workEntries, selectedMonth);
 
-  // Month Work Entries
+  // Month Work Entries (including ongoing tasks carried over to this month)
   const monthWorkEntries = workEntries.filter((e) => {
-    const entryDate = e.tanggalMasuk || e.tanggal || '';
-    const isMonthMatch = entryDate.substring(0, 7) === selectedMonth;
     const isDeptMatch = selectedDepartment === 'Semua' || e.bidang === selectedDepartment;
-    return isMonthMatch && isDeptMatch;
+    return isDeptMatch && isWorkEntryInMonth(e, selectedMonth);
   });
 
   const completedTasks = monthWorkEntries.filter((e) => e.status === 'Selesai');

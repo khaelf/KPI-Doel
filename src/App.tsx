@@ -136,6 +136,14 @@ export default function App() {
     };
   }, []);
 
+  // Whenever selectedMonth changes, ensure standard KPI indicators exist for that month (Request 1)
+  useEffect(() => {
+    if (selectedMonth) {
+      const synced = storageService.ensureKpiIndicatorsForMonth(selectedMonth, workEntries);
+      setKpiIndicators(synced);
+    }
+  }, [selectedMonth]);
+
   // Handler: Work Entry Save (Add or Edit)
   const handleSaveWorkEntry = (
     data: Omit<WorkEntry, 'id' | 'createdAt'>,

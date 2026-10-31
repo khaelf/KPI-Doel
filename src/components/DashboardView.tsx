@@ -4,6 +4,7 @@ import {
   calculateDepartmentSummary,
   formatMonthLabel,
   getKpiStatusBadge,
+  isWorkEntryInMonth,
 } from '../utils/kpiCalculations';
 import {
   CheckCircle2,
@@ -42,12 +43,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 }) => {
   const monthLabel = formatMonthLabel(selectedMonth);
 
-  // Filter entries for current selected month based on tanggalMasuk
+  // Filter entries for current selected month (including ongoing tasks carried over)
   const monthWorkEntries = workEntries.filter((e) => {
-    const entryDate = e.tanggalMasuk || e.tanggal || '';
-    const entryMonth = entryDate.substring(0, 7);
     const isDeptMatch = selectedDepartment === 'Semua' || e.bidang === selectedDepartment;
-    return entryMonth === selectedMonth && isDeptMatch;
+    return isDeptMatch && isWorkEntryInMonth(e, selectedMonth);
   });
 
   const totalPekerjaan = monthWorkEntries.length;

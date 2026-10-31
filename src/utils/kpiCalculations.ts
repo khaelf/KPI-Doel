@@ -17,6 +17,40 @@ export function calculateIndicatorAchievement(indicator: KpiIndicator): {
   };
 }
 
+/**
+ * Determines whether a work entry belongs to or carries over to the selected month.
+ * Rule: "semua pekerjaan yang belum selesai maka berlanjut ke bulan selanjutnya"
+ * - If status !== 'Selesai': it started on or before selectedMonth (startMonth <= selectedMonth),
+ *   so it continues to every month until it is finished!
+ * - If status === 'Selesai': it belongs to the month it was finished in (finishMonth === selectedMonth),
+ *   or if no finish date recorded, started in selectedMonth (startMonth === selectedMonth).
+ */
+export function isWorkEntryInMonth(entry: WorkEntry, selectedMonth: string): boolean {
+  if (!selectedMonth) return true;
+
+  const startMonth = (entry.tanggalMulai || entry.tanggalMasuk || entry.tanggal || '').substring(0, 7);
+  const finishMonth = entry.tanggalSelesai ? entry.tanggalSelesai.substring(0, 7) : '';
+
+  // Cannot appear before it was started/created
+  if (startMonth && startMonth > selectedMonth) {
+    return false;
+  }
+
+  // If not completed yet: carries over to all months on or after startMonth
+  if (entry.status !== 'Selesai') {
+    return true;
+  }
+
+  // If completed:
+  // Appears in the month it was completed (finishMonth === selectedMonth)
+  // Or if started in this month
+  if (finishMonth) {
+    return finishMonth === selectedMonth || startMonth === selectedMonth;
+  }
+
+  return startMonth === selectedMonth;
+}
+
 export function calculateDepartmentSummary(
   bidang: Department,
   indicators: KpiIndicator[],
@@ -28,9 +62,7 @@ export function calculateDepartmentSummary(
   );
 
   const deptEntries = workEntries.filter((entry) => {
-    const entryDate = entry.tanggalMasuk || entry.tanggal || '';
-    const entryMonth = entryDate.substring(0, 7);
-    return entry.bidang === bidang && entryMonth === periodeBulan;
+    return entry.bidang === bidang && isWorkEntryInMonth(entry, periodeBulan);
   });
 
   const totalPekerjaan = deptEntries.length;

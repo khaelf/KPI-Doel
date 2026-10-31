@@ -2,7 +2,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { WorkEntry, KpiIndicator, Department } from '../types/kpi';
-import { calculateIndicatorAchievement, formatMonthLabel, getKpiStatusBadge } from './kpiCalculations';
+import { calculateIndicatorAchievement, formatMonthLabel, getKpiStatusBadge, isWorkEntryInMonth } from './kpiCalculations';
 
 export function exportToExcel(
   workEntries: WorkEntry[],
@@ -12,12 +12,10 @@ export function exportToExcel(
 ) {
   const monthName = formatMonthLabel(periodeBulan);
 
-  // Filter entries & indicators
+  // Filter entries & indicators (including carry-over unfinished tasks)
   const filteredEntries = workEntries.filter((e) => {
-    const entryDate = e.tanggalMasuk || e.tanggal || '';
-    const isMonthMatch = entryDate.substring(0, 7) === periodeBulan;
     const isDeptMatch = selectedDepartment === 'Semua' || e.bidang === selectedDepartment;
-    return isMonthMatch && isDeptMatch;
+    return isDeptMatch && isWorkEntryInMonth(e, periodeBulan);
   });
 
   const filteredIndicators = kpiIndicators.filter((i) => {
@@ -191,12 +189,10 @@ export function exportToPDF(
     currentY = doc.lastAutoTable.finalY + 10;
   }
 
-  // 4. Detailed Work Entries Section
+  // 4. Detailed Work Entries Section (including ongoing tasks carried over)
   const filteredEntries = workEntries.filter((e) => {
-    const entryDate = e.tanggalMasuk || e.tanggal || '';
-    const isMonthMatch = entryDate.substring(0, 7) === periodeBulan;
     const isDeptMatch = selectedDepartment === 'Semua' || e.bidang === selectedDepartment;
-    return isMonthMatch && isDeptMatch;
+    return isDeptMatch && isWorkEntryInMonth(e, periodeBulan);
   });
 
   if (filteredEntries.length > 0) {

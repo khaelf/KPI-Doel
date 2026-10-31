@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { WorkEntry, Department, TaskStatus } from '../types/kpi';
+import { isWorkEntryInMonth } from '../utils/kpiCalculations';
 import {
   Search,
   Plus,
@@ -104,17 +105,17 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
     }));
   };
 
-  // Kriteria Deadline diambil dari Tanggal Acara (Request 3)
+  // Kriteria Deadline diambil dari Tanggal Acara (Request 3 & 4)
   const todayStr = new Date().toISOString().substring(0, 10);
   const deadlineEntries = workEntries.filter((entry) => {
     if (entry.status === 'Selesai') return false;
-    return !!entry.tanggalAcara && entry.tanggalAcara <= todayStr;
+    const inMonth = !selectedMonth || isWorkEntryInMonth(entry, selectedMonth);
+    return inMonth && !!entry.tanggalAcara && entry.tanggalAcara <= todayStr;
   });
 
-  // Filtered list
+  // Filtered list (Rule: semua pekerjaan yang belum selesai maka berlanjut ke bulan selanjutnya)
   const filteredList = workEntries.filter((entry) => {
-    const entryMonth = (entry.tanggalAcara || entry.tanggalMulai || entry.tanggalMasuk || entry.tanggal || '').substring(0, 7);
-    const isMonthMatch = !selectedMonth || entryMonth === selectedMonth;
+    const isMonthMatch = !selectedMonth || isWorkEntryInMonth(entry, selectedMonth);
     const isDeptMatch = selectedDepartment === 'Semua' || entry.bidang === selectedDepartment;
     const isStatusMatch = activeStatusFilter === 'Semua' || entry.status === activeStatusFilter;
     const isSearchMatch =
@@ -155,10 +156,9 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
     return 0;
   });
 
-  // Summary counts for current month & department selection
+  // Summary counts for current month & department selection (including carry-over tasks)
   const monthEntries = workEntries.filter((entry) => {
-    const entryMonth = (entry.tanggalAcara || entry.tanggalMulai || entry.tanggalMasuk || entry.tanggal || '').substring(0, 7);
-    const isMonthMatch = !selectedMonth || entryMonth === selectedMonth;
+    const isMonthMatch = !selectedMonth || isWorkEntryInMonth(entry, selectedMonth);
     const isDeptMatch = selectedDepartment === 'Semua' || entry.bidang === selectedDepartment;
     return isMonthMatch && isDeptMatch;
   });

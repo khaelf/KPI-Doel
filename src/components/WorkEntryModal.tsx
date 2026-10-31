@@ -74,14 +74,14 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Filter KPI indicators for the selected department
-  const currentMonth = (tanggalMasuk || defaultMonth || '').substring(0, 7);
-  const monthMatchIndicators = kpiIndicators.filter(
-    (ind) => ind.bidang === bidang && (!currentMonth || ind.periodeBulan === currentMonth)
+  // Distinct KPI indicators for the selected department (Rule: indikator KPI disamakan setiap bulan)
+  const departmentIndicators = Array.from(
+    new Map(
+      kpiIndicators
+        .filter((ind) => ind.bidang === bidang)
+        .map((ind) => [ind.namaIndikator.trim().toLowerCase(), ind])
+    ).values()
   );
-  const departmentIndicators = monthMatchIndicators.length > 0
-    ? monthMatchIndicators
-    : kpiIndicators.filter((ind) => ind.bidang === bidang);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -198,8 +198,8 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
             >
               <option value="">-- Tanpa Indikator KPI --</option>
               {departmentIndicators.map((ind) => (
-                <option key={ind.id} value={ind.namaIndikator}>
-                  {ind.namaIndikator} ({ind.periodeBulan})
+                <option key={ind.namaIndikator} value={ind.namaIndikator}>
+                  {ind.namaIndikator} (Target: {ind.target} {ind.satuan})
                 </option>
               ))}
             </select>

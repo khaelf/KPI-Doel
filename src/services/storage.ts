@@ -1,4 +1,4 @@
-import { WorkEntry, KpiIndicator, AgendaItem } from '../types/kpi';
+import { WorkEntry, KpiIndicator, AgendaItem, Department } from '../types/kpi';
 import { INITIAL_WORK_ENTRIES, INITIAL_KPI_INDICATORS, INITIAL_AGENDA_ITEMS } from '../data/initialData';
 import { firebaseDataService, testFirestoreConnection } from './firebase';
 
@@ -98,39 +98,170 @@ export const storageService = {
 
   addKpiIndicator(indicator: Omit<KpiIndicator, 'id'>): KpiIndicator {
     const indicators = this.getKpiIndicators();
-    const newInd: KpiIndicator = {
-      ...indicator,
-      id: 'ind-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
-    };
-    indicators.push(newInd);
-    this.saveKpiIndicators(indicators);
+    // Unique months present in indicators
+    const months = Array.from(new Set(indicators.map((i) => i.periodeBulan)));
+    if (!months.includes(indicator.periodeBulan)) {
+      months.push(indicator.periodeBulan);
+    }
 
-    // Sync to Firestore
-    firebaseDataService.saveKpiIndicator(newInd);
-    return newInd;
+    let returnedInd: KpiIndicator | null = null;
+    months.forEach((m) => {
+      const newInd: KpiIndicator = {
+        ...indicator,
+        periodeBulan: m,
+        realisasi: m === indicator.periodeBulan ? indicator.realisasi : 0,
+        id: 'ind-' + Date.now() + '-' + Math.floor(Math.random() * 10000),
+      };
+      indicators.push(newInd);
+      firebaseDataService.saveKpiIndicator(newInd);
+      if (m === indicator.periodeBulan) {
+        returnedInd = newInd;
+      }
+    });
+
+    this.saveKpiIndicators(indicators);
+    return returnedInd || indicators[indicators.length - 1];
   },
 
   updateKpiIndicator(id: string, updated: Partial<KpiIndicator>): KpiIndicator | null {
     const indicators = this.getKpiIndicators();
     const index = indicators.findIndex((item) => item.id === id);
     if (index === -1) return null;
+
+    const targetInd = indicators[index];
+    const oldName = targetInd.namaIndikator.trim().toLowerCase();
+    const bidang = targetInd.bidang;
+
+    // Synchronize indicator name and unit (satuan) across months to maintain uniform catalog
+    // NOTE: Target is specific to each month and must NOT be synced across months (user can customize target per month)
+    if (updated.namaIndikator !== undefined || updated.satuan !== undefined) {
+      indicators.forEach((ind) => {
+        if (ind.bidang === bidang && ind.namaIndikator.trim().toLowerCase() === oldName) {
+          if (updated.namaIndikator !== undefined) ind.namaIndikator = updated.namaIndikator;
+          if (updated.satuan !== undefined) ind.satuan = updated.satuan;
+          firebaseDataService.updateKpiIndicator(ind.id, {
+            namaIndikator: ind.namaIndikator,
+            satuan: ind.satuan,
+          });
+        }
+      });
+    }
+
+    // Apply updates (including target, realisasi, etc.) specifically to this monthly indicator
     indicators[index] = { ...indicators[index], ...updated };
     this.saveKpiIndicators(indicators);
 
-    // Sync update to Firestore
-    firebaseDataService.updateKpiIndicator(id, updated);
+    firebaseDataService.updateKpiIndicator(id, indicators[index]);
     return indicators[index];
   },
 
   deleteKpiIndicator(id: string): boolean {
     const indicators = this.getKpiIndicators();
-    const filtered = indicators.filter((item) => item.id !== id);
-    if (filtered.length === indicators.length) return false;
-    this.saveKpiIndicators(filtered);
+    const targetInd = indicators.find((item) => item.id === id);
+    if (!targetInd) return false;
 
-    // Sync delete to Firestore
-    firebaseDataService.deleteKpiIndicator(id);
+    const nameToDelete = targetInd.namaIndikator.trim().toLowerCase();
+    const bidangToDelete = targetInd.bidang;
+
+    const toDelete = indicators.filter(
+      (ind) => ind.bidang === bidangToDelete && ind.namaIndikator.trim().toLowerCase() === nameToDelete
+    );
+    const filtered = indicators.filter(
+      (ind) => !(ind.bidang === bidangToDelete && ind.namaIndikator.trim().toLowerCase() === nameToDelete)
+    );
+
+    this.saveKpiIndicators(filtered);
+    toDelete.forEach((ind) => firebaseDataService.deleteKpiIndicator(ind.id));
     return true;
+  },
+
+  /**
+   * Ensures that KPI indicators are present and standardized for any given month (Request 1: indikator KPI disamakan setiap bulan)
+   */
+  ensureKpiIndicatorsForMonth(month: string, allWorkEntries?: WorkEntry[]): KpiIndicator[] {
+    if (!month) return this.getKpiIndicators();
+    const indicators = this.getKpiIndicators();
+    const entries = allWorkEntries || this.getWorkEntries();
+
+    // Collect all master indicators (from initial data + existing indicators across all months)
+    const masterMap = new Map<string, { bidang: Department; namaIndikator: string; satuan: string; target: number }>();
+
+    // Seed from INITIAL_KPI_INDICATORS templates
+    INITIAL_KPI_INDICATORS.forEach((ind) => {
+      masterMap.set(`${ind.bidang}:${ind.namaIndikator.trim().toLowerCase()}`, {
+        bidang: ind.bidang,
+        namaIndikator: ind.namaIndikator,
+        satuan: ind.satuan,
+        target: ind.target,
+      });
+    });
+
+    // Also pick up any user added indicators
+    indicators.forEach((ind) => {
+      masterMap.set(`${ind.bidang}:${ind.namaIndikator.trim().toLowerCase()}`, {
+        bidang: ind.bidang,
+        namaIndikator: ind.namaIndikator,
+        satuan: ind.satuan,
+        target: ind.target,
+      });
+    });
+
+    let changed = false;
+    const currentMonthIndicators = indicators.filter((i) => i.periodeBulan === month);
+
+    masterMap.forEach((master) => {
+      const existing = currentMonthIndicators.find(
+        (i) => i.bidang === master.bidang && i.namaIndikator.trim().toLowerCase() === master.namaIndikator.trim().toLowerCase()
+      );
+
+      // Calculate completed entries for this indicator in this month
+      const completedCount = entries.filter((e) => {
+        const isDeptMatch = e.bidang === master.bidang;
+        const isKpiMatch = e.indikatorKpi && e.indikatorKpi.trim().toLowerCase() === master.namaIndikator.trim().toLowerCase();
+        const isDone = e.status === 'Selesai';
+        const doneMonth = (e.tanggalSelesai || e.tanggalMulai || e.tanggalMasuk || e.tanggal || '').substring(0, 7);
+        return isDeptMatch && isKpiMatch && isDone && doneMonth === month;
+      }).length;
+
+      if (!existing) {
+        // Create indicator for this month
+        const newInd: KpiIndicator = {
+          id: `ind-${master.bidang.toLowerCase()}-${month}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          bidang: master.bidang,
+          namaIndikator: master.namaIndikator,
+          satuan: master.satuan,
+          target: master.target,
+          realisasi: completedCount,
+          periodeBulan: month,
+        };
+        indicators.push(newInd);
+        changed = true;
+        firebaseDataService.saveKpiIndicator(newInd);
+      } else {
+        // DO NOT overwrite existing.target - targets can be customized per month according to monthly needs!
+        let indChanged = false;
+        if (existing.satuan !== master.satuan) {
+          existing.satuan = master.satuan;
+          indChanged = true;
+        }
+        if (existing.realisasi !== completedCount) {
+          existing.realisasi = completedCount;
+          indChanged = true;
+        }
+        if (indChanged) {
+          changed = true;
+          firebaseDataService.updateKpiIndicator(existing.id, {
+            satuan: existing.satuan,
+            realisasi: existing.realisasi,
+          });
+        }
+      }
+    });
+
+    if (changed) {
+      this.saveKpiIndicators(indicators);
+    }
+    return indicators;
   },
 
   recalculateKpiRealisasi(allWorkEntries?: WorkEntry[]): KpiIndicator[] {
@@ -141,18 +272,17 @@ export const storageService = {
     const updatedIndicators = indicators.map((ind) => {
       // Find all completed work entries linked to this indicator for department and month
       const completedCount = entries.filter((e) => {
-        const entryMonth = (e.tanggalMasuk || e.tanggal || '').substring(0, 7);
         const isDeptMatch = e.bidang === ind.bidang;
-        const isMonthMatch = entryMonth === ind.periodeBulan;
         const isKpiMatch = e.indikatorKpi && e.indikatorKpi.trim().toLowerCase() === ind.namaIndikator.trim().toLowerCase();
         const isDone = e.status === 'Selesai';
-        return isDeptMatch && isMonthMatch && isKpiMatch && isDone;
+        const doneMonth = (e.tanggalSelesai || e.tanggalMulai || e.tanggalMasuk || e.tanggal || '').substring(0, 7);
+        return isDeptMatch && isKpiMatch && isDone && doneMonth === ind.periodeBulan;
       }).length;
 
       const hasLinkedEntries = entries.some(
         (e) =>
           e.bidang === ind.bidang &&
-          (e.tanggalMasuk || e.tanggal || '').substring(0, 7) === ind.periodeBulan &&
+          (e.tanggalSelesai || e.tanggalMulai || e.tanggalMasuk || '').substring(0, 7) === ind.periodeBulan &&
           e.indikatorKpi &&
           e.indikatorKpi.trim().toLowerCase() === ind.namaIndikator.trim().toLowerCase()
       );

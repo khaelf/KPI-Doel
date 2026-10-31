@@ -185,10 +185,16 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                             {ind.namaIndikator}
                           </td>
                           <td className="py-3.5 px-3 text-left font-mono text-slate-800 whitespace-nowrap">
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-slate-900 min-w-[2.75rem] shrink-0 text-left">{ind.target}</span>
+                            <button
+                              type="button"
+                              onClick={() => onEditIndicator(ind)}
+                              className="group/tgt flex items-center gap-2 px-2 py-1 -mx-2 rounded-lg hover:bg-emerald-50 transition-colors text-left"
+                              title={`Klik untuk mengedit target bulan ${monthLabel}`}
+                            >
+                              <span className="font-bold text-slate-900 min-w-[2.5rem] shrink-0 text-left group-hover/tgt:text-emerald-700">{ind.target}</span>
                               <span className="text-slate-600 font-normal">{ind.satuan}</span>
-                            </div>
+                              <Edit2 className="w-3 h-3 text-slate-400 opacity-0 group-hover/tgt:opacity-100 transition-opacity ml-1" />
+                            </button>
                           </td>
                           <td className="py-3.5 px-3 text-center font-mono font-extrabold text-slate-900 whitespace-nowrap bg-slate-50/60">
                             {ind.realisasi}
@@ -211,7 +217,7 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                               <button
                                 onClick={() => onEditIndicator(ind)}
                                 className="p-1.5 text-slate-600 hover:text-emerald-700 rounded-md hover:bg-emerald-50 transition-colors"
-                                title="Edit Indikator & Realisasi"
+                                title="Edit Target Bulan Ini & Indikator"
                               >
                                 <Edit2 className="w-4 h-4" />
                               </button>
@@ -297,10 +303,16 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                             {ind.namaIndikator}
                           </td>
                           <td className="py-3.5 px-3 text-left font-mono text-slate-800 whitespace-nowrap">
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-slate-900 min-w-[2.75rem] shrink-0 text-left">{ind.target}</span>
+                            <button
+                              type="button"
+                              onClick={() => onEditIndicator(ind)}
+                              className="group/tgt flex items-center gap-2 px-2 py-1 -mx-2 rounded-lg hover:bg-blue-50 transition-colors text-left"
+                              title={`Klik untuk mengedit target bulan ${monthLabel}`}
+                            >
+                              <span className="font-bold text-slate-900 min-w-[2.5rem] shrink-0 text-left group-hover/tgt:text-blue-700">{ind.target}</span>
                               <span className="text-slate-600 font-normal">{ind.satuan}</span>
-                            </div>
+                              <Edit2 className="w-3 h-3 text-slate-400 opacity-0 group-hover/tgt:opacity-100 transition-opacity ml-1" />
+                            </button>
                           </td>
                           <td className="py-3.5 px-3 text-center font-mono font-extrabold text-slate-900 whitespace-nowrap bg-slate-50/60">
                             {ind.realisasi}
@@ -323,7 +335,7 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                               <button
                                 onClick={() => onEditIndicator(ind)}
                                 className="p-1.5 text-slate-600 hover:text-blue-700 rounded-md hover:bg-blue-50 transition-colors"
-                                title="Edit Indikator & Realisasi"
+                                title="Edit Target Bulan Ini & Indikator"
                               >
                                 <Edit2 className="w-4 h-4" />
                               </button>

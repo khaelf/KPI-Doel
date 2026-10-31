@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { KpiIndicator, Department } from '../types/kpi';
 import { autoCapitalizeText } from '../utils/textUtils';
+import { formatMonthLabel } from '../utils/kpiCalculations';
 import { X, Save, Target } from 'lucide-react';
 
 interface KpiIndicatorModalProps {
@@ -159,7 +160,9 @@ export const KpiIndicatorModal: React.FC<KpiIndicatorModalProps> = ({
           {/* Target & Realisasi */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-semibold text-slate-900 mb-1">Target Bulanan</label>
+              <label className="block font-semibold text-slate-900 mb-1">
+                Target ({formatMonthLabel(periodeBulan)}) <span className="text-rose-500">*</span>
+              </label>
               <input
                 type="number"
                 min="0.01"
@@ -169,6 +172,7 @@ export const KpiIndicatorModal: React.FC<KpiIndicatorModalProps> = ({
                 onChange={(e) => setTarget(parseFloat(e.target.value) || 0)}
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-bold font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
+              <p className="text-[10px] text-slate-500 mt-1">Disesuaikan khusus untuk bulan {formatMonthLabel(periodeBulan)}</p>
             </div>
 
             <div>
@@ -182,6 +186,7 @@ export const KpiIndicatorModal: React.FC<KpiIndicatorModalProps> = ({
                 onChange={(e) => setRealisasi(parseFloat(e.target.value) || 0)}
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-bold font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
+              <p className="text-[10px] text-slate-500 mt-1">Otomatis terisi jika status tugas selesai</p>
             </div>
           </div>
 
