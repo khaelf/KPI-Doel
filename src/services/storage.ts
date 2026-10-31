@@ -6,11 +6,34 @@ import { isWorkEntryInMonth } from '../utils/kpiCalculations';
 const WORK_ENTRIES_KEY = 'parabek_kpi_work_entries_v1';
 const KPI_INDICATORS_KEY = 'parabek_kpi_indicators_v5';
 const AGENDA_ITEMS_KEY = 'parabek_kpi_agenda_items_v1';
+const DELETED_KPI_KEY = 'parabek_kpi_deleted_indicators_v1';
 
 // Verify firestore connection on load
 testFirestoreConnection();
 
 export const storageService = {
+  getDeletedKpiKeys(): string[] {
+    try {
+      const data = localStorage.getItem(DELETED_KPI_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      return [];
+    }
+  },
+
+  addDeletedKpiKey(key: string): void {
+    const list = this.getDeletedKpiKeys();
+    if (!list.includes(key)) {
+      list.push(key);
+      localStorage.setItem(DELETED_KPI_KEY, JSON.stringify(list));
+    }
+  },
+
+  removeDeletedKpiKey(key: string): void {
+    const list = this.getDeletedKpiKeys().filter((k) => k !== key);
+    localStorage.setItem(DELETED_KPI_KEY, JSON.stringify(list));
+  },
+
   getWorkEntries(): WorkEntry[] {
     try {
       const data = localStorage.getItem(WORK_ENTRIES_KEY);
@@ -86,39 +109,30 @@ export const storageService = {
         list = JSON.parse(data);
       }
 
-      // Sanitize indicators per user requests:
-      // Humas: strictly 4 indicators (Dokumentasi Kegiatan, Desain Grafis, Pembuatan Konten Medsos, Publikasi Berita)
-      const allowedHumas = [
-        'dokumentasi kegiatan',
-        'desain grafis',
-        'pembuatan konten medsos',
-        'publikasi berita',
-      ];
-
+      const deletedKeys = this.getDeletedKpiKeys();
       let modified = false;
+
       const sanitized = list.filter((ind) => {
-        const nameLower = ind.namaIndikator.trim().toLowerCase();
-        if (ind.bidang === 'Humas') {
-          if (nameLower === 'pembuatan konten media sosial') {
-            ind.namaIndikator = 'Pembuatan Konten Medsos';
-            modified = true;
-            return true;
-          }
-          if (!allowedHumas.includes(nameLower)) {
-            // Remove items 5-7 (Pengelolaan media komunikasi, duplicate Desain grafis, Pelatihan)
-            modified = true;
-            return false;
-          }
+        const key = `${ind.bidang.toLowerCase()}:${ind.namaIndikator.trim().toLowerCase()}`;
+        if (deletedKeys.includes(key)) {
+          modified = true;
+          return false;
         }
-        if (ind.bidang === 'Umum') {
-          if (
-            nameLower === 'pelayanan & administrasi umum' ||
-            nameLower === 'pelayanan dan administrasi umum'
-          ) {
-            ind.namaIndikator = 'Insidentil';
-            modified = true;
-          }
+
+        // Standardize legacy wording if necessary
+        if (ind.bidang === 'Humas' && ind.namaIndikator.trim().toLowerCase() === 'pembuatan konten media sosial') {
+          ind.namaIndikator = 'Pembuatan Konten Medsos';
+          modified = true;
         }
+        if (
+          ind.bidang === 'Umum' &&
+          (ind.namaIndikator.trim().toLowerCase() === 'pelayanan & administrasi umum' ||
+            ind.namaIndikator.trim().toLowerCase() === 'pelayanan dan administrasi umum')
+        ) {
+          ind.namaIndikator = 'Insidentil';
+          modified = true;
+        }
+
         return true;
       });
 
@@ -142,6 +156,9 @@ export const storageService = {
   },
 
   addKpiIndicator(indicator: Omit<KpiIndicator, 'id'>): KpiIndicator {
+    const key = `${indicator.bidang.toLowerCase()}:${indicator.namaIndikator.trim().toLowerCase()}`;
+    this.removeDeletedKpiKey(key);
+
     const indicators = this.getKpiIndicators();
     // Unique months present in indicators
     const months = Array.from(new Set(indicators.map((i) => i.periodeBulan)));
@@ -178,7 +195,6 @@ export const storageService = {
     const bidang = targetInd.bidang;
 
     // Synchronize indicator name and unit (satuan) across months to maintain uniform catalog
-    // NOTE: Target is specific to each month and must NOT be synced across months (user can customize target per month)
     if (updated.namaIndikator !== undefined || updated.satuan !== undefined) {
       indicators.forEach((ind) => {
         if (ind.bidang === bidang && ind.namaIndikator.trim().toLowerCase() === oldName) {
@@ -192,7 +208,7 @@ export const storageService = {
       });
     }
 
-    // Apply updates (including target, realisasi, etc.) specifically to this monthly indicator
+    // Apply updates specifically to this monthly indicator
     indicators[index] = { ...indicators[index], ...updated };
     this.saveKpiIndicators(indicators);
 
@@ -207,6 +223,10 @@ export const storageService = {
 
     const nameToDelete = targetInd.namaIndikator.trim().toLowerCase();
     const bidangToDelete = targetInd.bidang;
+    const keyToDelete = `${bidangToDelete.toLowerCase()}:${nameToDelete}`;
+
+    // Add to deleted keys memory so it won't be auto-recreated by ensureKpiIndicatorsForMonth
+    this.addDeletedKpiKey(keyToDelete);
 
     const toDelete = indicators.filter(
       (ind) => ind.bidang === bidangToDelete && ind.namaIndikator.trim().toLowerCase() === nameToDelete
@@ -227,28 +247,35 @@ export const storageService = {
     if (!month) return this.getKpiIndicators();
     const indicators = this.getKpiIndicators();
     const entries = allWorkEntries || this.getWorkEntries();
+    const deletedKeys = this.getDeletedKpiKeys();
 
-    // Collect all master indicators (from initial data + existing indicators across all months)
+    // Collect all master indicators (from initial data + existing indicators across all months, excluding deleted)
     const masterMap = new Map<string, { bidang: Department; namaIndikator: string; satuan: string; target: number }>();
 
-    // Seed from INITIAL_KPI_INDICATORS templates
+    // Seed from INITIAL_KPI_INDICATORS templates if not explicitly deleted by user
     INITIAL_KPI_INDICATORS.forEach((ind) => {
-      masterMap.set(`${ind.bidang}:${ind.namaIndikator.trim().toLowerCase()}`, {
-        bidang: ind.bidang,
-        namaIndikator: ind.namaIndikator,
-        satuan: ind.satuan,
-        target: ind.target,
-      });
+      const key = `${ind.bidang.toLowerCase()}:${ind.namaIndikator.trim().toLowerCase()}`;
+      if (!deletedKeys.includes(key)) {
+        masterMap.set(key, {
+          bidang: ind.bidang,
+          namaIndikator: ind.namaIndikator,
+          satuan: ind.satuan,
+          target: ind.target,
+        });
+      }
     });
 
-    // Also pick up any user added indicators
+    // Also pick up any active user-added indicators
     indicators.forEach((ind) => {
-      masterMap.set(`${ind.bidang}:${ind.namaIndikator.trim().toLowerCase()}`, {
-        bidang: ind.bidang,
-        namaIndikator: ind.namaIndikator,
-        satuan: ind.satuan,
-        target: ind.target,
-      });
+      const key = `${ind.bidang.toLowerCase()}:${ind.namaIndikator.trim().toLowerCase()}`;
+      if (!deletedKeys.includes(key)) {
+        masterMap.set(key, {
+          bidang: ind.bidang,
+          namaIndikator: ind.namaIndikator,
+          satuan: ind.satuan,
+          target: ind.target,
+        });
+      }
     });
 
     let changed = false;
@@ -410,6 +437,7 @@ export const storageService = {
     localStorage.removeItem(WORK_ENTRIES_KEY);
     localStorage.removeItem(KPI_INDICATORS_KEY);
     localStorage.removeItem(AGENDA_ITEMS_KEY);
+    localStorage.removeItem(DELETED_KPI_KEY);
     this.saveWorkEntries(INITIAL_WORK_ENTRIES);
     this.saveKpiIndicators(INITIAL_KPI_INDICATORS);
     this.saveAgendaItems(INITIAL_AGENDA_ITEMS);
