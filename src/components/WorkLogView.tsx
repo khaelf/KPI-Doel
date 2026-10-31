@@ -24,6 +24,8 @@ interface WorkLogViewProps {
   selectedDepartment: 'Semua' | Department;
   statusFilter?: 'Semua' | TaskStatus;
   setStatusFilter?: (status: 'Semua' | TaskStatus) => void;
+  showDeadlineOnly?: boolean;
+  setShowDeadlineOnly?: (show: boolean) => void;
   onAddEntry: () => void;
   onEditEntry: (entry: WorkEntry) => void;
   onDeleteEntry: (id: string) => void;
@@ -50,6 +52,8 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
   selectedDepartment,
   statusFilter,
   setStatusFilter,
+  showDeadlineOnly: propShowDeadlineOnly,
+  setShowDeadlineOnly: propSetShowDeadlineOnly,
   onAddEntry,
   onEditEntry,
   onDeleteEntry,
@@ -57,7 +61,22 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [localStatusFilter, setLocalStatusFilter] = useState<'Semua' | TaskStatus>('Semua');
-  const [showDeadlineOnly, setShowDeadlineOnly] = useState(false);
+  const [localShowDeadlineOnly, setLocalShowDeadlineOnly] = useState(false);
+
+  const showDeadline = propShowDeadlineOnly !== undefined ? propShowDeadlineOnly : localShowDeadlineOnly;
+  const toggleDeadlineOnly = () => {
+    const nextVal = !showDeadline;
+    if (propSetShowDeadlineOnly) {
+      propSetShowDeadlineOnly(nextVal);
+    }
+    setLocalShowDeadlineOnly(nextVal);
+  };
+  const setDeadlineOnly = (val: boolean) => {
+    if (propSetShowDeadlineOnly) {
+      propSetShowDeadlineOnly(val);
+    }
+    setLocalShowDeadlineOnly(val);
+  };
 
   const activeStatusFilter = statusFilter !== undefined ? statusFilter : localStatusFilter;
 
@@ -66,7 +85,7 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
       setStatusFilter(st);
     }
     setLocalStatusFilter(st);
-    setShowDeadlineOnly(false);
+    setDeadlineOnly(false);
   };
 
   // Sort field: supports tanggalAcara, tanggalMulai, tanggalMasuk, status
@@ -124,7 +143,7 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
       (entry.lokasi && entry.lokasi.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (entry.catatan && entry.catatan.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    const isDeadlineMatch = !showDeadlineOnly || (entry.status !== 'Selesai' && !!entry.tanggalAcara && entry.tanggalAcara <= todayStr);
+    const isDeadlineMatch = !showDeadline || (entry.status !== 'Selesai' && !!entry.tanggalAcara && entry.tanggalAcara <= todayStr);
 
     return isMonthMatch && isDeptMatch && isStatusMatch && isSearchMatch && isDeadlineMatch;
   });
@@ -179,54 +198,52 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
           </p>
         </div>
 
-        <button
-          onClick={onAddEntry}
-          className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl transition-all shadow-sm flex items-center justify-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Tambah Pekerjaan Baru</span>
-        </button>
-      </div>
-
-      {/* Deadline Notification Banner (Kriteria Deadline dari Tanggal Acara) */}
-      {deadlineEntries.length > 0 && (
-        <div className="bg-gradient-to-r from-amber-50 to-rose-50 border border-amber-200/90 rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-start gap-3">
-            <div className="p-2 bg-rose-100 text-rose-700 rounded-xl shrink-0 mt-0.5 sm:mt-0">
-              <Bell className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-bold text-slate-900 text-sm">Notifikasi Deadline Pekerjaan</h3>
-                <span className="bg-rose-600 text-white font-bold font-mono text-[10px] px-2 py-0.5 rounded-full">
-                  {deadlineEntries.length} Perlu Penanganan
-                </span>
-              </div>
-              <p className="text-xs text-slate-600 mt-0.5">
-                Terdapat {deadlineEntries.length} pekerjaan yang telah memasuki atau melewati <strong>Tanggal Acara</strong> dan belum berstatus selesai.
-              </p>
-            </div>
-          </div>
+        <div className="flex items-center gap-2.5">
+          {/* Notification Icon Button: Replaces the big banner. Shows badge and toggles deadline view */}
           <button
             type="button"
-            onClick={() => setShowDeadlineOnly(!showDeadlineOnly)}
-            className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all shrink-0 ${
-              showDeadlineOnly
-                ? 'bg-slate-800 text-white hover:bg-slate-900'
-                : 'bg-rose-600 hover:bg-rose-700 text-white shadow-xs'
+            onClick={toggleDeadlineOnly}
+            className={`relative p-2.5 rounded-xl border transition-all flex items-center justify-center cursor-pointer ${
+              showDeadline
+                ? 'bg-rose-600 text-white border-rose-600 shadow-sm ring-2 ring-rose-200'
+                : deadlineEntries.length > 0
+                ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100 hover:border-rose-300'
+                : 'bg-white text-slate-400 border-slate-200 hover:bg-slate-50'
             }`}
+            title={
+              deadlineEntries.length > 0
+                ? `${deadlineEntries.length} Pekerjaan deadline (Tanggal Acara) - Klik untuk ${
+                    showDeadline ? 'tampilkan semua' : 'masuk ke pekerjaan deadline'
+                  }`
+                : 'Tidak ada pekerjaan deadline'
+            }
           >
-            {showDeadlineOnly ? 'Tampilkan Semua Pekerjaan' : 'Lihat Pekerjaan Deadline'}
+            <Bell className="w-4 h-4" />
+            {deadlineEntries.length > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 bg-rose-600 text-white font-mono font-bold text-[10px] min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center border-2 border-white shadow-xs">
+                {deadlineEntries.length}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={onAddEntry}
+            className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl transition-all shadow-sm flex items-center justify-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Tambah Pekerjaan Baru</span>
           </button>
         </div>
-      )}
+      </div>
+
+
 
       {/* Summary Stat Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
         <button
           onClick={() => handleStatusFilterChange('Semua')}
           className={`text-left bg-white p-3.5 rounded-xl border transition-all cursor-pointer flex justify-between items-center ${
-            activeStatusFilter === 'Semua' && !showDeadlineOnly
+            activeStatusFilter === 'Semua' && !showDeadline
               ? 'border-slate-800 ring-2 ring-slate-800/10 shadow-sm'
               : 'border-slate-200/80 hover:border-slate-300'
           }`}
@@ -325,13 +342,13 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
 
         {/* Desktop Kolom & Active Filter Indicator */}
         <div className="flex flex-wrap items-center gap-2 shrink-0">
-          {showDeadlineOnly && (
+          {showDeadline && (
             <div className="flex items-center gap-1.5 text-xs bg-rose-50 text-rose-800 border border-rose-200 px-2.5 py-1 rounded-xl">
               <span className="font-semibold">Filter: Deadline Acara</span>
               <button
                 type="button"
-                onClick={() => setShowDeadlineOnly(false)}
-                className="hover:text-rose-900 font-extrabold ml-1"
+                onClick={() => setDeadlineOnly(false)}
+                className="hover:text-rose-900 font-extrabold ml-1 cursor-pointer"
                 title="Tampilkan semua"
               >
                 ✕

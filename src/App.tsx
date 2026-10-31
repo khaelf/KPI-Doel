@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { WorkEntry, KpiIndicator, AgendaItem, AgendaStatus, Department, TaskStatus } from './types/kpi';
 import { storageService } from './services/storage';
 import { firebaseDataService } from './services/firebase';
+import { isWorkEntryInMonth } from './utils/kpiCalculations';
 import { Navbar } from './components/Navbar';
 import { DashboardView } from './components/DashboardView';
 import { WorkLogView } from './components/WorkLogView';
@@ -16,6 +17,7 @@ export default function App() {
   const [selectedDepartment, setSelectedDepartment] = useState<'Semua' | Department>('Semua');
   const [selectedMonth, setSelectedMonth] = useState<string>('2026-10');
   const [catatanStatusFilter, setCatatanStatusFilter] = useState<'Semua' | TaskStatus>('Semua');
+  const [showDeadlineOnly, setShowDeadlineOnly] = useState<boolean>(false);
 
   // Data State
   const [workEntries, setWorkEntries] = useState<WorkEntry[]>([]);
@@ -94,6 +96,13 @@ export default function App() {
 
   const handleNavigateToCatatanWithStatus = (filter: 'Semua' | TaskStatus) => {
     setCatatanStatusFilter(filter);
+    setShowDeadlineOnly(false);
+    changeTab('catatan');
+  };
+
+  const handleNavigateToDeadline = () => {
+    setShowDeadlineOnly(true);
+    setCatatanStatusFilter('Semua');
     changeTab('catatan');
   };
 
@@ -240,6 +249,14 @@ export default function App() {
     }
   };
 
+  const todayStr = new Date().toISOString().substring(0, 10);
+  const deadlineCount = workEntries.filter((entry) => {
+    if (entry.status === 'Selesai') return false;
+    const inMonth = !selectedMonth || isWorkEntryInMonth(entry, selectedMonth);
+    const inDept = selectedDepartment === 'Semua' || entry.bidang === selectedDepartment;
+    return inMonth && inDept && !!entry.tanggalAcara && entry.tanggalAcara <= todayStr;
+  }).length;
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans">
       {/* Navigation Header */}
@@ -250,6 +267,8 @@ export default function App() {
         setSelectedDepartment={setSelectedDepartment}
         selectedMonth={selectedMonth}
         setSelectedMonth={setSelectedMonth}
+        deadlineCount={deadlineCount}
+        onNavigateToDeadline={handleNavigateToDeadline}
         onOpenAddModal={() => openWorkModal(null)}
         onResetData={handleResetData}
       />
@@ -277,6 +296,8 @@ export default function App() {
             selectedDepartment={selectedDepartment}
             statusFilter={catatanStatusFilter}
             setStatusFilter={setCatatanStatusFilter}
+            showDeadlineOnly={showDeadlineOnly}
+            setShowDeadlineOnly={setShowDeadlineOnly}
             onAddEntry={() => openWorkModal(null)}
             onEditEntry={(entry) => openWorkModal(entry)}
             onDeleteEntry={handleDeleteWorkEntry}

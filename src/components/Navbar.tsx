@@ -7,9 +7,8 @@ import {
   FileBarChart,
   RefreshCw,
   Calendar,
+  Bell,
 } from 'lucide-react';
-
-
 
 interface NavbarProps {
   activeTab: 'dashboard' | 'catatan' | 'kpi' | 'laporan';
@@ -18,6 +17,8 @@ interface NavbarProps {
   setSelectedDepartment: (dept: 'Semua' | Department) => void;
   selectedMonth: string;
   setSelectedMonth: (month: string) => void;
+  deadlineCount?: number;
+  onNavigateToDeadline?: () => void;
   onOpenAddModal: () => void;
   onResetData: () => void;
 }
@@ -29,6 +30,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   setSelectedDepartment,
   selectedMonth,
   setSelectedMonth,
+  deadlineCount = 0,
+  onNavigateToDeadline,
   onOpenAddModal,
   onResetData,
 }) => {
@@ -54,6 +57,25 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Mobile Quick Controls */}
             <div className="flex md:hidden items-center gap-1.5 shrink-0">
+              {onNavigateToDeadline && (
+                <button
+                  type="button"
+                  onClick={onNavigateToDeadline}
+                  className="relative p-1.5 text-emerald-200 hover:text-white hover:bg-emerald-800/60 rounded-lg transition-colors"
+                  title={
+                    deadlineCount > 0
+                      ? `${deadlineCount} Pekerjaan deadline (Tanggal Acara) - Klik untuk melihat`
+                      : 'Notifikasi Deadline'
+                  }
+                >
+                  <Bell className="w-4 h-4" />
+                  {deadlineCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-rose-500 text-white font-mono font-bold text-[9px] min-w-[15px] h-[15px] px-0.5 rounded-full flex items-center justify-center border border-[#1b4332] shadow-xs">
+                      {deadlineCount}
+                    </span>
+                  )}
+                </button>
+              )}
               <button
                 onClick={onResetData}
                 className="p-1.5 text-emerald-300 hover:text-white hover:bg-emerald-800/60 rounded-lg transition-colors"
@@ -92,6 +114,31 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className="bg-emerald-900/90 border border-emerald-700/60 text-emerald-100 text-xs rounded-lg px-2 sm:px-2.5 py-1.5 font-semibold min-w-[135px] sm:min-w-[140px] focus:outline-none focus:ring-2 focus:ring-emerald-400"
               />
             </div>
+
+            {/* Desktop Notification Bell Icon */}
+            {onNavigateToDeadline && (
+              <button
+                type="button"
+                onClick={onNavigateToDeadline}
+                className={`hidden md:flex relative p-2 rounded-lg transition-colors items-center justify-center ${
+                  deadlineCount > 0
+                    ? 'text-rose-300 hover:text-white bg-rose-950/40 hover:bg-rose-900/60 border border-rose-500/40'
+                    : 'text-emerald-200 hover:text-white hover:bg-emerald-800/60'
+                }`}
+                title={
+                  deadlineCount > 0
+                    ? `${deadlineCount} Pekerjaan deadline (Tanggal Acara) - Klik untuk masuk ke pekerjaan deadline`
+                    : 'Tidak ada pekerjaan deadline'
+                }
+              >
+                <Bell className="w-4 h-4" />
+                {deadlineCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-rose-500 text-white font-mono font-bold text-[10px] min-w-[17px] h-[17px] px-1 rounded-full flex items-center justify-center border-2 border-[#1b4332] shadow-xs animate-pulse">
+                    {deadlineCount}
+                  </span>
+                )}
+              </button>
+            )}
 
             {/* Desktop-only Reset */}
             <div className="hidden md:flex items-center gap-2">
