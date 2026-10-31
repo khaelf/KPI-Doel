@@ -190,20 +190,20 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
   return (
     <div className="space-y-5 sm:space-y-6 pb-6 md:pb-8">
       {/* Top Header & Toolbar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:p-5 bg-white rounded-2xl border border-slate-200/80 shadow-sm">
         <div>
-          <h2 className="text-xl font-bold text-slate-900">Catatan Pekerjaan Harian</h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Kelola dan evaluasi catatan pekerjaan Bagian Humas dan IT Pesantren Parabek.
+          <h2 className="text-lg sm:text-xl font-bold text-slate-900">Catatan Pekerjaan Harian</h2>
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
+            Kelola dan evaluasi catatan pekerjaan Bagian Humas, IT, dan Umum Pesantren Parabek.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           {/* Notification Icon Button: Replaces the big banner. Shows badge and toggles deadline view */}
           <button
             type="button"
             onClick={toggleDeadlineOnly}
-            className={`relative p-2.5 rounded-xl border transition-all flex items-center justify-center cursor-pointer ${
+            className={`relative p-2.5 rounded-xl border transition-all flex items-center justify-center shrink-0 cursor-pointer ${
               showDeadline
                 ? 'bg-rose-600 text-white border-rose-600 shadow-sm ring-2 ring-rose-200'
                 : deadlineEntries.length > 0
@@ -228,7 +228,7 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
 
           <button
             onClick={onAddEntry}
-            className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl transition-all shadow-sm flex items-center justify-center gap-2"
+            className="flex-1 sm:flex-none px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl transition-all shadow-sm flex items-center justify-center gap-2"
           >
             <Plus className="w-4 h-4" />
             <span>Tambah Pekerjaan Baru</span>

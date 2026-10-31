@@ -1,12 +1,11 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { getAuth, signInAnonymously } from 'firebase/auth';
 import {
   getFirestore,
   collection,
   getDocs,
   doc,
   setDoc,
-  updateDoc,
   deleteDoc,
   onSnapshot,
   getDocFromServer,
@@ -22,10 +21,15 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const auth = getAuth();
 
+// Sign in anonymously to establish active Firebase session across devices
+signInAnonymously(auth).catch((err) => {
+  console.info('Firebase anonymous auth status notice:', err?.message || err);
+});
+
 // Test Firestore connection on boot
 export async function testFirestoreConnection() {
   try {
-    await getDocFromServer(doc(db, 'test', 'connection'));
+    await setDoc(doc(db, 'test', 'connection'), { lastPing: new Date().toISOString() }, { merge: true });
     console.log('Connected to Firestore successfully.');
   } catch (error) {
     if (error instanceof Error && (error.message.includes('offline') || error.message.includes('unavailable'))) {
@@ -35,6 +39,7 @@ export async function testFirestoreConnection() {
     }
   }
 }
+
 
 enum OperationType {
   CREATE = 'create',
@@ -116,7 +121,7 @@ export const firebaseDataService = {
   async updateWorkEntry(id: string, updated: Partial<WorkEntry>): Promise<void> {
     try {
       const docRef = doc(db, WORK_ENTRIES_COL, id);
-      await updateDoc(docRef, sanitizeFirestoreData(updated));
+      await setDoc(docRef, sanitizeFirestoreData(updated), { merge: true });
     } catch (err) {
       handleFirestoreError(err, OperationType.UPDATE, `${WORK_ENTRIES_COL}/${id}`);
     }
@@ -166,7 +171,7 @@ export const firebaseDataService = {
   async saveKpiIndicator(indicator: KpiIndicator): Promise<void> {
     try {
       const docRef = doc(db, KPI_INDICATORS_COL, indicator.id);
-      await setDoc(docRef, sanitizeFirestoreData(indicator));
+      await setDoc(docRef, sanitizeFirestoreData(indicator), { merge: true });
     } catch (err) {
       handleFirestoreError(err, OperationType.WRITE, `${KPI_INDICATORS_COL}/${indicator.id}`);
     }
@@ -175,7 +180,7 @@ export const firebaseDataService = {
   async updateKpiIndicator(id: string, updated: Partial<KpiIndicator>): Promise<void> {
     try {
       const docRef = doc(db, KPI_INDICATORS_COL, id);
-      await updateDoc(docRef, sanitizeFirestoreData(updated));
+      await setDoc(docRef, sanitizeFirestoreData(updated), { merge: true });
     } catch (err) {
       handleFirestoreError(err, OperationType.UPDATE, `${KPI_INDICATORS_COL}/${id}`);
     }
@@ -225,7 +230,7 @@ export const firebaseDataService = {
   async saveAgendaItem(item: AgendaItem): Promise<void> {
     try {
       const docRef = doc(db, AGENDA_ITEMS_COL, item.id);
-      await setDoc(docRef, sanitizeFirestoreData(item));
+      await setDoc(docRef, sanitizeFirestoreData(item), { merge: true });
     } catch (err) {
       handleFirestoreError(err, OperationType.WRITE, `${AGENDA_ITEMS_COL}/${item.id}`);
     }
@@ -234,7 +239,7 @@ export const firebaseDataService = {
   async updateAgendaItem(id: string, updated: Partial<AgendaItem>): Promise<void> {
     try {
       const docRef = doc(db, AGENDA_ITEMS_COL, id);
-      await updateDoc(docRef, sanitizeFirestoreData(updated));
+      await setDoc(docRef, sanitizeFirestoreData(updated), { merge: true });
     } catch (err) {
       handleFirestoreError(err, OperationType.UPDATE, `${AGENDA_ITEMS_COL}/${id}`);
     }
@@ -249,7 +254,7 @@ export const firebaseDataService = {
     }
   },
 
-  // --- Realtime Agenda Listener ---
+  // Realtime Agenda Listener
   subscribeAgendaItems(callback: (items: AgendaItem[]) => void) {
     return onSnapshot(
       collection(db, AGENDA_ITEMS_COL),
@@ -265,4 +270,22 @@ export const firebaseDataService = {
       }
     );
   },
+
+  // Explicit sync all items to Firestore
+  async syncAllToFirestore(
+    entries: WorkEntry[],
+    indicators: KpiIndicator[],
+    agendas: AgendaItem[]
+  ): Promise<void> {
+    for (const entry of entries) {
+      await this.saveWorkEntry(entry);
+    }
+    for (const ind of indicators) {
+      await this.saveKpiIndicator(ind);
+    }
+    for (const ag of agendas) {
+      await this.saveAgendaItem(ag);
+    }
+  },
 };
+

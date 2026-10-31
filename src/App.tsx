@@ -13,6 +13,7 @@ import { WorkEntryModal } from './components/WorkEntryModal';
 import { KpiIndicatorModal } from './components/KpiIndicatorModal';
 import { AgendaModal } from './components/AgendaModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
+import { BottomNav } from './components/BottomNav';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'laporan'>('dashboard');
@@ -138,26 +139,51 @@ export default function App() {
     setKpiIndicators(initialIndicators);
     setAgendaItems(initialAgendas);
 
-    // Realtime Firestore listeners
+    // Realtime Firestore listeners across all devices
+    let isInitialWorkSync = true;
     const unsubscribeWork = firebaseDataService.subscribeWorkEntries((fsEntries) => {
       if (fsEntries && fsEntries.length > 0) {
         setWorkEntries(fsEntries);
         storageService.saveWorkEntries(fsEntries);
+      } else if (isInitialWorkSync) {
+        // If Firestore is empty on first boot, seed initial entries to Firestore
+        const localEntries = storageService.getWorkEntries();
+        if (localEntries.length > 0) {
+          localEntries.forEach((item) => firebaseDataService.saveWorkEntry(item));
+        }
+      } else {
+        setWorkEntries([]);
+        storageService.saveWorkEntries([]);
       }
+      isInitialWorkSync = false;
     });
 
+    let isInitialKpiSync = true;
     const unsubscribeKpi = firebaseDataService.subscribeKpiIndicators((fsIndicators) => {
       if (fsIndicators && fsIndicators.length > 0) {
         setKpiIndicators(fsIndicators);
         storageService.saveKpiIndicators(fsIndicators);
+      } else if (isInitialKpiSync) {
+        const localIndicators = storageService.getKpiIndicators();
+        if (localIndicators.length > 0) {
+          localIndicators.forEach((ind) => firebaseDataService.saveKpiIndicator(ind));
+        }
       }
+      isInitialKpiSync = false;
     });
 
+    let isInitialAgendaSync = true;
     const unsubscribeAgenda = firebaseDataService.subscribeAgendaItems((fsAgendas) => {
       if (fsAgendas && fsAgendas.length > 0) {
         setAgendaItems(fsAgendas);
         storageService.saveAgendaItems(fsAgendas);
+      } else if (isInitialAgendaSync) {
+        const localAgendas = storageService.getAgendaItems();
+        if (localAgendas.length > 0) {
+          localAgendas.forEach((ag) => firebaseDataService.saveAgendaItem(ag));
+        }
       }
+      isInitialAgendaSync = false;
     });
 
     return () => {
@@ -324,7 +350,7 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-10 pt-4 sm:pt-6 pb-24 md:pb-8">
+      <main className="flex-1 max-w-[1600px] w-full mx-auto px-3 sm:px-6 lg:px-10 pt-3 sm:pt-6 pb-28 md:pb-8">
         {activeTab === 'dashboard' && (
           <DashboardView
             workEntries={workEntries}
@@ -435,6 +461,14 @@ export default function App() {
 
       {/* Offline Status Toast */}
       <OfflineIndicator />
+
+      {/* Sticky Bottom Navigation Bar on Mobile */}
+      <BottomNav
+        activeTab={activeTab}
+        setActiveTab={changeTab}
+        deadlineCount={deadlineCount}
+      />
     </div>
   );
 }
+

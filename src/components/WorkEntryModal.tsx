@@ -77,12 +77,14 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
       setJumlahRevisi(0);
       setBidang(defaultDepartment);
       setNamaPekerjaan('');
-      setIndikatorKpi('');
+      // Auto-select first indicator of defaultDepartment
+      const deptInds = kpiIndicators.filter((i) => i.bidang === defaultDepartment);
+      setIndikatorKpi(deptInds[0]?.namaIndikator || '');
       setStatus('Proses');
       setPersentase(50);
       setCatatan('');
     }
-  }, [editingEntry, isOpen, defaultDepartment]);
+  }, [editingEntry, isOpen, defaultDepartment, kpiIndicators]);
 
   if (!isOpen) return null;
 
@@ -94,6 +96,15 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
         .map((ind) => [ind.namaIndikator.trim().toLowerCase(), ind])
     ).values()
   );
+
+  const handleDepartmentChange = (newDept: Department) => {
+    setBidang(newDept);
+    const deptInds = kpiIndicators.filter((i) => i.bidang === newDept);
+    if (deptInds.length > 0) {
+      setIndikatorKpi(deptInds[0].namaIndikator);
+    }
+  };
+
 
   const calculateDurationText = () => {
     if (!tanggalMulai || !tanggalSelesai) return 'Durasi: 0 menit';
@@ -194,7 +205,7 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
             </label>
             <select
               value={bidang}
-              onChange={(e) => setBidang(e.target.value as Department)}
+              onChange={(e) => handleDepartmentChange(e.target.value as Department)}
               className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             >
               <option value="Humas">HUMAS</option>
@@ -219,12 +230,12 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
             />
           </div>
 
-          {/* Indikator KPI */}
+          {/* Indikator KPI (Mandatory, without -- Tanpa Indikator KPI --) */}
           <div>
             <label className="block font-semibold text-slate-900 mb-1 flex items-center justify-between">
               <span className="flex items-center gap-1.5">
                 <Target className="w-3.5 h-3.5 text-emerald-700" />
-                <span>Indikator KPI Terkait <span className="text-slate-400 font-normal">(Opsional)</span></span>
+                <span>Indikator KPI Terkait <span className="text-rose-500">*</span></span>
               </span>
               <span className="text-[10px] text-emerald-700 font-medium bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                 KPI Bulanan
@@ -233,9 +244,9 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
             <select
               value={indikatorKpi}
               onChange={(e) => setIndikatorKpi(e.target.value)}
+              required
               className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
             >
-              <option value="">-- Tanpa Indikator KPI --</option>
               {departmentIndicators.map((ind) => (
                 <option key={ind.namaIndikator} value={ind.namaIndikator}>
                   {ind.namaIndikator}
@@ -301,10 +312,10 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
                     </div>
                   </div>
 
-                  {/* Selesai Pengerjaan (Opsional awal) */}
+                  {/* Selesai Pengerjaan */}
                   <div>
                     <label className="block font-semibold text-slate-900 mb-1">
-                      Selesai Pengerjaan <span className="text-slate-400 font-normal">(Opsional awal)</span>
+                      Selesai Pengerjaan
                     </label>
                     <div className="grid grid-cols-2 gap-1.5">
                       <input

@@ -87,16 +87,16 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Row 2 on Mobile / Right side on Desktop: Filters & Controls */}
-          <div className="flex items-center justify-between md:justify-end gap-2 w-full md:w-auto">
+          <div className="flex items-center justify-between md:justify-end gap-1.5 sm:gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 scrollbar-none">
             {/* Department Filter Toggle */}
-            <div className="bg-emerald-900/90 p-1 rounded-lg border border-emerald-700/60 flex items-center gap-1 text-[11px] sm:text-xs">
+            <div className="bg-emerald-900/90 p-0.5 sm:p-1 rounded-lg border border-emerald-700/60 flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs shrink-0">
               {(['Semua', 'Humas', 'IT', 'Umum'] as const).map((dept) => {
                 const label = dept === 'Semua' ? 'SEMUA' : dept.toUpperCase();
                 return (
                   <button
                     key={dept}
                     onClick={() => setSelectedDepartment(dept)}
-                    className={`px-2.5 py-1 rounded-md font-medium transition-all ${
+                    className={`px-2 sm:px-2.5 py-1 rounded-md font-medium transition-all ${
                       selectedDepartment === dept
                         ? 'bg-emerald-500 text-white shadow-xs font-bold'
                         : 'text-emerald-200 hover:text-white hover:bg-emerald-800/50'
@@ -114,7 +114,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 type="month"
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
-                className="bg-emerald-900/90 border border-emerald-700/60 text-emerald-100 text-xs rounded-lg px-2 sm:px-2.5 py-1.5 font-semibold min-w-[135px] sm:min-w-[140px] focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                className="bg-emerald-900/90 border border-emerald-700/60 text-emerald-100 text-[11px] sm:text-xs rounded-lg px-2 sm:px-2.5 py-1 sm:py-1.5 font-semibold w-[125px] sm:w-[140px] focus:outline-none focus:ring-2 focus:ring-emerald-400"
               />
             </div>
 
@@ -218,59 +218,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span>Laporan</span>
           </button>
         </nav>
-      </div>
-
-      {/* Mobile Bottom Navigation Bar (Hidden on desktop) */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#1b4332] border-t border-emerald-800 flex items-center justify-around py-2 px-1 shadow-lg no-print">
-        <button
-          onClick={() => setActiveTab('dashboard')}
-          className={`flex flex-col items-center gap-1 px-2.5 py-1 text-[10px] ${
-            activeTab === 'dashboard' ? 'text-emerald-300 font-bold' : 'text-emerald-200/70'
-          }`}
-        >
-          <LayoutDashboard className="w-4 h-4" />
-          <span>Dashboard</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('catatan')}
-          className={`flex flex-col items-center gap-1 px-2.5 py-1 text-[10px] ${
-            activeTab === 'catatan' ? 'text-emerald-300 font-bold' : 'text-emerald-200/70'
-          }`}
-        >
-          <ClipboardList className="w-4 h-4" />
-          <span>Catatan</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('kpi')}
-          className={`flex flex-col items-center gap-1 px-2.5 py-1 text-[10px] ${
-            activeTab === 'kpi' ? 'text-emerald-300 font-bold' : 'text-emerald-200/70'
-          }`}
-        >
-          <Target className="w-4 h-4" />
-          <span>KPI</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('agenda')}
-          className={`flex flex-col items-center gap-1 px-2.5 py-1 text-[10px] ${
-            activeTab === 'agenda' ? 'text-emerald-300 font-bold' : 'text-emerald-200/70'
-          }`}
-        >
-          <Calendar className="w-4 h-4" />
-          <span>Agenda</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('laporan')}
-          className={`flex flex-col items-center gap-1 px-2.5 py-1 text-[10px] ${
-            activeTab === 'laporan' ? 'text-emerald-300 font-bold' : 'text-emerald-200/70'
-          }`}
-        >
-          <FileBarChart className="w-4 h-4" />
-          <span>Laporan</span>
-        </button>
       </div>
     </header>
   );

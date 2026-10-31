@@ -96,14 +96,14 @@ export const AgendaModal: React.FC<AgendaModalProps> = ({
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 cursor-pointer"
+      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 cursor-pointer"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-2xl max-w-lg w-full shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-slate-200 cursor-default"
+        className="bg-white rounded-2xl max-w-lg w-full shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-slate-200 cursor-default max-h-[92vh] flex flex-col"
       >
         {/* Header */}
-        <div className="bg-[#1b4332] text-white p-5 flex items-center justify-between">
+        <div className="bg-[#1b4332] text-white p-4 sm:p-5 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
             <Calendar className="w-5 h-5 text-emerald-300" />
             <h3 className="text-base font-bold">
@@ -119,7 +119,7 @@ export const AgendaModal: React.FC<AgendaModalProps> = ({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs text-slate-700 max-h-[85vh] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 text-xs text-slate-700 overflow-y-auto flex-1">
           {/* Judul Agenda */}
           <div>
             <label className="block font-semibold text-slate-900 mb-1">
