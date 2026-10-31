@@ -34,6 +34,23 @@ export const storageService = {
     localStorage.setItem(DELETED_KPI_KEY, JSON.stringify(list));
   },
 
+  filterActiveKpiIndicators(indicators: KpiIndicator[]): KpiIndicator[] {
+    const deletedKeys = this.getDeletedKpiKeys();
+    if (!deletedKeys || deletedKeys.length === 0) return indicators;
+
+    const active: KpiIndicator[] = [];
+    indicators.forEach((ind) => {
+      const key = `${ind.bidang.toLowerCase()}:${ind.namaIndikator.trim().toLowerCase()}`;
+      if (deletedKeys.includes(key)) {
+        // Automatically purge any remaining or newly received document for deleted key from Firestore
+        firebaseDataService.deleteKpiIndicator(ind.id);
+      } else {
+        active.push(ind);
+      }
+    });
+    return active;
+  },
+
   getWorkEntries(): WorkEntry[] {
     try {
       const data = localStorage.getItem(WORK_ENTRIES_KEY);

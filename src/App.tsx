@@ -161,8 +161,9 @@ export default function App() {
     let isInitialKpiSync = true;
     const unsubscribeKpi = firebaseDataService.subscribeKpiIndicators((fsIndicators) => {
       if (fsIndicators && fsIndicators.length > 0) {
-        setKpiIndicators(fsIndicators);
-        storageService.saveKpiIndicators(fsIndicators);
+        const activeIndicators = storageService.filterActiveKpiIndicators(fsIndicators);
+        setKpiIndicators(activeIndicators);
+        storageService.saveKpiIndicators(activeIndicators);
       } else if (isInitialKpiSync) {
         const localIndicators = storageService.getKpiIndicators();
         if (localIndicators.length > 0) {
