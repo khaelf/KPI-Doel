@@ -117,7 +117,8 @@ export const AgendaModal: React.FC<AgendaModalProps> = ({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 text-xs text-slate-700 overflow-y-auto flex-1">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          <div className="p-4 sm:p-6 space-y-4 text-xs text-slate-700 overflow-y-auto flex-1">
           {/* Judul Agenda */}
           <div>
             <label className="block font-semibold text-slate-900 mb-1">
@@ -332,8 +333,10 @@ export const AgendaModal: React.FC<AgendaModalProps> = ({
             />
           </div>
 
+          </div>
+
           {/* Modal Footer */}
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-2">
+          <div className="p-3.5 sm:p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2 shrink-0 z-10">
             <button
               type="button"
               onClick={onClose}

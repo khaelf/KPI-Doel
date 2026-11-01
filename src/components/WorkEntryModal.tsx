@@ -201,19 +201,20 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 cursor-pointer"
+      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 cursor-pointer"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-2xl max-w-xl w-full shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-slate-200 cursor-default"
+        className="bg-white rounded-2xl max-w-xl w-full max-h-[92vh] sm:max-h-[85vh] flex flex-col shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-slate-200 cursor-default"
       >
         {/* Modal Header */}
-        <div className="bg-[#1b4332] text-white p-5 flex items-center justify-between">
+        <div className="bg-[#1b4332] text-white p-4 sm:p-5 flex items-center justify-between shrink-0">
           <h3 className="text-base font-bold">
             {editingEntry ? 'Edit Catatan Pekerjaan' : 'Tambah Catatan Pekerjaan Baru'}
           </h3>
           <button
             onClick={onClose}
+            type="button"
             className="p-1 rounded-lg hover:bg-emerald-800 text-emerald-200 hover:text-white transition-colors"
           >
             <X className="w-5 h-5" />
@@ -221,7 +222,8 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
         </div>
 
         {/* Modal Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs text-slate-700 max-h-[85vh] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          <div className="p-4 sm:p-6 space-y-4 text-xs text-slate-700 overflow-y-auto flex-1">
           {/* Bidang */}
           <div>
             <label className="block font-semibold text-slate-900 mb-1">
@@ -623,8 +625,10 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
             </>
           )}
 
-          {/* Modal Footer Buttons */}
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-2">
+          </div>
+
+          {/* Modal Footer Buttons - Fixed at bottom */}
+          <div className="p-3.5 sm:p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2 shrink-0 z-10">
             <button
               type="button"
               onClick={onClose}
