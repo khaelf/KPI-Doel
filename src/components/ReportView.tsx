@@ -180,9 +180,9 @@ export const ReportView: React.FC<ReportViewProps> = ({
               <table className="w-full text-left text-xs border border-slate-200">
                 <thead className="bg-slate-100 text-slate-800 font-bold uppercase text-[10px]">
                   <tr>
-                    <th className="py-2.5 px-3 border-b border-r border-slate-200">No</th>
+                    <th className="py-2.5 px-2 w-9 text-center border-b border-r border-slate-200">No</th>
                     <th className="py-2.5 px-3 border-b border-r border-slate-200">Bidang</th>
-                    <th className="py-2.5 px-3 border-b border-r border-slate-200">Indikator KPI</th>
+                    <th className="py-2.5 px-2.5 border-b border-r border-slate-200">Indikator KPI</th>
                     <th className="py-2.5 px-3 border-b border-r border-slate-200 text-left">Target</th>
                     <th className="py-2.5 px-3 border-b border-r border-slate-200 text-left">Realisasi</th>
                     <th className="py-2.5 px-3 border-b border-slate-200 text-right">Capaian (%)</th>
@@ -193,13 +193,13 @@ export const ReportView: React.FC<ReportViewProps> = ({
                     const calc = calculateIndicatorAchievement(ind);
                     return (
                       <tr key={ind.id} className="hover:bg-slate-50">
-                        <td className="py-2 px-3 border-r border-slate-200 font-mono text-center">
+                        <td className="py-2 px-2 border-r border-slate-200 font-mono text-center w-9">
                           {idx + 1}
                         </td>
                         <td className="py-2 px-3 border-r border-slate-200 font-semibold text-slate-700">
                           {ind.bidang}
                         </td>
-                        <td className="py-2 px-3 border-r border-slate-200 font-medium text-slate-900">
+                        <td className="py-2 px-2.5 border-r border-slate-200 font-medium text-slate-900">
                           {ind.namaIndikator}
                         </td>
                         <td className="py-2 px-3 border-r border-slate-200 text-left font-mono">

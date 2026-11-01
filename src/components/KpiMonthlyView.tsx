@@ -213,8 +213,8 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                 <table className="w-full text-left text-xs text-slate-600">
                   <thead className="bg-emerald-50/70 text-emerald-900 uppercase font-semibold text-[11px] border-b border-emerald-100">
                     <tr>
-                      <th className="py-3 px-4 w-12 text-center sticky left-0 z-20 bg-emerald-50 shadow-[1px_0_2px_rgba(0,0,0,0.05)]">No</th>
-                      <th className="py-3 px-4 min-w-[180px] sticky left-12 z-20 bg-emerald-50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Indikator KPI Humas</th>
+                      <th className="py-3 px-2 w-9 text-center sticky left-0 z-20 bg-emerald-50 shadow-[1px_0_2px_rgba(0,0,0,0.05)]">No</th>
+                      <th className="py-3 px-3 min-w-[130px] sm:min-w-[145px] sticky left-9 z-20 bg-emerald-50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Indikator KPI Humas</th>
                       <th className="py-3 px-3 text-left whitespace-nowrap">Target</th>
                       <th className="py-3 px-3 text-center w-24 whitespace-nowrap">Realisasi</th>
                       <th className="py-3 px-4 text-center w-28 whitespace-nowrap">Pencapaian (%)</th>
@@ -226,8 +226,8 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                       const calc = calculateIndicatorAchievement(ind);
                       return (
                         <tr key={ind.id} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="py-3.5 px-4 font-mono text-slate-400 text-center sticky left-0 z-10 bg-white shadow-[1px_0_2px_rgba(0,0,0,0.05)]">{idx + 1}</td>
-                          <td className="py-3.5 px-4 font-semibold text-slate-900 min-w-[180px] sticky left-12 z-10 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                          <td className="py-3.5 px-2 font-mono text-slate-400 text-center sticky left-0 z-10 bg-white shadow-[1px_0_2px_rgba(0,0,0,0.05)]">{idx + 1}</td>
+                          <td className="py-3.5 px-3 font-semibold text-slate-900 min-w-[130px] sm:min-w-[145px] sticky left-9 z-10 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                             {ind.namaIndikator}
                           </td>
                           <td className="py-3.5 px-3 text-left font-mono text-slate-800 whitespace-nowrap">
@@ -331,8 +331,8 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                 <table className="w-full text-left text-xs text-slate-600">
                   <thead className="bg-blue-50/70 text-blue-900 uppercase font-semibold text-[11px] border-b border-blue-100">
                     <tr>
-                      <th className="py-3 px-4 w-12 text-center sticky left-0 z-20 bg-blue-50 shadow-[1px_0_2px_rgba(0,0,0,0.05)]">No</th>
-                      <th className="py-3 px-4 min-w-[180px] sticky left-12 z-20 bg-blue-50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Indikator KPI IT</th>
+                      <th className="py-3 px-2 w-9 text-center sticky left-0 z-20 bg-blue-50 shadow-[1px_0_2px_rgba(0,0,0,0.05)]">No</th>
+                      <th className="py-3 px-3 min-w-[130px] sm:min-w-[145px] sticky left-9 z-20 bg-blue-50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Indikator KPI IT</th>
                       <th className="py-3 px-3 text-left whitespace-nowrap">Target</th>
                       <th className="py-3 px-3 text-center w-24 whitespace-nowrap">Realisasi</th>
                       <th className="py-3 px-4 text-center w-28 whitespace-nowrap">Pencapaian (%)</th>
@@ -344,8 +344,8 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                       const calc = calculateIndicatorAchievement(ind);
                       return (
                         <tr key={ind.id} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="py-3.5 px-4 font-mono text-slate-400 text-center sticky left-0 z-10 bg-white shadow-[1px_0_2px_rgba(0,0,0,0.05)]">{idx + 1}</td>
-                          <td className="py-3.5 px-4 font-semibold text-slate-900 min-w-[180px] sticky left-12 z-10 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                          <td className="py-3.5 px-2 font-mono text-slate-400 text-center sticky left-0 z-10 bg-white shadow-[1px_0_2px_rgba(0,0,0,0.05)]">{idx + 1}</td>
+                          <td className="py-3.5 px-3 font-semibold text-slate-900 min-w-[130px] sm:min-w-[145px] sticky left-9 z-10 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                             {ind.namaIndikator}
                           </td>
                           <td className="py-3.5 px-3 text-left font-mono text-slate-800 whitespace-nowrap">
@@ -449,8 +449,8 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                 <table className="w-full text-left text-xs text-slate-600">
                   <thead className="bg-purple-50/70 text-purple-900 uppercase font-semibold text-[11px] border-b border-purple-100">
                     <tr>
-                      <th className="py-3 px-4 w-12 text-center sticky left-0 z-20 bg-purple-50 shadow-[1px_0_2px_rgba(0,0,0,0.05)]">No</th>
-                      <th className="py-3 px-4 min-w-[180px] sticky left-12 z-20 bg-purple-50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Indikator KPI Umum</th>
+                      <th className="py-3 px-2 w-9 text-center sticky left-0 z-20 bg-purple-50 shadow-[1px_0_2px_rgba(0,0,0,0.05)]">No</th>
+                      <th className="py-3 px-3 min-w-[130px] sm:min-w-[145px] sticky left-9 z-20 bg-purple-50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Indikator KPI Umum</th>
                       <th className="py-3 px-3 text-left whitespace-nowrap">Target</th>
                       <th className="py-3 px-3 text-center w-24 whitespace-nowrap">Realisasi</th>
                       <th className="py-3 px-4 text-center w-28 whitespace-nowrap">Pencapaian (%)</th>
@@ -462,8 +462,8 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                       const calc = calculateIndicatorAchievement(ind);
                       return (
                         <tr key={ind.id} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="py-3.5 px-4 font-mono text-slate-400 text-center sticky left-0 z-10 bg-white shadow-[1px_0_2px_rgba(0,0,0,0.05)]">{idx + 1}</td>
-                          <td className="py-3.5 px-4 font-semibold text-slate-900 min-w-[180px] sticky left-12 z-10 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                          <td className="py-3.5 px-2 font-mono text-slate-400 text-center sticky left-0 z-10 bg-white shadow-[1px_0_2px_rgba(0,0,0,0.05)]">{idx + 1}</td>
+                          <td className="py-3.5 px-3 font-semibold text-slate-900 min-w-[130px] sm:min-w-[145px] sticky left-9 z-10 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                             {ind.namaIndikator}
                           </td>
                           <td className="py-3.5 px-3 text-left font-mono text-slate-800 whitespace-nowrap">

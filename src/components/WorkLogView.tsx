@@ -491,7 +491,7 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
                 <thead className="bg-slate-50 text-slate-700 uppercase font-semibold text-[11px] border-b border-slate-200">
                   <tr>
                     {/* Nomor Urut */}
-                    <th className="py-3 px-3 w-12 text-center font-bold">No</th>
+                    <th className="py-3 px-2 w-9 text-center font-bold">No</th>
 
                     {/* Kolom Tanggal Acara (Bisa di-Sort) - Request 4 */}
                     {visibleColumns.tanggalAcara && (
@@ -565,7 +565,7 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
                     return (
                       <tr key={entry.id} className={`hover:bg-slate-50/80 transition-colors ${isDeadline ? 'bg-rose-50/30' : ''}`}>
                         {/* Nomor Urut */}
-                        <td className="py-3.5 px-3 text-center font-mono text-slate-400 font-bold text-xs">
+                        <td className="py-3.5 px-2 text-center font-mono text-slate-400 font-bold text-xs">
                           {idx + 1}
                         </td>
 
