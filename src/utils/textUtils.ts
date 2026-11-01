@@ -1,8 +1,7 @@
 /**
- * Capitalizes the start of the string and any letter following a period,
- * exclamation mark, or question mark (plus whitespace).
+ * Converts text to Title Case (capitalizes the first letter of each word).
  */
 export function autoCapitalizeText(val: string): string {
   if (!val) return val;
-  return val.replace(/(^\s*|[.!?]\s+)([a-z])/g, (_, prefix, char) => prefix + char.toUpperCase());
+  return val.replace(/\b([a-zA-Zà-öø-ÿ])/g, (match) => match.toUpperCase());
 }

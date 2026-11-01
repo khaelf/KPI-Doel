@@ -130,10 +130,11 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
   const isPublikasi = normInd === 'publikasi berita';
   const isMedsos = normInd === 'pembuatan konten medsos';
   const isPeningkatanMutu = normInd === 'peningkatan mutu';
+  const isInsidentil = normInd.includes('insidentil');
   const isItDept = bidang === 'IT';
 
-  const showTanggalAcara = !isDokumentasi && !isPublikasi && !isMedsos && !isPeningkatanMutu && !isItDept;
-  const showJumlahRevisi = !isDokumentasi && !isPeningkatanMutu && !isItDept;
+  const showTanggalAcara = !isDokumentasi && !isPublikasi && !isMedsos && !isPeningkatanMutu && !isInsidentil && !isItDept;
+  const showJumlahRevisi = !isDokumentasi && !isPeningkatanMutu && !isInsidentil && !isItDept;
   const showLokasi = !isPublikasi && !isMedsos;
   const showStatusAndPersentase = true;
   const statusOptions: TaskStatus[] = (isDokumentasi || isPeningkatanMutu)
