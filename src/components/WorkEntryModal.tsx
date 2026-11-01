@@ -56,11 +56,11 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
       setLinkMasterFile(editingEntry.linkMasterFile || '');
       setLokasi(autoCapitalizeText(editingEntry.lokasi || ''));
       setJumlahRevisi(editingEntry.jumlahRevisi ?? 0);
-      setBidang(editingEntry.bidang);
-      setNamaPekerjaan(autoCapitalizeText(editingEntry.namaPekerjaan));
+      setBidang(editingEntry.bidang || 'Humas');
+      setNamaPekerjaan(autoCapitalizeText(editingEntry.namaPekerjaan || ''));
       setIndikatorKpi(editingEntry.indikatorKpi || '');
-      setStatus(editingEntry.status);
-      setPersentase(editingEntry.persentase);
+      setStatus(editingEntry.status || 'Belum dikerjakan');
+      setPersentase(editingEntry.persentase ?? 0);
       setCatatan(editingEntry.catatan || '');
     } else {
       setTanggalMasuk(today);
@@ -489,7 +489,7 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
                 </h4>
 
                 {/* Row 1: Tanggal Masuk, Tanggal Acara, Jumlah Revisi */}
-                <div className={`grid grid-cols-1 sm:grid-cols-${1 + (showTanggalAcara ? 1 : 0) + (showJumlahRevisi ? 1 : 0)} gap-3`}>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {/* Tanggal Masuk */}
                   <div>
                     <label className="block font-semibold text-slate-900 mb-1">

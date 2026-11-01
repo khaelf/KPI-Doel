@@ -36,6 +36,19 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenAddModal,
   onResetData,
 }) => {
+  const [currentTime, setCurrentTime] = React.useState(new Date());
+  React.useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const timeString = currentTime.toLocaleDateString('id-ID', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }) + ' • ' + currentTime.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
   return (
     <header className="no-print sticky top-0 z-30 bg-[#1b4332] text-white shadow-md">
       {/* Top Banner & Brand Container */}
@@ -51,9 +64,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                   className="w-full h-full object-contain"
                 />
               </div>
-              <h1 className="text-xs sm:text-base font-bold tracking-tight text-white leading-tight truncate">
-                KPI Staff Humas dan IT
-              </h1>
+              <div>
+                <h1 className="text-xs sm:text-base font-bold tracking-tight text-white leading-tight truncate">
+                  KPI Staff Humas dan IT
+                </h1>
+                <p className="text-[10px] text-emerald-300 font-mono hidden sm:block">
+                  {timeString}
+                </p>
+              </div>
             </div>
 
             {/* Mobile Quick Controls */}
