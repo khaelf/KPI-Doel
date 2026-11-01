@@ -86,8 +86,6 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
     }
   }, [editingEntry, isOpen, defaultDepartment, kpiIndicators]);
 
-  if (!isOpen) return null;
-
   // Distinct KPI indicators for the selected department (Rule: indikator KPI disamakan setiap bulan)
   const departmentIndicators = Array.from(
     new Map(
@@ -190,6 +188,8 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
       setPersentase(50);
     }
   };
+
+  if (!isOpen) return null;
 
   return (
     <div
