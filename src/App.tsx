@@ -84,12 +84,8 @@ export default function App() {
   const closeWorkModal = () => {
     setIsWorkModalOpen(false);
     setEditingWorkEntry(null);
-    if (!isClosingModalRef.current && window.history.state?.modal === 'work') {
-      isClosingModalRef.current = true;
-      window.history.back();
-      setTimeout(() => {
-        isClosingModalRef.current = false;
-      }, 300);
+    if (window.history.state?.modal === 'work') {
+      window.history.replaceState({ activeTab, modal: null }, '');
     }
   };
 
@@ -103,12 +99,8 @@ export default function App() {
   const closeKpiModal = () => {
     setIsKpiModalOpen(false);
     setEditingKpiIndicator(null);
-    if (!isClosingModalRef.current && window.history.state?.modal === 'kpi') {
-      isClosingModalRef.current = true;
-      window.history.back();
-      setTimeout(() => {
-        isClosingModalRef.current = false;
-      }, 300);
+    if (window.history.state?.modal === 'kpi') {
+      window.history.replaceState({ activeTab, modal: null }, '');
     }
   };
 
@@ -121,12 +113,8 @@ export default function App() {
   const closeAgendaModal = () => {
     setIsAgendaModalOpen(false);
     setEditingAgenda(null);
-    if (!isClosingModalRef.current && window.history.state?.modal === 'agenda') {
-      isClosingModalRef.current = true;
-      window.history.back();
-      setTimeout(() => {
-        isClosingModalRef.current = false;
-      }, 300);
+    if (window.history.state?.modal === 'agenda') {
+      window.history.replaceState({ activeTab, modal: null }, '');
     }
   };
 

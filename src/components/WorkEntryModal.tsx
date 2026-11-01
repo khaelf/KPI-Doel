@@ -126,6 +126,25 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
   };
 
   const isDesainGrafis = indikatorKpi.trim().toLowerCase() === 'desain grafis';
+  const normInd = indikatorKpi.trim().toLowerCase();
+  const isDokumentasi = normInd === 'dokumentasi kegiatan';
+  const isPublikasi = normInd === 'publikasi berita';
+  const isMedsos = normInd === 'pembuatan konten medsos';
+
+  const showTanggalAcara = !isDokumentasi && !isPublikasi && !isMedsos;
+  const showJumlahRevisi = !isDokumentasi;
+  const showLokasi = !isPublikasi && !isMedsos;
+  const statusOptions: TaskStatus[] = isDokumentasi
+    ? ['Belum dikerjakan', 'Selesai']
+    : ['Belum dikerjakan', 'Proses', 'Selesai'];
+
+  useEffect(() => {
+    const norm = indikatorKpi.trim().toLowerCase();
+    if (norm === 'dokumentasi kegiatan' && status === 'Proses') {
+      setStatus('Belum dikerjakan');
+      setPersentase(0);
+    }
+  }, [indikatorKpi]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -134,7 +153,7 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
     onSave(
       {
         tanggalMasuk,
-        tanggalAcara: tanggalAcara.trim() ? tanggalAcara.trim() : '',
+        tanggalAcara: showTanggalAcara && tanggalAcara.trim() ? tanggalAcara.trim() : '',
         tanggalMulai: tanggalMulai || tanggalMasuk,
         tanggalSelesai: tanggalSelesai.trim() ? tanggalSelesai.trim() : '',
         jamMulai: jamMulai.trim(),
@@ -144,8 +163,8 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
         spesifikasiFormat: spesifikasiFormat.trim(),
         linkMasterFile: linkMasterFile.trim(),
         durasiPengerjaan: calculateDurationText(),
-        lokasi: autoCapitalizeText(lokasi.trim()),
-        jumlahRevisi: Number(jumlahRevisi) || 0,
+        lokasi: showLokasi ? autoCapitalizeText(lokasi.trim()) : '',
+        jumlahRevisi: showJumlahRevisi ? (Number(jumlahRevisi) || 0) : 0,
         tanggal: tanggalMasuk, // fallback for month filters
         bidang,
         namaPekerjaan: autoCapitalizeText(namaPekerjaan.trim()),
@@ -470,7 +489,7 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
                 </h4>
 
                 {/* Row 1: Tanggal Masuk, Tanggal Acara, Jumlah Revisi */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className={`grid grid-cols-1 sm:grid-cols-${1 + (showTanggalAcara ? 1 : 0) + (showJumlahRevisi ? 1 : 0)} gap-3`}>
                   {/* Tanggal Masuk */}
                   <div>
                     <label className="block font-semibold text-slate-900 mb-1">
@@ -486,35 +505,39 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
                   </div>
 
                   {/* Tanggal Acara */}
-                  <div>
-                    <label className="block font-semibold text-slate-900 mb-1 flex items-center justify-between">
-                      <span>Tanggal Acara</span>
-                      <span className="text-[10px] text-rose-700 font-bold bg-rose-50 border border-rose-200 px-1.5 py-0.2 rounded">
-                        Deadline
-                      </span>
-                    </label>
-                    <input
-                      type="date"
-                      value={tanggalAcara}
-                      onChange={(e) => setTanggalAcara(e.target.value)}
-                      className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
-                    />
-                  </div>
+                  {showTanggalAcara && (
+                    <div>
+                      <label className="block font-semibold text-slate-900 mb-1 flex items-center justify-between">
+                        <span>Tanggal Acara</span>
+                        <span className="text-[10px] text-rose-700 font-bold bg-rose-50 border border-rose-200 px-1.5 py-0.2 rounded">
+                          Deadline
+                        </span>
+                      </label>
+                      <input
+                        type="date"
+                        value={tanggalAcara}
+                        onChange={(e) => setTanggalAcara(e.target.value)}
+                        className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
+                      />
+                    </div>
+                  )}
 
                   {/* Jumlah Revisi */}
-                  <div>
-                    <label className="block font-semibold text-slate-900 mb-1">
-                      Jumlah Revisi
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      required
-                      value={jumlahRevisi}
-                      onChange={(e) => setJumlahRevisi(Math.max(0, parseInt(e.target.value) || 0))}
-                      className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-slate-900 font-bold font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
-                    />
-                  </div>
+                  {showJumlahRevisi && (
+                    <div>
+                      <label className="block font-semibold text-slate-900 mb-1">
+                        Jumlah Revisi
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        required
+                        value={jumlahRevisi}
+                        onChange={(e) => setJumlahRevisi(Math.max(0, parseInt(e.target.value) || 0))}
+                        className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-slate-900 font-bold font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {/* Row 2: Jadwal */}
@@ -575,19 +598,21 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
               </div>
 
               {/* Lokasi Pekerjaan */}
-              <div>
-                <label className="block font-semibold text-slate-900 mb-1 flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-slate-600" />
-                  <span>Lokasi Pekerjaan</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="Contoh: Kantor Humas / Ruang IT / Lab Komputer"
-                  value={lokasi}
-                  onChange={(e) => setLokasi(autoCapitalizeText(e.target.value))}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                />
-              </div>
+              {showLokasi && (
+                <div>
+                  <label className="block font-semibold text-slate-900 mb-1 flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5 text-slate-600" />
+                    <span>Lokasi Pekerjaan</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: Kantor Humas / Ruang IT / Lab Komputer"
+                    value={lokasi}
+                    onChange={(e) => setLokasi(autoCapitalizeText(e.target.value))}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  />
+                </div>
+              )}
 
               {/* Status & Persentase */}
               <div className="grid grid-cols-2 gap-4">
@@ -598,9 +623,11 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
                     onChange={(e) => handleStatusChange(e.target.value as TaskStatus)}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   >
-                    <option value="Belum dikerjakan">Belum dikerjakan</option>
-                    <option value="Proses">Proses</option>
-                    <option value="Selesai">Selesai</option>
+                    {statusOptions.map((st) => (
+                      <option key={st} value={st}>
+                        {st}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
