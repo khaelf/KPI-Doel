@@ -129,28 +129,56 @@ export const storageService = {
       const deletedKeys = this.getDeletedKpiKeys();
       let modified = false;
 
-      const sanitized = list.filter((ind) => {
-        const key = `${ind.bidang.toLowerCase()}:${ind.namaIndikator.trim().toLowerCase()}`;
-        if (deletedKeys.includes(key)) {
+      const sanitized: KpiIndicator[] = [];
+      const seenMap = new Map<string, KpiIndicator>();
+
+      list.forEach((ind) => {
+        if (!ind || !ind.bidang || !ind.namaIndikator || !ind.periodeBulan) return;
+
+        const nameClean = ind.namaIndikator.trim();
+        const keyDeleted = `${ind.bidang.toLowerCase()}:${nameClean.toLowerCase()}`;
+        if (deletedKeys.includes(keyDeleted)) {
           modified = true;
-          return false;
+          firebaseDataService.deleteKpiIndicator(ind.id);
+          return;
         }
 
-        // Standardize legacy wording if necessary
-        if (ind.bidang === 'Humas' && ind.namaIndikator.trim().toLowerCase() === 'pembuatan konten media sosial') {
-          ind.namaIndikator = 'Pembuatan Konten Medsos';
+        let currentName = nameClean;
+        let currentSatuan = ind.satuan;
+        if (ind.bidang === 'Humas' && currentName.toLowerCase() === 'pembuatan konten media sosial') {
+          currentName = 'Pembuatan Konten Medsos';
           modified = true;
         }
         if (
           ind.bidang === 'Umum' &&
-          (ind.namaIndikator.trim().toLowerCase() === 'pelayanan & administrasi umum' ||
-            ind.namaIndikator.trim().toLowerCase() === 'pelayanan dan administrasi umum')
+          (currentName.toLowerCase() === 'pelayanan & administrasi umum' ||
+            currentName.toLowerCase() === 'pelayanan dan administrasi umum')
         ) {
-          ind.namaIndikator = 'Insidentil';
+          currentName = 'Insidentil';
           modified = true;
         }
 
-        return true;
+        const uniqueKey = `${ind.bidang.toLowerCase()}:${currentName.toLowerCase()}:${ind.periodeBulan}`;
+
+        if (seenMap.has(uniqueKey)) {
+          modified = true;
+          const existing = seenMap.get(uniqueKey)!;
+          if (ind.target > existing.target) {
+            existing.target = ind.target;
+          }
+          if (ind.realisasi > existing.realisasi) {
+            existing.realisasi = ind.realisasi;
+          }
+          firebaseDataService.deleteKpiIndicator(ind.id);
+        } else {
+          const cleanedInd: KpiIndicator = {
+            ...ind,
+            namaIndikator: currentName,
+            satuan: currentSatuan,
+          };
+          seenMap.set(uniqueKey, cleanedInd);
+          sanitized.push(cleanedInd);
+        }
       });
 
       if (modified) {
@@ -173,33 +201,33 @@ export const storageService = {
   },
 
   addKpiIndicator(indicator: Omit<KpiIndicator, 'id'>): KpiIndicator {
-    const key = `${indicator.bidang.toLowerCase()}:${indicator.namaIndikator.trim().toLowerCase()}`;
+    const nameClean = indicator.namaIndikator.trim();
+    const key = `${indicator.bidang.toLowerCase()}:${nameClean.toLowerCase()}`;
     this.removeDeletedKpiKey(key);
 
     const indicators = this.getKpiIndicators();
-    // Unique months present in indicators
-    const months = Array.from(new Set(indicators.map((i) => i.periodeBulan)));
-    if (!months.includes(indicator.periodeBulan)) {
-      months.push(indicator.periodeBulan);
+    const existingInMonth = indicators.find(
+      (i) => i.bidang === indicator.bidang && i.namaIndikator.trim().toLowerCase() === nameClean.toLowerCase() && i.periodeBulan === indicator.periodeBulan
+    );
+
+    if (existingInMonth) {
+      existingInMonth.target = indicator.target;
+      existingInMonth.satuan = indicator.satuan;
+      this.saveKpiIndicators(indicators);
+      firebaseDataService.updateKpiIndicator(existingInMonth.id, existingInMonth);
+      return existingInMonth;
     }
 
-    let returnedInd: KpiIndicator | null = null;
-    months.forEach((m) => {
-      const newInd: KpiIndicator = {
-        ...indicator,
-        periodeBulan: m,
-        realisasi: m === indicator.periodeBulan ? indicator.realisasi : 0,
-        id: 'ind-' + Date.now() + '-' + Math.floor(Math.random() * 10000),
-      };
-      indicators.push(newInd);
-      firebaseDataService.saveKpiIndicator(newInd);
-      if (m === indicator.periodeBulan) {
-        returnedInd = newInd;
-      }
-    });
+    const newInd: KpiIndicator = {
+      ...indicator,
+      namaIndikator: nameClean,
+      id: `ind-${indicator.bidang.toLowerCase()}-${indicator.periodeBulan}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    };
 
+    indicators.push(newInd);
     this.saveKpiIndicators(indicators);
-    return returnedInd || indicators[indicators.length - 1];
+    firebaseDataService.saveKpiIndicator(newInd);
+    return newInd;
   },
 
   updateKpiIndicator(id: string, updated: Partial<KpiIndicator>): KpiIndicator | null {
@@ -211,11 +239,11 @@ export const storageService = {
     const oldName = targetInd.namaIndikator.trim().toLowerCase();
     const bidang = targetInd.bidang;
 
-    // Synchronize indicator name and unit (satuan) across months to maintain uniform catalog
     if (updated.namaIndikator !== undefined || updated.satuan !== undefined) {
+      const newNameClean = updated.namaIndikator !== undefined ? updated.namaIndikator.trim() : undefined;
       indicators.forEach((ind) => {
         if (ind.bidang === bidang && ind.namaIndikator.trim().toLowerCase() === oldName) {
-          if (updated.namaIndikator !== undefined) ind.namaIndikator = updated.namaIndikator;
+          if (newNameClean !== undefined) ind.namaIndikator = newNameClean;
           if (updated.satuan !== undefined) ind.satuan = updated.satuan;
           firebaseDataService.updateKpiIndicator(ind.id, {
             namaIndikator: ind.namaIndikator,
@@ -225,8 +253,10 @@ export const storageService = {
       });
     }
 
-    // Apply updates specifically to this monthly indicator
     indicators[index] = { ...indicators[index], ...updated };
+    if (updated.namaIndikator !== undefined) {
+      indicators[index].namaIndikator = updated.namaIndikator.trim();
+    }
     this.saveKpiIndicators(indicators);
 
     firebaseDataService.updateKpiIndicator(id, indicators[index]);
@@ -242,7 +272,6 @@ export const storageService = {
     const bidangToDelete = targetInd.bidang;
     const keyToDelete = `${bidangToDelete.toLowerCase()}:${nameToDelete}`;
 
-    // Add to deleted keys memory so it won't be auto-recreated by ensureKpiIndicatorsForMonth
     this.addDeletedKpiKey(keyToDelete);
 
     const toDelete = indicators.filter(
@@ -257,40 +286,36 @@ export const storageService = {
     return true;
   },
 
-  /**
-   * Ensures that KPI indicators are present and standardized for any given month (Request 1: indikator KPI disamakan setiap bulan)
-   */
   ensureKpiIndicatorsForMonth(month: string, allWorkEntries?: WorkEntry[]): KpiIndicator[] {
     if (!month) return this.getKpiIndicators();
     const indicators = this.getKpiIndicators();
     const entries = allWorkEntries || this.getWorkEntries();
     const deletedKeys = this.getDeletedKpiKeys();
 
-    // Collect all master indicators (from initial data + existing indicators across all months, excluding deleted)
-    const masterMap = new Map<string, { bidang: Department; namaIndikator: string; satuan: string; target: number }>();
+    const masterMap = new Map<string, { bidang: Department; namaIndikator: string; satuan: string; defaultTarget: number }>();
 
-    // Seed from INITIAL_KPI_INDICATORS templates if not explicitly deleted by user
     INITIAL_KPI_INDICATORS.forEach((ind) => {
-      const key = `${ind.bidang.toLowerCase()}:${ind.namaIndikator.trim().toLowerCase()}`;
+      const nameClean = ind.namaIndikator.trim();
+      const key = `${ind.bidang.toLowerCase()}:${nameClean.toLowerCase()}`;
       if (!deletedKeys.includes(key)) {
         masterMap.set(key, {
           bidang: ind.bidang,
-          namaIndikator: ind.namaIndikator,
+          namaIndikator: nameClean,
           satuan: ind.satuan,
-          target: ind.target,
+          defaultTarget: ind.target,
         });
       }
     });
 
-    // Also pick up any active user-added indicators
     indicators.forEach((ind) => {
-      const key = `${ind.bidang.toLowerCase()}:${ind.namaIndikator.trim().toLowerCase()}`;
-      if (!deletedKeys.includes(key)) {
+      const nameClean = ind.namaIndikator.trim();
+      const key = `${ind.bidang.toLowerCase()}:${nameClean.toLowerCase()}`;
+      if (!deletedKeys.includes(key) && !masterMap.has(key)) {
         masterMap.set(key, {
           bidang: ind.bidang,
-          namaIndikator: ind.namaIndikator,
+          namaIndikator: nameClean,
           satuan: ind.satuan,
-          target: ind.target,
+          defaultTarget: ind.target || 10,
         });
       }
     });
@@ -303,7 +328,6 @@ export const storageService = {
         (i) => i.bidang === master.bidang && i.namaIndikator.trim().toLowerCase() === master.namaIndikator.trim().toLowerCase()
       );
 
-      // Calculate completed entries for this indicator in this month
       const completedCount = entries.filter((e) => {
         const isDeptMatch = e.bidang === master.bidang;
         const indName = master.namaIndikator.trim().toLowerCase();
@@ -315,13 +339,17 @@ export const storageService = {
       }).length;
 
       if (!existing) {
-        // Create indicator for this month
+        const anyOtherMonthInd = indicators.find(
+          (i) => i.bidang === master.bidang && i.namaIndikator.trim().toLowerCase() === master.namaIndikator.trim().toLowerCase()
+        );
+        const targetToUse = anyOtherMonthInd ? anyOtherMonthInd.target : master.defaultTarget;
+
         const newInd: KpiIndicator = {
           id: `ind-${master.bidang.toLowerCase()}-${month}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
           bidang: master.bidang,
           namaIndikator: master.namaIndikator,
           satuan: master.satuan,
-          target: master.target,
+          target: targetToUse,
           realisasi: completedCount,
           periodeBulan: month,
         };
@@ -329,13 +357,11 @@ export const storageService = {
         changed = true;
         firebaseDataService.saveKpiIndicator(newInd);
       } else {
-        // DO NOT overwrite existing.target - targets can be customized per month according to monthly needs!
         let indChanged = false;
         if (existing.satuan !== master.satuan) {
           existing.satuan = master.satuan;
           indChanged = true;
         }
-        // Update realisasi to match completed entries count
         if (existing.realisasi !== completedCount) {
           existing.realisasi = completedCount;
           indChanged = true;
@@ -353,7 +379,7 @@ export const storageService = {
     if (changed) {
       this.saveKpiIndicators(indicators);
     }
-    return indicators;
+    return this.getKpiIndicators();
   },
 
   recalculateKpiRealisasi(allWorkEntries?: WorkEntry[]): KpiIndicator[] {
