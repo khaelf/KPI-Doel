@@ -43,6 +43,7 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
 
   useEffect(() => {
     const today = new Date().toISOString().substring(0, 10);
+    if (!isOpen) return;
     if (editingEntry) {
       setTanggalMasuk(editingEntry.tanggalMasuk || editingEntry.tanggal || today);
       setTanggalAcara(editingEntry.tanggalAcara || '');
@@ -84,7 +85,7 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
       setPersentase(50);
       setCatatan('');
     }
-  }, [editingEntry, isOpen, defaultDepartment, kpiIndicators]);
+  }, [editingEntry, isOpen, defaultDepartment]);
 
   // Distinct KPI indicators for the selected department (Rule: indikator KPI disamakan setiap bulan)
   const departmentIndicators = Array.from(
@@ -128,21 +129,26 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
   const isDokumentasi = normInd === 'dokumentasi kegiatan';
   const isPublikasi = normInd === 'publikasi berita';
   const isMedsos = normInd === 'pembuatan konten medsos';
+  const isPeningkatanMutu = normInd === 'peningkatan mutu';
+  const isItDept = bidang === 'IT';
 
-  const showTanggalAcara = !isDokumentasi && !isPublikasi && !isMedsos;
-  const showJumlahRevisi = !isDokumentasi;
+  const showTanggalAcara = !isDokumentasi && !isPublikasi && !isMedsos && !isPeningkatanMutu && !isItDept;
+  const showJumlahRevisi = !isDokumentasi && !isPeningkatanMutu && !isItDept;
   const showLokasi = !isPublikasi && !isMedsos;
+  const showStatusAndPersentase = !isPeningkatanMutu;
   const statusOptions: TaskStatus[] = isDokumentasi
     ? ['Belum dikerjakan', 'Selesai']
     : ['Belum dikerjakan', 'Proses', 'Selesai'];
 
-  useEffect(() => {
-    const norm = indikatorKpi.trim().toLowerCase();
+  // Handle documentation status adjustment when indicator changes
+  const handleIndicatorChange = (newInd: string) => {
+    setIndikatorKpi(newInd);
+    const norm = newInd.trim().toLowerCase();
     if (norm === 'dokumentasi kegiatan' && status === 'Proses') {
       setStatus('Belum dikerjakan');
       setPersentase(0);
     }
-  }, [indikatorKpi]);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -167,8 +173,8 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
         bidang,
         namaPekerjaan: autoCapitalizeText(namaPekerjaan.trim()),
         indikatorKpi: indikatorKpi.trim(),
-        status,
-        persentase: Number(persentase),
+        status: isPeningkatanMutu ? 'Selesai' : status,
+        persentase: isPeningkatanMutu ? 100 : Number(persentase),
         catatan: catatan.trim(),
       },
       editingEntry?.id
@@ -260,7 +266,7 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
             </label>
             <select
               value={indikatorKpi}
-              onChange={(e) => setIndikatorKpi(e.target.value)}
+              onChange={(e) => handleIndicatorChange(e.target.value)}
               required
               className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
             >
@@ -615,49 +621,53 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
               )}
 
               {/* Status & Persentase */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-semibold text-slate-900 mb-1">Status Pekerjaan</label>
-                  <select
-                    value={status}
-                    onChange={(e) => handleStatusChange(e.target.value as TaskStatus)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  >
-                    {statusOptions.map((st) => (
-                      <option key={st} value={st}>
-                        {st}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              {showStatusAndPersentase && (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-semibold text-slate-900 mb-1">Status Pekerjaan</label>
+                      <select
+                        value={status}
+                        onChange={(e) => handleStatusChange(e.target.value as TaskStatus)}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                      >
+                        {statusOptions.map((st) => (
+                          <option key={st} value={st}>
+                            {st}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
 
-                <div>
-                  <label className="block font-semibold text-slate-900 mb-1">
-                    Nilai Pencapaian (%): <span className="font-mono text-emerald-700 font-bold">{persentase}%</span>
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={persentase}
-                    onChange={(e) => setPersentase(Math.min(100, Math.max(0, parseInt(e.target.value) || 0)))}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-bold font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  />
-                </div>
-              </div>
+                    <div>
+                      <label className="block font-semibold text-slate-900 mb-1">
+                        Nilai Pencapaian (%): <span className="font-mono text-emerald-700 font-bold">{persentase}%</span>
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={persentase}
+                        onChange={(e) => setPersentase(Math.min(100, Math.max(0, parseInt(e.target.value) || 0)))}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-bold font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                      />
+                    </div>
+                  </div>
 
-              {/* Slider */}
-              <div>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  step="5"
-                  value={persentase}
-                  onChange={(e) => setPersentase(parseInt(e.target.value))}
-                  className="w-full accent-emerald-600 cursor-pointer"
-                />
-              </div>
+                  {/* Slider */}
+                  <div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      step="5"
+                      value={persentase}
+                      onChange={(e) => setPersentase(parseInt(e.target.value))}
+                      className="w-full accent-emerald-600 cursor-pointer"
+                    />
+                  </div>
+                </>
+              )}
 
               {/* Catatan */}
               <div>
