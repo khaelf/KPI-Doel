@@ -156,8 +156,6 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
       },
       editingEntry?.id
     );
-
-    onClose();
   };
 
   const handleStatusChange = (newStatus: TaskStatus) => {

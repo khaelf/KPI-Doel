@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { KpiIndicator, Department } from '../types/kpi';
 import { autoCapitalizeText } from '../utils/textUtils';
-import { formatMonthLabel } from '../utils/kpiCalculations';
+import { formatMonthLabel, getCurrentMonthString } from '../utils/kpiCalculations';
 import { X, Save, Target } from 'lucide-react';
 
 interface KpiIndicatorModalProps {
@@ -19,14 +19,15 @@ export const KpiIndicatorModal: React.FC<KpiIndicatorModalProps> = ({
   onSave,
   editingIndicator,
   defaultDepartment = 'Humas',
-  defaultMonth = '2026-10',
+  defaultMonth,
 }) => {
+  const currentMonth = defaultMonth || getCurrentMonthString();
   const [bidang, setBidang] = useState<Department>('Humas');
   const [namaIndikator, setNamaIndikator] = useState('');
   const [satuan, setSatuan] = useState('Kegiatan');
   const [target, setTarget] = useState<number>(10);
   const [realisasi, setRealisasi] = useState<number>(10);
-  const [periodeBulan, setPeriodeBulan] = useState('2026-10');
+  const [periodeBulan, setPeriodeBulan] = useState(currentMonth);
 
   useEffect(() => {
     if (editingIndicator) {
@@ -42,7 +43,7 @@ export const KpiIndicatorModal: React.FC<KpiIndicatorModalProps> = ({
       setSatuan('Kegiatan');
       setTarget(10);
       setRealisasi(0);
-      setPeriodeBulan(defaultMonth);
+      setPeriodeBulan(defaultMonth || getCurrentMonthString());
     }
   }, [editingIndicator, isOpen, defaultDepartment, defaultMonth]);
 
@@ -63,8 +64,6 @@ export const KpiIndicatorModal: React.FC<KpiIndicatorModalProps> = ({
       },
       editingIndicator?.id
     );
-
-    onClose();
   };
 
   return (

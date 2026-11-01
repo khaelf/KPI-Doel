@@ -89,8 +89,6 @@ export const AgendaModal: React.FC<AgendaModalProps> = ({
       },
       editingAgenda?.id
     );
-
-    onClose();
   };
 
   return (

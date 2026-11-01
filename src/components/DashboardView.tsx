@@ -3,6 +3,7 @@ import { WorkEntry, KpiIndicator, AgendaItem, Department } from '../types/kpi';
 import {
   calculateDepartmentSummary,
   formatMonthLabel,
+  getCurrentMonthString,
   getKpiStatusBadge,
   isWorkEntryInMonth,
 } from '../utils/kpiCalculations';
@@ -97,9 +98,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   // Generate last 6 months list ending at selectedMonth
   const getLast6Months = (targetMonth: string) => {
     const months: string[] = [];
-    const [yStr, mStr] = (targetMonth || '2026-10').split('-');
-    const year = parseInt(yStr, 10) || 2026;
-    const month = parseInt(mStr, 10) || 10;
+    const [yStr, mStr] = (targetMonth || getCurrentMonthString()).split('-');
+    const year = parseInt(yStr, 10) || new Date().getFullYear();
+    const month = parseInt(mStr, 10) || (new Date().getMonth() + 1);
 
     for (let i = 5; i >= 0; i--) {
       let m = month - i;

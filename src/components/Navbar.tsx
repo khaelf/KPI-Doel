@@ -1,5 +1,6 @@
 import React from 'react';
 import { Department } from '../types/kpi';
+import { getCurrentMonthString } from '../utils/kpiCalculations';
 import {
   LayoutDashboard,
   ClipboardList,
@@ -108,14 +109,25 @@ export const Navbar: React.FC<NavbarProps> = ({
               })}
             </div>
 
-            {/* Month Picker */}
-            <div className="relative shrink-0">
+            {/* Month Picker & Realtime Month Sync */}
+            <div className="relative shrink-0 flex items-center gap-1">
               <input
                 type="month"
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
-                className="bg-emerald-900/90 border border-emerald-700/60 text-emerald-100 text-[11px] sm:text-xs rounded-lg px-2 sm:px-2.5 py-1 sm:py-1.5 font-semibold w-[125px] sm:w-[140px] focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                className="bg-emerald-900/90 border border-emerald-700/60 text-emerald-100 text-[11px] sm:text-xs rounded-lg px-2 sm:px-2.5 py-1 sm:py-1.5 font-semibold w-[125px] sm:w-[140px] focus:outline-none focus:ring-2 focus:ring-emerald-400 cursor-pointer"
+                title="Pilih Bulan & Tahun (Default mengikuti waktu sekarang)"
               />
+              {selectedMonth !== getCurrentMonthString() && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedMonth(getCurrentMonthString())}
+                  className="text-[10px] sm:text-[11px] bg-emerald-700 hover:bg-emerald-600 text-white px-2 py-1 rounded-md font-semibold transition-all border border-emerald-500/50 shadow-xs whitespace-nowrap"
+                  title="Kembali ke bulan waktu sekarang"
+                >
+                  Bulan Ini
+                </button>
+              )}
             </div>
 
             {/* Desktop Notification Bell Icon */}

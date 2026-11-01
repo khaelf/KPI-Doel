@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { WorkEntry, KpiIndicator, AgendaItem, AgendaStatus, Department, TaskStatus } from './types/kpi';
 import { storageService } from './services/storage';
 import { firebaseDataService } from './services/firebase';
-import { isWorkEntryInMonth } from './utils/kpiCalculations';
+import { isWorkEntryInMonth, getCurrentMonthString } from './utils/kpiCalculations';
 import { Navbar } from './components/Navbar';
 import { DashboardView } from './components/DashboardView';
 import { WorkLogView } from './components/WorkLogView';
@@ -16,9 +16,10 @@ import { OfflineIndicator } from './components/OfflineIndicator';
 import { BottomNav } from './components/BottomNav';
 
 export default function App() {
+  const isClosingModalRef = React.useRef(false);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'laporan'>('dashboard');
   const [selectedDepartment, setSelectedDepartment] = useState<'Semua' | Department>('Semua');
-  const [selectedMonth, setSelectedMonth] = useState<string>('2026-10');
+  const [selectedMonth, setSelectedMonth] = useState<string>(() => getCurrentMonthString());
   const [catatanStatusFilter, setCatatanStatusFilter] = useState<'Semua' | TaskStatus>('Semua');
   const [showDeadlineOnly, setShowDeadlineOnly] = useState<boolean>(false);
 
@@ -83,8 +84,12 @@ export default function App() {
   const closeWorkModal = () => {
     setIsWorkModalOpen(false);
     setEditingWorkEntry(null);
-    if (window.history.state?.modal === 'work') {
+    if (!isClosingModalRef.current && window.history.state?.modal === 'work') {
+      isClosingModalRef.current = true;
       window.history.back();
+      setTimeout(() => {
+        isClosingModalRef.current = false;
+      }, 300);
     }
   };
 
@@ -92,14 +97,18 @@ export default function App() {
     setEditingKpiIndicator(ind || null);
     setKpiModalDept(dept);
     setIsKpiModalOpen(true);
-    window.history.pushState({ activeTab, modal: 'kpi' }, '');
+    window.history.pushState({ activeTab: 'kpi', modal: 'kpi' }, '');
   };
 
   const closeKpiModal = () => {
     setIsKpiModalOpen(false);
     setEditingKpiIndicator(null);
-    if (window.history.state?.modal === 'kpi') {
+    if (!isClosingModalRef.current && window.history.state?.modal === 'kpi') {
+      isClosingModalRef.current = true;
       window.history.back();
+      setTimeout(() => {
+        isClosingModalRef.current = false;
+      }, 300);
     }
   };
 
@@ -112,8 +121,12 @@ export default function App() {
   const closeAgendaModal = () => {
     setIsAgendaModalOpen(false);
     setEditingAgenda(null);
-    if (window.history.state?.modal === 'agenda') {
+    if (!isClosingModalRef.current && window.history.state?.modal === 'agenda') {
+      isClosingModalRef.current = true;
       window.history.back();
+      setTimeout(() => {
+        isClosingModalRef.current = false;
+      }, 300);
     }
   };
 
@@ -267,6 +280,11 @@ export default function App() {
       storageService.addKpiIndicator(data);
     }
     setKpiIndicators([...storageService.getKpiIndicators()]);
+    // Ensure active screen remains on KPI
+    setActiveTab('kpi');
+    if (data.periodeBulan && data.periodeBulan !== selectedMonth) {
+      setSelectedMonth(data.periodeBulan);
+    }
     closeKpiModal();
   };
 
