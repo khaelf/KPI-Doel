@@ -135,8 +135,8 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
   const showTanggalAcara = !isDokumentasi && !isPublikasi && !isMedsos && !isPeningkatanMutu && !isItDept;
   const showJumlahRevisi = !isDokumentasi && !isPeningkatanMutu && !isItDept;
   const showLokasi = !isPublikasi && !isMedsos;
-  const showStatusAndPersentase = !isPeningkatanMutu;
-  const statusOptions: TaskStatus[] = isDokumentasi
+  const showStatusAndPersentase = true;
+  const statusOptions: TaskStatus[] = (isDokumentasi || isPeningkatanMutu)
     ? ['Belum dikerjakan', 'Selesai']
     : ['Belum dikerjakan', 'Proses', 'Selesai'];
 
@@ -144,7 +144,7 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
   const handleIndicatorChange = (newInd: string) => {
     setIndikatorKpi(newInd);
     const norm = newInd.trim().toLowerCase();
-    if (norm === 'dokumentasi kegiatan' && status === 'Proses') {
+    if ((norm === 'dokumentasi kegiatan' || norm === 'peningkatan mutu') && status === 'Proses') {
       setStatus('Belum dikerjakan');
       setPersentase(0);
     }
@@ -173,8 +173,8 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
         bidang,
         namaPekerjaan: autoCapitalizeText(namaPekerjaan.trim()),
         indikatorKpi: indikatorKpi.trim(),
-        status: isPeningkatanMutu ? 'Selesai' : status,
-        persentase: isPeningkatanMutu ? 100 : Number(persentase),
+        status: status,
+        persentase: Number(persentase),
         catatan: catatan.trim(),
       },
       editingEntry?.id
