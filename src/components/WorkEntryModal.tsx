@@ -439,35 +439,18 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
                 </div>
               </div>
 
-              {/* Status Pekerjaan (Ditambahkan per Permintaan User) & Revisi */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-slate-900 mb-1">
-                    Status Pekerjaan <span className="text-rose-500">*</span>
-                  </label>
-                  <select
-                    value={status}
-                    onChange={(e) => handleStatusChange(e.target.value as TaskStatus)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
-                  >
-                    <option value="Belum dikerjakan">Belum dikerjakan</option>
-                    <option value="Proses">Proses</option>
-                    <option value="Selesai">Selesai</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-slate-900 mb-1">
-                    Jumlah Revisi
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={jumlahRevisi}
-                    onChange={(e) => setJumlahRevisi(Math.max(0, parseInt(e.target.value) || 0))}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-bold font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
-                  />
-                </div>
+              {/* Jumlah Revisi */}
+              <div>
+                <label className="block font-semibold text-slate-900 mb-1">
+                  Jumlah Revisi
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={jumlahRevisi}
+                  onChange={(e) => setJumlahRevisi(Math.max(0, parseInt(e.target.value) || 0))}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-bold font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
+                />
               </div>
 
               {/* Catatan / Keterangan Tambahan */}
@@ -620,54 +603,7 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
                 </div>
               )}
 
-              {/* Status & Persentase */}
-              {showStatusAndPersentase && (
-                <>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block font-semibold text-slate-900 mb-1">Status Pekerjaan</label>
-                      <select
-                        value={status}
-                        onChange={(e) => handleStatusChange(e.target.value as TaskStatus)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                      >
-                        {statusOptions.map((st) => (
-                          <option key={st} value={st}>
-                            {st}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
 
-                    <div>
-                      <label className="block font-semibold text-slate-900 mb-1">
-                        Nilai Pencapaian (%): <span className="font-mono text-emerald-700 font-bold">{persentase}%</span>
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={persentase}
-                        onChange={(e) => setPersentase(Math.min(100, Math.max(0, parseInt(e.target.value) || 0)))}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-bold font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Slider */}
-                  <div>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      step="5"
-                      value={persentase}
-                      onChange={(e) => setPersentase(parseInt(e.target.value))}
-                      className="w-full accent-emerald-600 cursor-pointer"
-                    />
-                  </div>
-                </>
-              )}
 
               {/* Catatan */}
               <div>
