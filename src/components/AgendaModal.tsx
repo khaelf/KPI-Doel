@@ -98,7 +98,7 @@ export const AgendaModal: React.FC<AgendaModalProps> = ({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-2xl max-w-lg w-full shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-slate-200 cursor-default max-h-[92vh] flex flex-col"
+        className="bg-white rounded-2xl max-w-lg w-full shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-slate-200 cursor-default max-h-[95vh] flex flex-col"
       >
         {/* Header */}
         <div className="bg-[#1b4332] text-white p-4 sm:p-5 flex items-center justify-between shrink-0">
