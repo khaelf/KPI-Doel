@@ -205,7 +205,7 @@ export const WorkEntryModal: React.FC<WorkEntryModalProps> = ({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-2xl max-w-xl w-full max-h-[95vh] sm:max-h-[90vh] flex flex-col shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-slate-200 cursor-default"
+        className="bg-white rounded-2xl max-w-xl w-full max-h-[85dvh] sm:max-h-[90dvh] flex flex-col shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-slate-200 cursor-default"
       >
         {/* Modal Header */}
         <div className="bg-[#1b4332] text-white p-4 sm:p-5 flex items-center justify-between shrink-0">
