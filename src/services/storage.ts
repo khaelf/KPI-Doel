@@ -35,13 +35,21 @@ export const storageService = {
   },
 
   filterActiveKpiIndicators(indicators: KpiIndicator[]): KpiIndicator[] {
+    const standardHumasKeys = [
+      'humas:dokumentasi kegiatan',
+      'humas:desain grafis',
+      'humas:pembuatan konten medsos',
+      'humas:publikasi berita',
+    ];
+    standardHumasKeys.forEach((k) => this.removeDeletedKpiKey(k));
+
     const deletedKeys = this.getDeletedKpiKeys();
     if (!deletedKeys || deletedKeys.length === 0) return indicators;
 
     const active: KpiIndicator[] = [];
     indicators.forEach((ind) => {
       const key = `${ind.bidang.toLowerCase()}:${ind.namaIndikator.trim().toLowerCase()}`;
-      if (deletedKeys.includes(key)) {
+      if (deletedKeys.includes(key) && !standardHumasKeys.includes(key)) {
         // Automatically purge any remaining or newly received document for deleted key from Firestore
         firebaseDataService.deleteKpiIndicator(ind.id);
       } else {
@@ -288,11 +296,37 @@ export const storageService = {
 
   ensureKpiIndicatorsForMonth(month: string, allWorkEntries?: WorkEntry[]): KpiIndicator[] {
     if (!month) return this.getKpiIndicators();
+
+    const standardHumasKeys = [
+      'humas:dokumentasi kegiatan',
+      'humas:desain grafis',
+      'humas:pembuatan konten medsos',
+      'humas:publikasi berita',
+    ];
+    standardHumasKeys.forEach((k) => this.removeDeletedKpiKey(k));
+
     const indicators = this.getKpiIndicators();
     const entries = allWorkEntries || this.getWorkEntries();
     const deletedKeys = this.getDeletedKpiKeys();
 
     const masterMap = new Map<string, { bidang: Department; namaIndikator: string; satuan: string; defaultTarget: number }>();
+
+    // Always seed the 4 standard Humas indicators
+    const defaultHumas: Array<{ namaIndikator: string; satuan: string; defaultTarget: number }> = [
+      { namaIndikator: 'Dokumentasi Kegiatan', satuan: 'Kegiatan', defaultTarget: 10 },
+      { namaIndikator: 'Desain Grafis', satuan: 'Desain', defaultTarget: 15 },
+      { namaIndikator: 'Pembuatan Konten Medsos', satuan: 'Konten', defaultTarget: 15 },
+      { namaIndikator: 'Publikasi Berita', satuan: 'Berita', defaultTarget: 10 },
+    ];
+    defaultHumas.forEach((dh) => {
+      const key = `humas:${dh.namaIndikator.toLowerCase()}`;
+      masterMap.set(key, {
+        bidang: 'Humas',
+        namaIndikator: dh.namaIndikator,
+        satuan: dh.satuan,
+        defaultTarget: dh.defaultTarget,
+      });
+    });
 
     INITIAL_KPI_INDICATORS.forEach((ind) => {
       const nameClean = ind.namaIndikator.trim();

@@ -163,7 +163,6 @@ export default function App() {
     const unsubscribeKpi = firebaseDataService.subscribeKpiIndicators((fsIndicators) => {
       if (fsIndicators && fsIndicators.length > 0) {
         const activeIndicators = storageService.filterActiveKpiIndicators(fsIndicators);
-        setKpiIndicators(activeIndicators);
         storageService.saveKpiIndicators(activeIndicators);
       } else if (isInitialKpiSync) {
         const localIndicators = storageService.getKpiIndicators();
@@ -171,6 +170,9 @@ export default function App() {
           localIndicators.forEach((ind) => firebaseDataService.saveKpiIndicator(ind));
         }
       }
+      const activeMonth = selectedMonth || getCurrentMonthString();
+      const syncedIndicators = storageService.ensureKpiIndicatorsForMonth(activeMonth);
+      setKpiIndicators(syncedIndicators);
       isInitialKpiSync = false;
     });
 
