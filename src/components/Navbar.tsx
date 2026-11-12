@@ -11,11 +11,12 @@ import {
   Calendar,
   CalendarDays,
   Bell,
+  CheckSquare,
 } from 'lucide-react';
 
 interface NavbarProps {
-  activeTab: 'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'kalender' | 'laporan';
-  setActiveTab: (tab: 'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'kalender' | 'laporan') => void;
+  activeTab: 'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'kalender' | 'laporan' | 'checklist';
+  setActiveTab: (tab: 'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'kalender' | 'laporan' | 'checklist') => void;
   selectedDepartment: 'Semua' | Department;
   setSelectedDepartment: (dept: 'Semua' | Department) => void;
   selectedMonth: string;
@@ -239,6 +240,18 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <Calendar className="w-4 h-4" />
             <span>Agenda</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('checklist')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg transition-all whitespace-nowrap ${
+              activeTab === 'checklist'
+                ? 'bg-white/10 text-white font-semibold border border-white/20'
+                : 'text-emerald-200 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <CheckSquare className="w-4 h-4" />
+            <span>Checklist</span>
           </button>
 
           <button

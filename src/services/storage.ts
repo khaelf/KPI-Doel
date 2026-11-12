@@ -1,4 +1,4 @@
-import { WorkEntry, KpiIndicator, AgendaItem, CalendarNote, Department } from '../types/kpi';
+import { WorkEntry, KpiIndicator, AgendaItem, CalendarNote, Department, ChecklistItem } from '../types/kpi';
 import { INITIAL_WORK_ENTRIES, INITIAL_KPI_INDICATORS, INITIAL_AGENDA_ITEMS, INITIAL_CALENDAR_NOTES } from '../data/initialData';
 import { firebaseDataService, testFirestoreConnection } from './firebase';
 import { isWorkEntryInMonth } from '../utils/kpiCalculations';
@@ -610,6 +610,67 @@ export const storageService = {
     INITIAL_KPI_INDICATORS.forEach((ind) => firebaseDataService.saveKpiIndicator(ind));
     INITIAL_AGENDA_ITEMS.forEach((ag) => firebaseDataService.saveAgendaItem(ag));
     INITIAL_CALENDAR_NOTES.forEach((note) => firebaseDataService.saveCalendarNote(note));
+  },
+
+  // --- Checklist Items Storage API ---
+  getChecklistItems(): ChecklistItem[] {
+    try {
+      const data = localStorage.getItem('parabek_kpi_checklist_items_v1');
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      console.error('Error loading checklist items from localStorage:', e);
+      return [];
+    }
+  },
+
+  saveChecklistItems(items: ChecklistItem[]): void {
+    try {
+      localStorage.setItem('parabek_kpi_checklist_items_v1', JSON.stringify(items));
+    } catch (e) {
+      console.error('Error saving checklist items to localStorage:', e);
+    }
+  },
+
+  addChecklistItem(item: Omit<ChecklistItem, 'id' | 'createdAt'>): ChecklistItem {
+    const items = this.getChecklistItems();
+    const newItem: ChecklistItem = {
+      ...item,
+      id: 'cl-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+      createdAt: new Date().toISOString(),
+    };
+    items.unshift(newItem);
+    this.saveChecklistItems(items);
+    firebaseDataService.saveChecklistItem(newItem);
+    return newItem;
+  },
+
+  updateChecklistItem(id: string, updated: Partial<ChecklistItem>): ChecklistItem | null {
+    const items = this.getChecklistItems();
+    const index = items.findIndex((item) => item.id === id);
+    if (index === -1) return null;
+    items[index] = { ...items[index], ...updated };
+    this.saveChecklistItems(items);
+    firebaseDataService.updateChecklistItem(id, updated);
+    return items[index];
+  },
+
+  deleteChecklistItem(id: string): boolean {
+    const items = this.getChecklistItems();
+    const filtered = items.filter((item) => item.id !== id);
+    if (filtered.length === items.length) return false;
+    this.saveChecklistItems(filtered);
+    firebaseDataService.deleteChecklistItem(id);
+    return true;
+  },
+
+  toggleChecklistItem(id: string): ChecklistItem | null {
+    const items = this.getChecklistItems();
+    const target = items.find((item) => item.id === id);
+    if (!target) return null;
+    target.selesai = !target.selesai;
+    this.saveChecklistItems(items);
+    firebaseDataService.updateChecklistItem(id, { selesai: target.selesai });
+    return target;
   },
 };
 

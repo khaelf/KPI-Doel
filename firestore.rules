@@ -31,6 +31,11 @@ service cloud.firestore {
     match /calendarNotes/{noteId} {
       allow read, write: if true;
     }
+
+    // Checklist Items collection rules
+    match /checklists/{itemId} {
+      allow read, write: if true;
+    }
   }
 }
 

@@ -85,3 +85,12 @@ export interface CalendarNote {
   createdAt: string;
 }
 
+export interface ChecklistItem {
+  id: string;
+  judul: string;
+  selesai: boolean;
+  bidang: Department | 'Semua';
+  createdAt: string;
+}
+
+

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { WorkEntry, KpiIndicator, AgendaItem, AgendaStatus, CalendarNote, Department, TaskStatus } from './types/kpi';
+import { WorkEntry, KpiIndicator, AgendaItem, AgendaStatus, CalendarNote, Department, TaskStatus, ChecklistItem } from './types/kpi';
 import { storageService } from './services/storage';
 import { firebaseDataService } from './services/firebase';
 import { isWorkEntryInMonth, getCurrentMonthString } from './utils/kpiCalculations';
@@ -10,6 +10,7 @@ import { KpiMonthlyView } from './components/KpiMonthlyView';
 import { AgendaView } from './components/AgendaView';
 import { CalendarView } from './components/CalendarView';
 import { ReportView } from './components/ReportView';
+import { ChecklistView } from './components/ChecklistView';
 import { WorkEntryModal } from './components/WorkEntryModal';
 import { KpiIndicatorModal } from './components/KpiIndicatorModal';
 import { AgendaModal } from './components/AgendaModal';
@@ -19,7 +20,7 @@ import { BottomNav } from './components/BottomNav';
 
 export default function App() {
   const isClosingModalRef = React.useRef(false);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'kalender' | 'laporan'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'kalender' | 'laporan' | 'checklist'>('dashboard');
   const [selectedDepartment, setSelectedDepartment] = useState<'Semua' | Department>('Semua');
   const [selectedMonth, setSelectedMonth] = useState<string>(() => getCurrentMonthString());
   const [catatanStatusFilter, setCatatanStatusFilter] = useState<'Semua' | TaskStatus>('Semua');
@@ -30,6 +31,7 @@ export default function App() {
   const [kpiIndicators, setKpiIndicators] = useState<KpiIndicator[]>([]);
   const [agendaItems, setAgendaItems] = useState<AgendaItem[]>([]);
   const [calendarNotes, setCalendarNotes] = useState<CalendarNote[]>([]);
+  const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([]);
 
   // Modal States
   const [isWorkModalOpen, setIsWorkModalOpen] = useState(false);
@@ -74,7 +76,7 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  const changeTab = (tab: 'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'kalender' | 'laporan') => {
+  const changeTab = (tab: 'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'kalender' | 'laporan' | 'checklist') => {
     if (activeTab !== tab || isWorkModalOpen || isKpiModalOpen || isAgendaModalOpen || isNoteModalOpen) {
       setActiveTab(tab);
       setIsWorkModalOpen(false);
@@ -163,10 +165,12 @@ export default function App() {
     const initialIndicators = storageService.getKpiIndicators();
     const initialAgendas = storageService.getAgendaItems();
     const initialNotes = storageService.getCalendarNotes();
+    const initialChecklists = storageService.getChecklistItems();
     setWorkEntries(initialEntries);
     setKpiIndicators(initialIndicators);
     setAgendaItems(initialAgendas);
     setCalendarNotes(initialNotes);
+    setChecklistItems(initialChecklists);
 
     // Realtime Firestore listeners across all devices
     let isInitialWorkSync = true;
@@ -235,11 +239,29 @@ export default function App() {
       isInitialNoteSync = false;
     });
 
+    let isInitialChecklistSync = true;
+    const unsubscribeChecklists = firebaseDataService.subscribeChecklistItems((fsItems) => {
+      if (fsItems && fsItems.length > 0) {
+        setChecklistItems(fsItems);
+        storageService.saveChecklistItems(fsItems);
+      } else if (isInitialChecklistSync) {
+        const localItems = storageService.getChecklistItems();
+        if (localItems.length > 0) {
+          localItems.forEach((item) => firebaseDataService.saveChecklistItem(item));
+        }
+      } else {
+        setChecklistItems([]);
+        storageService.saveChecklistItems([]);
+      }
+      isInitialChecklistSync = false;
+    });
+
     return () => {
       unsubscribeWork();
       unsubscribeKpi();
       unsubscribeAgenda();
       unsubscribeNotes();
+      unsubscribeChecklists();
     };
   }, []);
 
@@ -400,6 +422,28 @@ export default function App() {
     setCalendarNotes([...storageService.getCalendarNotes()]);
   };
 
+  // Handler: Checklist Item Save (Add)
+  const handleSaveChecklistItem = (
+    data: Omit<ChecklistItem, 'id' | 'createdAt'>
+  ) => {
+    storageService.addChecklistItem(data);
+    setChecklistItems([...storageService.getChecklistItems()]);
+  };
+
+  // Handler: Checklist Item Delete
+  const handleDeleteChecklistItem = (id: string) => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus item checklist ini?')) {
+      storageService.deleteChecklistItem(id);
+      setChecklistItems([...storageService.getChecklistItems()]);
+    }
+  };
+
+  // Handler: Toggle Checklist Item Completion
+  const handleToggleChecklistItem = (id: string) => {
+    storageService.toggleChecklistItem(id);
+    setChecklistItems([...storageService.getChecklistItems()]);
+  };
+
   // Handler: Reset Data
   const handleResetData = () => {
     if (
@@ -412,6 +456,7 @@ export default function App() {
       setKpiIndicators([...storageService.getKpiIndicators()]);
       setAgendaItems([...storageService.getAgendaItems()]);
       setCalendarNotes([...storageService.getCalendarNotes()]);
+      setChecklistItems([...storageService.getChecklistItems()]);
     }
   };
 
@@ -500,7 +545,6 @@ export default function App() {
           <CalendarView
             calendarNotes={calendarNotes}
             agendaItems={agendaItems}
-            workEntries={workEntries}
             selectedMonth={selectedMonth}
             setSelectedMonth={setSelectedMonth}
             selectedDepartment={selectedDepartment}
@@ -511,6 +555,15 @@ export default function App() {
             onTogglePin={handleTogglePinNote}
             onAddAgenda={() => openAgendaModal(null)}
             onNavigateToCatatan={() => changeTab('catatan')}
+          />
+        )}
+
+        {activeTab === 'checklist' && (
+          <ChecklistView
+            checklistItems={checklistItems}
+            onAdd={handleSaveChecklistItem}
+            onToggle={handleToggleChecklistItem}
+            onDelete={handleDeleteChecklistItem}
           />
         )}
 

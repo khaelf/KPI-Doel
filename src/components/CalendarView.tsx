@@ -44,7 +44,6 @@ import {
 interface CalendarViewProps {
   calendarNotes: CalendarNote[];
   agendaItems: AgendaItem[];
-  workEntries: WorkEntry[];
   selectedMonth: string;
   setSelectedMonth: (month: string) => void;
   selectedDepartment: 'Semua' | Department;
@@ -116,7 +115,6 @@ const COLOR_STYLES: Record<
 export const CalendarView: React.FC<CalendarViewProps> = ({
   calendarNotes,
   agendaItems,
-  workEntries,
   selectedMonth,
   setSelectedMonth,
   selectedDepartment,
@@ -243,18 +241,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     agendasByDate.set(ag.tanggal, list);
   });
 
-  // Map deadlines by date from workEntries
-  const deadlinesByDate = new Map<string, WorkEntry[]>();
-  workEntries.forEach((entry) => {
-    if (!entry.tanggalAcara) return;
-    const isDeptMatch =
-      selectedDepartment === 'Semua' || entry.bidang === selectedDepartment;
-    if (!isDeptMatch) return;
 
-    const list = deadlinesByDate.get(entry.tanggalAcara) || [];
-    list.push(entry);
-    deadlinesByDate.set(entry.tanggalAcara, list);
-  });
 
   // Selected Date items
   const selectedDateNotes = (notesByDate.get(selectedDate) || []).sort(
@@ -266,7 +253,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     }
   );
   const selectedDateAgendas = agendasByDate.get(selectedDate) || [];
-  const selectedDateDeadlines = deadlinesByDate.get(selectedDate) || [];
+
 
   // Summary counts
   const totalNotesInMonth = monthNotes.length;
@@ -514,10 +501,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
                 const dayNotes = notesByDate.get(dateStr) || [];
                 const dayAgendas = agendasByDate.get(dateStr) || [];
-                const dayDeadlines = deadlinesByDate.get(dateStr) || [];
 
                 const totalItemsCount =
-                  dayNotes.length + dayAgendas.length + dayDeadlines.length;
+                  dayNotes.length + dayAgendas.length;
 
                 return (
                   <div
@@ -561,12 +547,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
                       {/* Small Dots summary for mobile / compact preview */}
                       <div className="flex items-center gap-0.5">
-                        {dayDeadlines.length > 0 && (
-                          <span
-                            className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"
-                            title={`${dayDeadlines.length} Pekerjaan deadline hari ini`}
-                          />
-                        )}
+
                         {dayAgendas.length > 0 && (
                           <span
                             className="w-1.5 h-1.5 rounded-full bg-blue-500"
@@ -614,16 +595,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                         </div>
                       ))}
 
-                      {/* Job Deadline snippet */}
-                      {dayDeadlines.slice(0, 1).map((dl) => (
-                        <div
-                          key={dl.id}
-                          className="text-[9px] sm:text-[10px] truncate px-1.5 py-0.5 rounded bg-rose-50 text-rose-800 border border-rose-200 font-bold hidden sm:block"
-                          title={`Deadline: ${dl.namaPekerjaan}`}
-                        >
-                          ⚠️ {dl.namaPekerjaan}
-                        </div>
-                      ))}
+
 
                       {/* Counter if more items */}
                       {totalItemsCount > 3 && (
@@ -845,35 +817,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               </div>
             )}
 
-            {/* Section: Deadlines on this Day (if any) */}
-            {selectedDateDeadlines.length > 0 && (
-              <div className="space-y-2 pt-3 border-t border-slate-100">
-                <span className="text-xs font-bold text-rose-700 flex items-center gap-1.5">
-                  <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
-                  <span>Tenggat Deadline Pekerjaan ({selectedDateDeadlines.length})</span>
-                </span>
-                <div className="space-y-2">
-                  {selectedDateDeadlines.map((entry) => (
-                    <div
-                      key={entry.id}
-                      className="p-2.5 bg-rose-50/70 border border-rose-200 rounded-xl text-xs space-y-1"
-                    >
-                      <div className="flex items-center justify-between gap-1">
-                        <span className="font-bold text-rose-900 leading-snug">
-                          {entry.namaPekerjaan}
-                        </span>
-                        <span className="text-[10px] px-1.5 py-0.2 rounded font-bold bg-rose-200 text-rose-900 shrink-0">
-                          {entry.status}
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-rose-700">
-                        Bidang: <strong>{entry.bidang}</strong> · Pencapaian: {entry.persentase}%
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+
           </div>
         </div>
       ) : (

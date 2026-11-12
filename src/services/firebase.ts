@@ -11,7 +11,7 @@ import {
   enableIndexedDbPersistence,
 } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
-import { WorkEntry, KpiIndicator, AgendaItem, CalendarNote } from '../types/kpi';
+import { WorkEntry, KpiIndicator, AgendaItem, CalendarNote, ChecklistItem } from '../types/kpi';
 
 // Initialize Firebase App
 const app = initializeApp(firebaseConfig);
@@ -93,6 +93,7 @@ const WORK_ENTRIES_COL = 'workEntries';
 const KPI_INDICATORS_COL = 'kpiIndicators';
 const AGENDA_ITEMS_COL = 'agendaItems';
 const CALENDAR_NOTES_COL = 'calendarNotes';
+const CHECKLIST_ITEMS_COL = 'checklists';
 
 // Helper to remove undefined fields which cause Firestore setDoc/updateDoc to reject writes
 function sanitizeFirestoreData<T extends Record<string, any>>(data: T): Record<string, any> {
@@ -342,6 +343,64 @@ export const firebaseDataService = {
       },
       (error) => {
         handleFirestoreError(error, OperationType.LIST, CALENDAR_NOTES_COL);
+      }
+    );
+  },
+
+  // --- Checklist Firestore API ---
+  async fetchChecklistItems(): Promise<ChecklistItem[]> {
+    try {
+      const snap = await getDocs(collection(db, CHECKLIST_ITEMS_COL));
+      const list: ChecklistItem[] = [];
+      snap.forEach((docSnap) => {
+        list.push({ id: docSnap.id, ...docSnap.data() } as ChecklistItem);
+      });
+      return list;
+    } catch (err) {
+      handleFirestoreError(err, OperationType.LIST, CHECKLIST_ITEMS_COL);
+      return [];
+    }
+  },
+
+  async saveChecklistItem(item: ChecklistItem): Promise<void> {
+    try {
+      const docRef = doc(db, CHECKLIST_ITEMS_COL, item.id);
+      await setDoc(docRef, sanitizeFirestoreData(item), { merge: true });
+    } catch (err) {
+      handleFirestoreError(err, OperationType.WRITE, `${CHECKLIST_ITEMS_COL}/${item.id}`);
+    }
+  },
+
+  async updateChecklistItem(id: string, updated: Partial<ChecklistItem>): Promise<void> {
+    try {
+      const docRef = doc(db, CHECKLIST_ITEMS_COL, id);
+      await setDoc(docRef, sanitizeFirestoreData(updated), { merge: true });
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, `${CHECKLIST_ITEMS_COL}/${id}`);
+    }
+  },
+
+  async deleteChecklistItem(id: string): Promise<void> {
+    try {
+      const docRef = doc(db, CHECKLIST_ITEMS_COL, id);
+      await deleteDoc(docRef);
+    } catch (err) {
+      handleFirestoreError(err, OperationType.DELETE, `${CHECKLIST_ITEMS_COL}/${id}`);
+    }
+  },
+
+  subscribeChecklistItems(callback: (items: ChecklistItem[]) => void) {
+    return onSnapshot(
+      collection(db, CHECKLIST_ITEMS_COL),
+      (snapshot) => {
+        const items: ChecklistItem[] = [];
+        snapshot.forEach((docSnap) => {
+          items.push({ id: docSnap.id, ...docSnap.data() } as ChecklistItem);
+        });
+        callback(items);
+      },
+      (error) => {
+        handleFirestoreError(error, OperationType.LIST, CHECKLIST_ITEMS_COL);
       }
     );
   },
