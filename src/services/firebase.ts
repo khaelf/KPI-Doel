@@ -11,7 +11,7 @@ import {
   enableIndexedDbPersistence,
 } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
-import { WorkEntry, KpiIndicator, AgendaItem } from '../types/kpi';
+import { WorkEntry, KpiIndicator, AgendaItem, CalendarNote } from '../types/kpi';
 
 // Initialize Firebase App
 const app = initializeApp(firebaseConfig);
@@ -92,6 +92,7 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
 const WORK_ENTRIES_COL = 'workEntries';
 const KPI_INDICATORS_COL = 'kpiIndicators';
 const AGENDA_ITEMS_COL = 'agendaItems';
+const CALENDAR_NOTES_COL = 'calendarNotes';
 
 // Helper to remove undefined fields which cause Firestore setDoc/updateDoc to reject writes
 function sanitizeFirestoreData<T extends Record<string, any>>(data: T): Record<string, any> {
@@ -286,11 +287,71 @@ export const firebaseDataService = {
     );
   },
 
+  // --- Calendar Notes Firestore Methods ---
+  async getCalendarNotes(): Promise<CalendarNote[]> {
+    try {
+      const snap = await getDocs(collection(db, CALENDAR_NOTES_COL));
+      const list: CalendarNote[] = [];
+      snap.forEach((docSnap) => {
+        list.push({ id: docSnap.id, ...docSnap.data() } as CalendarNote);
+      });
+      return list;
+    } catch (err) {
+      handleFirestoreError(err, OperationType.LIST, CALENDAR_NOTES_COL);
+      return [];
+    }
+  },
+
+  async saveCalendarNote(note: CalendarNote): Promise<void> {
+    try {
+      const docRef = doc(db, CALENDAR_NOTES_COL, note.id);
+      await setDoc(docRef, sanitizeFirestoreData(note), { merge: true });
+    } catch (err) {
+      handleFirestoreError(err, OperationType.WRITE, `${CALENDAR_NOTES_COL}/${note.id}`);
+    }
+  },
+
+  async updateCalendarNote(id: string, updated: Partial<CalendarNote>): Promise<void> {
+    try {
+      const docRef = doc(db, CALENDAR_NOTES_COL, id);
+      await setDoc(docRef, sanitizeFirestoreData(updated), { merge: true });
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, `${CALENDAR_NOTES_COL}/${id}`);
+    }
+  },
+
+  async deleteCalendarNote(id: string): Promise<void> {
+    try {
+      const docRef = doc(db, CALENDAR_NOTES_COL, id);
+      await deleteDoc(docRef);
+    } catch (err) {
+      handleFirestoreError(err, OperationType.DELETE, `${CALENDAR_NOTES_COL}/${id}`);
+    }
+  },
+
+  // Realtime Calendar Notes Listener
+  subscribeCalendarNotes(callback: (notes: CalendarNote[]) => void) {
+    return onSnapshot(
+      collection(db, CALENDAR_NOTES_COL),
+      (snapshot) => {
+        const notes: CalendarNote[] = [];
+        snapshot.forEach((docSnap) => {
+          notes.push({ id: docSnap.id, ...docSnap.data() } as CalendarNote);
+        });
+        callback(notes);
+      },
+      (error) => {
+        handleFirestoreError(error, OperationType.LIST, CALENDAR_NOTES_COL);
+      }
+    );
+  },
+
   // Explicit sync all items to Firestore
   async syncAllToFirestore(
     entries: WorkEntry[],
     indicators: KpiIndicator[],
-    agendas: AgendaItem[]
+    agendas: AgendaItem[],
+    notes?: CalendarNote[]
   ): Promise<void> {
     for (const entry of entries) {
       await this.saveWorkEntry(entry);
@@ -301,6 +362,12 @@ export const firebaseDataService = {
     for (const ag of agendas) {
       await this.saveAgendaItem(ag);
     }
+    if (notes) {
+      for (const n of notes) {
+        await this.saveCalendarNote(n);
+      }
+    }
   },
 };
+
 

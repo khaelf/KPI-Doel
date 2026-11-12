@@ -1,15 +1,15 @@
-import React from 'react';
 import {
   LayoutDashboard,
   ClipboardList,
   Target,
   FileBarChart,
   Calendar,
+  CalendarDays,
 } from 'lucide-react';
 
 interface BottomNavProps {
-  activeTab: 'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'laporan';
-  setActiveTab: (tab: 'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'laporan') => void;
+  activeTab: 'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'kalender' | 'laporan';
+  setActiveTab: (tab: 'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'kalender' | 'laporan') => void;
   deadlineCount?: number;
 }
 
@@ -34,6 +34,11 @@ export const BottomNav: React.FC<BottomNavProps> = ({
       id: 'kpi' as const,
       label: 'KPI',
       icon: Target,
+    },
+    {
+      id: 'kalender' as const,
+      label: 'Kalender',
+      icon: CalendarDays,
     },
     {
       id: 'agenda' as const,

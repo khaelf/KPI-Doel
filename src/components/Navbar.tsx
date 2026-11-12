@@ -1,6 +1,7 @@
 import React from 'react';
 import { Department } from '../types/kpi';
 import { getCurrentMonthString } from '../utils/kpiCalculations';
+import { getHijriDateFull } from '../utils/hijriDate';
 import {
   LayoutDashboard,
   ClipboardList,
@@ -8,12 +9,13 @@ import {
   FileBarChart,
   RefreshCw,
   Calendar,
+  CalendarDays,
   Bell,
 } from 'lucide-react';
 
 interface NavbarProps {
-  activeTab: 'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'laporan';
-  setActiveTab: (tab: 'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'laporan') => void;
+  activeTab: 'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'kalender' | 'laporan';
+  setActiveTab: (tab: 'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'kalender' | 'laporan') => void;
   selectedDepartment: 'Semua' | Department;
   setSelectedDepartment: (dept: 'Semua' | Department) => void;
   selectedMonth: string;
@@ -48,6 +50,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     month: 'short',
     year: 'numeric',
   }) + ' • ' + currentTime.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const hijriString = getHijriDateFull(currentTime);
 
   return (
     <header className="no-print sticky top-0 z-30 bg-[#1b4332] text-white shadow-md">
@@ -68,8 +71,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <h1 className="text-xs sm:text-base font-bold tracking-tight text-white leading-tight truncate">
                   KPI Staff Humas dan IT
                 </h1>
-                <p className="text-[10px] text-emerald-300 font-mono hidden sm:block">
-                  {timeString}
+                <p className="text-[10px] text-emerald-200 font-mono hidden sm:flex items-center gap-1.5 truncate">
+                  <span>{timeString}</span>
+                  <span>•</span>
+                  <span className="text-emerald-300 font-semibold">☪ {hijriString}</span>
                 </p>
               </div>
             </div>
@@ -234,6 +239,18 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <Calendar className="w-4 h-4" />
             <span>Agenda</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('kalender')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg transition-all whitespace-nowrap ${
+              activeTab === 'kalender'
+                ? 'bg-white/10 text-white font-semibold border border-white/20'
+                : 'text-emerald-200 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <CalendarDays className="w-4 h-4" />
+            <span>Kalender</span>
           </button>
 
           <button

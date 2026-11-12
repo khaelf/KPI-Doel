@@ -26,6 +26,11 @@ service cloud.firestore {
     match /agendaItems/{agendaId} {
       allow read, write: if true;
     }
+
+    // Calendar Notes collection rules
+    match /calendarNotes/{noteId} {
+      allow read, write: if true;
+    }
   }
 }
 

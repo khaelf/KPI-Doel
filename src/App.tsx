@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { WorkEntry, KpiIndicator, AgendaItem, AgendaStatus, Department, TaskStatus } from './types/kpi';
+import { WorkEntry, KpiIndicator, AgendaItem, AgendaStatus, CalendarNote, Department, TaskStatus } from './types/kpi';
 import { storageService } from './services/storage';
 import { firebaseDataService } from './services/firebase';
 import { isWorkEntryInMonth, getCurrentMonthString } from './utils/kpiCalculations';
@@ -8,16 +8,18 @@ import { DashboardView } from './components/DashboardView';
 import { WorkLogView } from './components/WorkLogView';
 import { KpiMonthlyView } from './components/KpiMonthlyView';
 import { AgendaView } from './components/AgendaView';
+import { CalendarView } from './components/CalendarView';
 import { ReportView } from './components/ReportView';
 import { WorkEntryModal } from './components/WorkEntryModal';
 import { KpiIndicatorModal } from './components/KpiIndicatorModal';
 import { AgendaModal } from './components/AgendaModal';
+import { CalendarNoteModal } from './components/CalendarNoteModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { BottomNav } from './components/BottomNav';
 
 export default function App() {
   const isClosingModalRef = React.useRef(false);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'laporan'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'kalender' | 'laporan'>('dashboard');
   const [selectedDepartment, setSelectedDepartment] = useState<'Semua' | Department>('Semua');
   const [selectedMonth, setSelectedMonth] = useState<string>(() => getCurrentMonthString());
   const [catatanStatusFilter, setCatatanStatusFilter] = useState<'Semua' | TaskStatus>('Semua');
@@ -27,6 +29,7 @@ export default function App() {
   const [workEntries, setWorkEntries] = useState<WorkEntry[]>([]);
   const [kpiIndicators, setKpiIndicators] = useState<KpiIndicator[]>([]);
   const [agendaItems, setAgendaItems] = useState<AgendaItem[]>([]);
+  const [calendarNotes, setCalendarNotes] = useState<CalendarNote[]>([]);
 
   // Modal States
   const [isWorkModalOpen, setIsWorkModalOpen] = useState(false);
@@ -38,6 +41,10 @@ export default function App() {
 
   const [isAgendaModalOpen, setIsAgendaModalOpen] = useState(false);
   const [editingAgenda, setEditingAgenda] = useState<AgendaItem | null>(null);
+
+  const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
+  const [editingNote, setEditingNote] = useState<CalendarNote | null>(null);
+  const [noteModalDate, setNoteModalDate] = useState<string | undefined>(undefined);
 
   // Sync state with browser History API so mobile/browser Back button returns to previous screen/modal
   useEffect(() => {
@@ -53,11 +60,13 @@ export default function App() {
         setIsWorkModalOpen(e.state.modal === 'work');
         setIsKpiModalOpen(e.state.modal === 'kpi');
         setIsAgendaModalOpen(e.state.modal === 'agenda');
+        setIsNoteModalOpen(e.state.modal === 'note');
       } else {
         setActiveTab('dashboard');
         setIsWorkModalOpen(false);
         setIsKpiModalOpen(false);
         setIsAgendaModalOpen(false);
+        setIsNoteModalOpen(false);
       }
     };
 
@@ -65,13 +74,30 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  const changeTab = (tab: 'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'laporan') => {
-    if (activeTab !== tab || isWorkModalOpen || isKpiModalOpen || isAgendaModalOpen) {
+  const changeTab = (tab: 'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'kalender' | 'laporan') => {
+    if (activeTab !== tab || isWorkModalOpen || isKpiModalOpen || isAgendaModalOpen || isNoteModalOpen) {
       setActiveTab(tab);
       setIsWorkModalOpen(false);
       setIsKpiModalOpen(false);
       setIsAgendaModalOpen(false);
+      setIsNoteModalOpen(false);
       window.history.pushState({ activeTab: tab, modal: null }, '');
+    }
+  };
+
+  const openNoteModal = (date?: string, note?: CalendarNote | null) => {
+    setEditingNote(note || null);
+    setNoteModalDate(date);
+    setIsNoteModalOpen(true);
+    window.history.pushState({ activeTab, modal: 'note' }, '');
+  };
+
+  const closeNoteModal = () => {
+    setIsNoteModalOpen(false);
+    setEditingNote(null);
+    setNoteModalDate(undefined);
+    if (window.history.state?.modal === 'note') {
+      window.history.replaceState({ activeTab, modal: null }, '');
     }
   };
 
@@ -136,9 +162,11 @@ export default function App() {
     const initialEntries = storageService.getWorkEntries();
     const initialIndicators = storageService.getKpiIndicators();
     const initialAgendas = storageService.getAgendaItems();
+    const initialNotes = storageService.getCalendarNotes();
     setWorkEntries(initialEntries);
     setKpiIndicators(initialIndicators);
     setAgendaItems(initialAgendas);
+    setCalendarNotes(initialNotes);
 
     // Realtime Firestore listeners across all devices
     let isInitialWorkSync = true;
@@ -190,10 +218,28 @@ export default function App() {
       isInitialAgendaSync = false;
     });
 
+    let isInitialNoteSync = true;
+    const unsubscribeNotes = firebaseDataService.subscribeCalendarNotes((fsNotes) => {
+      if (fsNotes && fsNotes.length > 0) {
+        setCalendarNotes(fsNotes);
+        storageService.saveCalendarNotes(fsNotes);
+      } else if (isInitialNoteSync) {
+        const localNotes = storageService.getCalendarNotes();
+        if (localNotes.length > 0) {
+          localNotes.forEach((n) => firebaseDataService.saveCalendarNote(n));
+        }
+      } else {
+        setCalendarNotes([]);
+        storageService.saveCalendarNotes([]);
+      }
+      isInitialNoteSync = false;
+    });
+
     return () => {
       unsubscribeWork();
       unsubscribeKpi();
       unsubscribeAgenda();
+      unsubscribeNotes();
     };
   }, []);
 
@@ -320,6 +366,40 @@ export default function App() {
     setAgendaItems([...storageService.getAgendaItems()]);
   };
 
+  // Handler: Calendar Note Save (Add or Edit)
+  const handleSaveCalendarNote = (
+    data: Omit<CalendarNote, 'id' | 'createdAt'>,
+    editingId?: string
+  ) => {
+    if (editingId) {
+      storageService.updateCalendarNote(editingId, data);
+    } else {
+      storageService.addCalendarNote(data);
+    }
+    setCalendarNotes([...storageService.getCalendarNotes()]);
+    closeNoteModal();
+  };
+
+  // Handler: Calendar Note Delete
+  const handleDeleteCalendarNote = (id: string) => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus catatan/memo ini?')) {
+      storageService.deleteCalendarNote(id);
+      setCalendarNotes([...storageService.getCalendarNotes()]);
+    }
+  };
+
+  // Handler: Toggle Calendar Note Completion
+  const handleToggleCompleteNote = (id: string) => {
+    storageService.toggleNoteCompletion(id);
+    setCalendarNotes([...storageService.getCalendarNotes()]);
+  };
+
+  // Handler: Toggle Calendar Note Pin
+  const handleTogglePinNote = (id: string) => {
+    storageService.toggleNotePin(id);
+    setCalendarNotes([...storageService.getCalendarNotes()]);
+  };
+
   // Handler: Reset Data
   const handleResetData = () => {
     if (
@@ -331,6 +411,7 @@ export default function App() {
       setWorkEntries([...storageService.getWorkEntries()]);
       setKpiIndicators([...storageService.getKpiIndicators()]);
       setAgendaItems([...storageService.getAgendaItems()]);
+      setCalendarNotes([...storageService.getCalendarNotes()]);
     }
   };
 
@@ -415,6 +496,24 @@ export default function App() {
           />
         )}
 
+        {activeTab === 'kalender' && (
+          <CalendarView
+            calendarNotes={calendarNotes}
+            agendaItems={agendaItems}
+            workEntries={workEntries}
+            selectedMonth={selectedMonth}
+            setSelectedMonth={setSelectedMonth}
+            selectedDepartment={selectedDepartment}
+            onAddNote={(date) => openNoteModal(date, null)}
+            onEditNote={(note) => openNoteModal(note.tanggal, note)}
+            onDeleteNote={handleDeleteCalendarNote}
+            onToggleComplete={handleToggleCompleteNote}
+            onTogglePin={handleTogglePinNote}
+            onAddAgenda={() => openAgendaModal(null)}
+            onNavigateToCatatan={() => changeTab('catatan')}
+          />
+        )}
+
         {activeTab === 'laporan' && (
           <ReportView
             workEntries={workEntries}
@@ -467,6 +566,16 @@ export default function App() {
         editingAgenda={editingAgenda}
         defaultDepartment={selectedDepartment === 'Semua' ? 'Humas' : selectedDepartment}
         defaultDate={selectedMonth ? `${selectedMonth}-01` : undefined}
+      />
+
+      {/* Calendar Note Modal */}
+      <CalendarNoteModal
+        isOpen={isNoteModalOpen}
+        onClose={closeNoteModal}
+        onSave={handleSaveCalendarNote}
+        editingNote={editingNote}
+        defaultDate={noteModalDate}
+        defaultDepartment={selectedDepartment === 'Semua' ? 'Semua' : selectedDepartment}
       />
 
       {/* Offline Status Toast */}

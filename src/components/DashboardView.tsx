@@ -7,6 +7,7 @@ import {
   getKpiStatusBadge,
   isWorkEntryInMonth,
 } from '../utils/kpiCalculations';
+import { getHijriMonthRange } from '../utils/hijriDate';
 import {
   CheckCircle2,
   Clock,
@@ -153,11 +154,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     <div className="space-y-5 sm:space-y-6 pb-6 md:pb-8">
       {/* Welcome Kicker Banner */}
       <div className="bg-gradient-to-r from-[#1b4332] via-[#2d6a4f] to-emerald-800 text-white rounded-2xl p-5 sm:p-6 shadow-sm border border-emerald-700/40">
-        <div className="flex items-center gap-2 mb-1">
+        <div className="flex flex-wrap items-center gap-2 mb-1">
           <span className="text-[10px] sm:text-xs uppercase tracking-wider font-semibold text-emerald-300">
             Ringkasan Kinerja Bulan Ini
           </span>
           <span className="text-[10px] sm:text-xs font-medium text-emerald-200/80">· {monthLabel}</span>
+          <span className="text-[10px] sm:text-xs font-semibold text-emerald-100 bg-emerald-900/60 border border-emerald-500/30 px-2 py-0.5 rounded-md">
+            ☪ {getHijriMonthRange(selectedMonth)}
+          </span>
         </div>
         <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
           Irsyadul Fuadi

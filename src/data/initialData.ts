@@ -1,4 +1,4 @@
-import { WorkEntry, KpiIndicator, AgendaItem } from '../types/kpi';
+import { WorkEntry, KpiIndicator, AgendaItem, CalendarNote } from '../types/kpi';
 import { getCurrentMonthString } from '../utils/kpiCalculations';
 
 const curMonth = getCurrentMonthString();
@@ -361,3 +361,59 @@ export const INITIAL_WORK_ENTRIES: WorkEntry[] = [
     createdAt: `${curMonth}-10T11:00:00Z`,
   },
 ];
+
+export const INITIAL_CALENDAR_NOTES: CalendarNote[] = [
+  {
+    id: 'note-1',
+    tanggal: `${curMonth}-10`,
+    judul: 'Briefing Koordinasi Publikasi Media Sosial Parabek',
+    isi: 'Pastikan materi feed Instagram dan rilis berita milad sudah disiapkan oleh tim Humas.',
+    waktu: '08:30',
+    kategori: 'Koordinasi',
+    warna: 'emerald',
+    isPinned: true,
+    isCompleted: true,
+    bidang: 'Humas',
+    createdAt: `${curMonth}-08T09:00:00Z`,
+  },
+  {
+    id: 'note-2',
+    tanggal: `${curMonth}-18`,
+    judul: 'Cek Kesiapan Router & Wifi Gedung Santri Baru',
+    isi: 'Pemeriksaan kabel FO dan access point di lantai 2 dan 3 asrama.',
+    waktu: '14:00',
+    kategori: 'Tugas',
+    warna: 'blue',
+    isPinned: false,
+    isCompleted: false,
+    bidang: 'IT',
+    createdAt: `${curMonth}-10T11:00:00Z`,
+  },
+  {
+    id: 'note-3',
+    tanggal: `${curMonth}-24`,
+    judul: 'Pengingat Deadline Konten Video Profil Pesantren',
+    isi: 'Review draft final video profile bersama pimpinan pondok sebelum diupload ke Youtube.',
+    waktu: '10:00',
+    kategori: 'Penting',
+    warna: 'rose',
+    isPinned: true,
+    isCompleted: false,
+    bidang: 'Humas',
+    createdAt: `${curMonth}-15T13:00:00Z`,
+  },
+  {
+    id: 'note-4',
+    tanggal: `${curMonth}-28`,
+    judul: 'Evaluasi Bulanan KPI Humas dan IT',
+    isi: 'Siapkan rekap laporan capaian kinerja dan log pekerjaan harian untuk rapat evaluasi akhir bulan.',
+    waktu: '09:00',
+    kategori: 'Pengingat',
+    warna: 'purple',
+    isPinned: false,
+    isCompleted: false,
+    bidang: 'Semua',
+    createdAt: `${curMonth}-16T15:00:00Z`,
+  },
+];
+

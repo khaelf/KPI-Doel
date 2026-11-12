@@ -1,11 +1,12 @@
-import { WorkEntry, KpiIndicator, AgendaItem, Department } from '../types/kpi';
-import { INITIAL_WORK_ENTRIES, INITIAL_KPI_INDICATORS, INITIAL_AGENDA_ITEMS } from '../data/initialData';
+import { WorkEntry, KpiIndicator, AgendaItem, CalendarNote, Department } from '../types/kpi';
+import { INITIAL_WORK_ENTRIES, INITIAL_KPI_INDICATORS, INITIAL_AGENDA_ITEMS, INITIAL_CALENDAR_NOTES } from '../data/initialData';
 import { firebaseDataService, testFirestoreConnection } from './firebase';
 import { isWorkEntryInMonth } from '../utils/kpiCalculations';
 
 const WORK_ENTRIES_KEY = 'parabek_kpi_work_entries_v1';
 const KPI_INDICATORS_KEY = 'parabek_kpi_indicators_v5';
 const AGENDA_ITEMS_KEY = 'parabek_kpi_agenda_items_v1';
+const CALENDAR_NOTES_KEY = 'parabek_kpi_calendar_notes_v1';
 const DELETED_KPI_KEY = 'parabek_kpi_deleted_indicators_v1';
 
 // Verify firestore connection on load
@@ -510,18 +511,105 @@ export const storageService = {
     return true;
   },
 
+  // --- Calendar Notes Storage API ---
+  getCalendarNotes(): CalendarNote[] {
+    try {
+      const data = localStorage.getItem(CALENDAR_NOTES_KEY);
+      if (!data) {
+        this.saveCalendarNotes(INITIAL_CALENDAR_NOTES);
+        // Seed initial calendar notes to Firestore
+        INITIAL_CALENDAR_NOTES.forEach((note) => firebaseDataService.saveCalendarNote(note));
+        return INITIAL_CALENDAR_NOTES;
+      }
+      return JSON.parse(data);
+    } catch (e) {
+      console.error('Error loading calendar notes from localStorage:', e);
+      return INITIAL_CALENDAR_NOTES;
+    }
+  },
+
+  saveCalendarNotes(notes: CalendarNote[]): void {
+    try {
+      localStorage.setItem(CALENDAR_NOTES_KEY, JSON.stringify(notes));
+    } catch (e) {
+      console.error('Error saving calendar notes to localStorage:', e);
+    }
+  },
+
+  addCalendarNote(note: Omit<CalendarNote, 'id' | 'createdAt'>): CalendarNote {
+    const notes = this.getCalendarNotes();
+    const newNote: CalendarNote = {
+      ...note,
+      id: 'note-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+      createdAt: new Date().toISOString(),
+    };
+    notes.unshift(newNote);
+    this.saveCalendarNotes(notes);
+
+    // Sync to Firestore
+    firebaseDataService.saveCalendarNote(newNote);
+    return newNote;
+  },
+
+  updateCalendarNote(id: string, updated: Partial<CalendarNote>): CalendarNote | null {
+    const notes = this.getCalendarNotes();
+    const index = notes.findIndex((item) => item.id === id);
+    if (index === -1) return null;
+    notes[index] = { ...notes[index], ...updated };
+    this.saveCalendarNotes(notes);
+
+    // Sync update to Firestore
+    firebaseDataService.updateCalendarNote(id, updated);
+    return notes[index];
+  },
+
+  deleteCalendarNote(id: string): boolean {
+    const notes = this.getCalendarNotes();
+    const filtered = notes.filter((item) => item.id !== id);
+    if (filtered.length === notes.length) return false;
+    this.saveCalendarNotes(filtered);
+
+    // Sync delete to Firestore
+    firebaseDataService.deleteCalendarNote(id);
+    return true;
+  },
+
+  toggleNoteCompletion(id: string): CalendarNote | null {
+    const notes = this.getCalendarNotes();
+    const target = notes.find((item) => item.id === id);
+    if (!target) return null;
+    target.isCompleted = !target.isCompleted;
+    this.saveCalendarNotes(notes);
+    firebaseDataService.updateCalendarNote(id, { isCompleted: target.isCompleted });
+    return target;
+  },
+
+  toggleNotePin(id: string): CalendarNote | null {
+    const notes = this.getCalendarNotes();
+    const target = notes.find((item) => item.id === id);
+    if (!target) return null;
+    target.isPinned = !target.isPinned;
+    this.saveCalendarNotes(notes);
+    firebaseDataService.updateCalendarNote(id, { isPinned: target.isPinned });
+    return target;
+  },
+
   resetAllToDefault(): void {
     localStorage.removeItem(WORK_ENTRIES_KEY);
     localStorage.removeItem(KPI_INDICATORS_KEY);
     localStorage.removeItem(AGENDA_ITEMS_KEY);
+    localStorage.removeItem(CALENDAR_NOTES_KEY);
     localStorage.removeItem(DELETED_KPI_KEY);
     this.saveWorkEntries(INITIAL_WORK_ENTRIES);
     this.saveKpiIndicators(INITIAL_KPI_INDICATORS);
     this.saveAgendaItems(INITIAL_AGENDA_ITEMS);
+    this.saveCalendarNotes(INITIAL_CALENDAR_NOTES);
 
     // Seed Firestore
     INITIAL_WORK_ENTRIES.forEach((item) => firebaseDataService.saveWorkEntry(item));
     INITIAL_KPI_INDICATORS.forEach((ind) => firebaseDataService.saveKpiIndicator(ind));
     INITIAL_AGENDA_ITEMS.forEach((ag) => firebaseDataService.saveAgendaItem(ag));
+    INITIAL_CALENDAR_NOTES.forEach((note) => firebaseDataService.saveCalendarNote(note));
   },
 };
+

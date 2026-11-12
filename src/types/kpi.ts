@@ -66,3 +66,21 @@ export interface DepartmentSummary {
   nilaiKpi: number; // overall % (0 - 100)
   totalBobot?: number;
 }
+
+export type NoteCategory = 'Pengingat' | 'Penting' | 'Koordinasi' | 'Tugas' | 'Umum';
+export type NoteColor = 'emerald' | 'blue' | 'amber' | 'rose' | 'purple';
+
+export interface CalendarNote {
+  id: string;
+  tanggal: string; // YYYY-MM-DD
+  judul: string;
+  isi?: string;
+  waktu?: string; // HH:mm
+  kategori: NoteCategory;
+  warna: NoteColor;
+  isPinned?: boolean;
+  isCompleted?: boolean;
+  bidang?: Department | 'Semua';
+  createdAt: string;
+}
+
