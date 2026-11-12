@@ -73,6 +73,7 @@ export type NoteColor = 'emerald' | 'blue' | 'amber' | 'rose' | 'purple';
 export interface CalendarNote {
   id: string;
   tanggal: string; // YYYY-MM-DD
+  tanggalSelesai?: string; // YYYY-MM-DD (Opsional)
   judul: string;
   isi?: string;
   waktu?: string; // HH:mm

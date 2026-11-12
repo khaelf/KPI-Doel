@@ -36,6 +36,7 @@ export const CalendarNoteModal: React.FC<CalendarNoteModalProps> = ({
   const [judul, setJudul] = useState('');
   const [isi, setIsi] = useState('');
   const [tanggal, setTanggal] = useState(todayStr);
+  const [tanggalSelesai, setTanggalSelesai] = useState('');
   const [waktu, setWaktu] = useState('');
   const [kategori, setKategori] = useState<NoteCategory>('Pengingat');
   const [warna, setWarna] = useState<NoteColor>('emerald');
@@ -50,6 +51,7 @@ export const CalendarNoteModal: React.FC<CalendarNoteModalProps> = ({
       setJudul(autoCapitalizeText(editingNote.judul || ''));
       setIsi(editingNote.isi || '');
       setTanggal(editingNote.tanggal || todayStr);
+      setTanggalSelesai(editingNote.tanggalSelesai || '');
       setWaktu(editingNote.waktu || '');
       setKategori(editingNote.kategori || 'Pengingat');
       setWarna(editingNote.warna || 'emerald');
@@ -60,6 +62,7 @@ export const CalendarNoteModal: React.FC<CalendarNoteModalProps> = ({
       setJudul('');
       setIsi('');
       setTanggal(defaultDate || todayStr);
+      setTanggalSelesai('');
       setWaktu('');
       setKategori('Pengingat');
       setWarna('emerald');
@@ -80,6 +83,7 @@ export const CalendarNoteModal: React.FC<CalendarNoteModalProps> = ({
         judul: autoCapitalizeText(judul.trim()),
         isi: isi.trim(),
         tanggal,
+        tanggalSelesai: tanggalSelesai || undefined,
         waktu: waktu.trim() || undefined,
         kategori,
         warna,
@@ -156,6 +160,19 @@ export const CalendarNoteModal: React.FC<CalendarNoteModalProps> = ({
                     <span>{getHijriDateFull(tanggal)}</span>
                   </p>
                 )}
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-900 mb-1 flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5 text-slate-600" />
+                  <span>Sampai Tanggal (Opsional)</span>
+                </label>
+                <input
+                  type="date"
+                  value={tanggalSelesai}
+                  onChange={(e) => setTanggalSelesai(e.target.value)}
+                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
+                />
               </div>
 
               <div>
