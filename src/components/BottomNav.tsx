@@ -61,9 +61,9 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   return (
     <nav
       aria-label="Navigasi Bawah Ponsel"
-      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#1b4332]/95 backdrop-blur-md border-t border-emerald-800/80 shadow-[0_-4px_25px_rgba(0,0,0,0.3)] pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] pt-1 px-2 no-print select-none"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#1b4332]/95 backdrop-blur-md border-t border-emerald-800/80 shadow-[0_-4px_25px_rgba(0,0,0,0.3)] pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] pt-1.5 px-1 no-print select-none"
     >
-      <div className="flex items-center justify-around max-w-md mx-auto">
+      <div className="grid grid-cols-7 items-center w-full max-w-lg mx-auto">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -72,10 +72,10 @@ export const BottomNav: React.FC<BottomNavProps> = ({
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`relative flex flex-col items-center justify-center py-1.5 px-2.5 rounded-xl transition-all duration-150 min-w-[56px] ${
+              className={`relative flex flex-col items-center justify-center py-1 px-0.5 rounded-xl transition-colors duration-150 min-w-0 w-full ${
                 isActive
-                  ? 'text-white font-bold scale-105'
-                  : 'text-emerald-200/70 hover:text-emerald-100 hover:bg-emerald-800/30'
+                  ? 'text-white font-bold'
+                  : 'text-emerald-200/75 hover:text-emerald-100 hover:bg-emerald-800/30'
               }`}
             >
               {/* Active pill background behind icon */}
@@ -86,13 +86,13 @@ export const BottomNav: React.FC<BottomNavProps> = ({
               >
                 <Icon className="w-4 h-4" />
                 {tab.badge !== undefined && tab.badge > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-bold font-mono min-w-[14px] h-[14px] rounded-full flex items-center justify-center border border-[#1b4332] shadow-xs">
+                  <span className="absolute -top-1 -right-1.5 bg-rose-500 text-white text-[9px] font-bold font-mono min-w-[14px] h-[14px] px-0.5 rounded-full flex items-center justify-center border border-[#1b4332] shadow-xs">
                     {tab.badge}
                   </span>
                 )}
               </div>
               <span
-                className={`text-[10px] mt-0.5 tracking-tight ${
+                className={`text-[8.5px] min-[360px]:text-[9.5px] min-[400px]:text-[10px] leading-tight mt-0.5 tracking-tighter truncate max-w-full ${
                   isActive ? 'font-bold text-emerald-200' : 'font-medium'
                 }`}
               >
