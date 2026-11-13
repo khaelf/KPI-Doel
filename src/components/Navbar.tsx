@@ -13,6 +13,7 @@ import {
   Bell,
   CheckSquare,
 } from 'lucide-react';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface NavbarProps {
   activeTab: 'dashboard' | 'catatan' | 'kpi' | 'agenda' | 'kalender' | 'laporan' | 'checklist';
@@ -82,6 +83,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Mobile Quick Controls */}
             <div className="flex md:hidden items-center gap-1.5 shrink-0">
+              <PWAInstallButton compact />
               {onNavigateToDeadline && (
                 <button
                   type="button"
@@ -179,8 +181,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             )}
 
-            {/* Desktop-only Reset */}
+            {/* Desktop-only Install & Reset */}
             <div className="hidden md:flex items-center gap-2">
+              <PWAInstallButton />
               <button
                 onClick={onResetData}
                 className="p-1.5 text-emerald-300 hover:text-white hover:bg-emerald-800/60 rounded-lg transition-colors"

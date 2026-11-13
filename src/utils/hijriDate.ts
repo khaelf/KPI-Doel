@@ -1,13 +1,14 @@
 /**
  * Hijri Date Utilities for Pesantren Sumatera Thawalib Parabek
- * Uses standard ECMAScript Internationalization API (Intl.DateTimeFormat)
- * with the Umm al-Qura Islamic calendar system (id-ID-u-ca-islamic-umalqura)
- * and supports an optional day-offset (penyesuaian hilal/ru'yah).
+ * Uses Intl.DateTimeFormat with numeric parts (en-u-ca-islamic-umalqura)
+ * mapped directly to Indonesian Islamic month names, with a deterministic
+ * Kuwaiti/tabular Hijri fallback so Gregorian month names never leak through.
  */
 
 export interface HijriDateParts {
   day: number;
   dayStr: string;
+  monthNumber: number;
   monthName: string;
   monthShort: string;
   year: string;
@@ -17,59 +18,89 @@ export interface HijriDateParts {
   isFirstDayOfMonth: boolean;
 }
 
-const MONTH_SHORT_MAP: Record<string, string> = {
-  Muharram: 'Muh.',
-  Safar: 'Safar',
-  Rabiulawal: 'Rab. Awal',
-  'Rabiʻ I': 'Rab. Awal',
-  Rabiulakhir: 'Rab. Akhir',
-  'Rabiʻ II': 'Rab. Akhir',
-  Jumadilawal: 'Jum. Awal',
-  'Jumada I': 'Jum. Awal',
-  Jumadilakhir: 'Jum. Akhir',
-  'Jumada II': 'Jum. Akhir',
-  Rajab: 'Rajab',
-  Syaban: "Sya'ban",
-  "Sha'ban": "Sya'ban",
-  Ramadan: 'Ramadan',
-  Syawal: 'Syawal',
-  Shawwal: 'Syawal',
-  Zulkaidah: "Dzulqa'dah",
-  "Dhuʻl-Qiʻdah": "Dzulqa'dah",
-  Zulhijah: 'Dzulhijjah',
-  "Dhuʻl-Hijjah": 'Dzulhijjah',
-};
+const HIJRI_MONTHS_FULL = [
+  'Muharram',
+  'Safar',
+  'Rabiul Awwal',
+  'Rabiul Akhir',
+  'Jumadil Ula',
+  'Jumadil Akhir',
+  'Rajab',
+  "Sya'ban",
+  'Ramadhan',
+  'Syawal',
+  "Dzulqa'dah",
+  'Dzulhijjah',
+];
+
+const HIJRI_MONTHS_SHORT = [
+  'Muh.',
+  'Safar',
+  'Rab. Awal',
+  'Rab. Akhir',
+  'Jum. Awal',
+  'Jum. Akhir',
+  'Rajab',
+  "Sya'ban",
+  'Ram.',
+  'Syawal',
+  "Dzulqa'dah",
+  'Dzulhijjah',
+];
 
 /**
- * Normalizes Islamic month names to standard Indonesian Pesantren spelling
+ * Deterministic Gregorian -> Hijri (Kuwaiti/Tabular Islamic calendar) conversion
+ * used as fallback if browser ICU lacks islamic-umalqura support.
  */
-export function normalizeHijriMonthName(name: string): string {
-  if (!name) return '';
-  const clean = name.trim();
-  if (MONTH_SHORT_MAP[clean]) {
-    // If it's a known formal variant
-    if (clean.includes('Jumadilawal') || clean.includes('Jumada I')) return 'Jumadil Ula';
-    if (clean.includes('Jumadilakhir') || clean.includes('Jumada II')) return 'Jumadil Akhir';
-    if (clean.includes('Rabiulawal') || clean.includes('Rabiʻ I')) return 'Rabiul Awwal';
-    if (clean.includes('Rabiulakhir') || clean.includes('Rabiʻ II')) return 'Rabiul Akhir';
-    if (clean.includes('Zulkaidah') || clean.includes('Dhuʻl-Qiʻdah')) return "Dzulqa'dah";
-    if (clean.includes('Zulhijah') || clean.includes('Dhuʻl-Hijjah')) return 'Dzulhijjah';
-    if (clean.includes('Syaban') || clean.includes("Sha'ban")) return "Sya'ban";
+function gregorianToHijriTabular(date: Date): { day: number; month: number; year: number } {
+  const day = date.getDate();
+  const month = date.getMonth();
+  const year = date.getFullYear();
+
+  let m = month + 1;
+  let y = year;
+  if (m < 3) {
+    y -= 1;
+    m += 12;
   }
-  return clean;
-}
 
-/**
- * Short month label for calendar grid day cells (e.g., "1 Jum. Akhir")
- */
-export function getShortHijriMonth(monthName: string): string {
-  if (!monthName) return '';
-  for (const [key, val] of Object.entries(MONTH_SHORT_MAP)) {
-    if (monthName.toLowerCase().includes(key.toLowerCase())) {
-      return val;
+  const a = Math.floor(y / 100);
+  let b = 2 - a + Math.floor(a / 4);
+  if (y < 1583) b = 0;
+  if (y === 1582) {
+    if (m > 10) b = -10;
+    if (m === 10) {
+      b = 0;
+      if (day > 4) b = -10;
     }
   }
-  return monthName.slice(0, 5);
+
+  const jd =
+    Math.floor(365.25 * (y + 4716)) +
+    Math.floor(30.6001 * (m + 1)) +
+    day +
+    b -
+    1524;
+
+  const iyear = 10631 / 30;
+  const epochastro = 1948084;
+  const shift1 = 8.01 / 60;
+
+  let z = jd - epochastro;
+  const cyc = Math.floor(z / 10631);
+  z = z - 10631 * cyc;
+  const j = Math.floor((z - shift1) / iyear);
+  const iy = 30 * cyc + j;
+  z = z - Math.floor(j * iyear + shift1);
+  let im = Math.floor((z + 28.5001) / 29.5);
+  if (im === 13) im = 12;
+  const id = z - Math.floor(29.5001 * im - 29);
+
+  return {
+    day: Math.max(1, Math.min(30, Math.round(id))),
+    month: Math.max(1, Math.min(12, im)),
+    year: iy,
+  };
 }
 
 /**
@@ -95,55 +126,73 @@ function parseDateWithOffset(dateStr: string | Date, adjustmentDays: number = 0)
   return date;
 }
 
+function resolveNumericHijriParts(date: Date): { day: number; month: number; year: number } {
+  const locales = ['en-u-ca-islamic-umalqura', 'id-ID-u-ca-islamic-umalqura'];
+
+  for (const locale of locales) {
+    try {
+      const fmt = new Intl.DateTimeFormat(locale, {
+        day: 'numeric',
+        month: 'numeric',
+        year: 'numeric',
+      });
+      const cal = fmt.resolvedOptions().calendar || '';
+      if (!cal.startsWith('islamic')) continue;
+
+      const parts = fmt.formatToParts(date);
+      const dayVal = parts.find((p) => p.type === 'day')?.value || '';
+      const monthVal = parts.find((p) => p.type === 'month')?.value || '';
+      const yearVal = parts.find((p) => p.type === 'year')?.value || '';
+
+      const day = parseInt(dayVal.replace(/\D/g, ''), 10);
+      const month = parseInt(monthVal.replace(/\D/g, ''), 10);
+      const year = parseInt(yearVal.replace(/\D/g, ''), 10);
+
+      if (
+        day >= 1 &&
+        day <= 30 &&
+        month >= 1 &&
+        month <= 12 &&
+        year >= 1200 &&
+        year <= 1700
+      ) {
+        return { day, month, year };
+      }
+    } catch {
+      // Try next locale / fallback
+    }
+  }
+
+  return gregorianToHijriTabular(date);
+}
+
 /**
  * Get detailed Hijri date parts for any Gregorian date
  */
-export function getHijriDateParts(dateStr: string | Date, adjustmentDays: number = 0): HijriDateParts {
+export function getHijriDateParts(
+  dateStr: string | Date,
+  adjustmentDays: number = 0
+): HijriDateParts {
   const date = parseDateWithOffset(dateStr, adjustmentDays);
+  const { day, month, year } = resolveNumericHijriParts(date);
 
-  try {
-    const fDay = new Intl.DateTimeFormat('id-ID-u-ca-islamic-umalqura', { day: 'numeric' });
-    const fMonth = new Intl.DateTimeFormat('id-ID-u-ca-islamic-umalqura', { month: 'long' });
-    const fYear = new Intl.DateTimeFormat('id-ID-u-ca-islamic-umalqura', { year: 'numeric' });
+  const monthIdx = Math.max(0, Math.min(11, month - 1));
+  const monthName = HIJRI_MONTHS_FULL[monthIdx];
+  const monthShort = HIJRI_MONTHS_SHORT[monthIdx];
+  const yearLabel = `${year} H`;
 
-    const rawDay = fDay.format(date);
-    const rawMonth = fMonth.format(date);
-    const rawYear = fYear.format(date);
-
-    const dayNum = parseInt(rawDay.replace(/\D/g, ''), 10) || 1;
-    const yearNum = parseInt(rawYear.replace(/\D/g, ''), 10) || 1448;
-    const monthName = normalizeHijriMonthName(rawMonth);
-    const monthShort = getShortHijriMonth(rawMonth);
-
-    const yearLabel = rawYear.includes('H') ? rawYear : `${yearNum} H`;
-    const full = `${dayNum} ${monthName} ${yearLabel}`;
-    const short = `${dayNum} ${monthShort}`;
-
-    return {
-      day: dayNum,
-      dayStr: String(dayNum),
-      monthName,
-      monthShort,
-      year: yearLabel,
-      yearNum,
-      full,
-      short,
-      isFirstDayOfMonth: dayNum === 1,
-    };
-  } catch {
-    // Fallback if Intl.DateTimeFormat with islamic calendar fails
-    return {
-      day: 1,
-      dayStr: '1',
-      monthName: 'Hijriah',
-      monthShort: 'H',
-      year: '1448 H',
-      yearNum: 1448,
-      full: '1 Hijriah',
-      short: '1 H',
-      isFirstDayOfMonth: false,
-    };
-  }
+  return {
+    day,
+    dayStr: String(day),
+    monthNumber: month,
+    monthName,
+    monthShort,
+    year: yearLabel,
+    yearNum: year,
+    full: `${day} ${monthName} ${yearLabel}`,
+    short: `${day} ${monthShort}`,
+    isFirstDayOfMonth: day === 1,
+  };
 }
 
 /**

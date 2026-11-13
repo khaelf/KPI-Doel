@@ -1,19 +1,14 @@
-import {createRoot} from 'react-dom/client';
+import { createRoot } from 'react-dom/client';
+import { registerSW } from 'virtual:pwa-register';
 import App from './App.tsx';
 import './index.css';
 
-// Register PWA service worker only in production environment via dynamic import
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
-  const pwaModule = 'virtual:pwa-register';
-  import(/* @vite-ignore */ pwaModule)
-    .then((mod: any) => {
-      if (mod && mod.registerSW) {
-        mod.registerSW({ immediate: true });
-      }
-    })
-    .catch((err) => {
-      console.info('PWA Service Worker registration notice:', err);
-    });
-}
+// Register PWA service worker for both development preview and production
+registerSW({
+  immediate: true,
+  onRegisterError(error) {
+    console.info('PWA Service Worker registration notice:', error);
+  },
+});
 
 createRoot(document.getElementById('root')!).render(<App />);
