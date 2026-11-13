@@ -669,6 +669,22 @@ export const storageService = {
     return items[index];
   },
 
+  updateChecklistGroup(ids: string[], updated: Partial<ChecklistItem>): ChecklistItem[] {
+    if (ids.length === 0) return [];
+    const idSet = new Set(ids);
+    const items = this.getChecklistItems();
+    const updatedItems: ChecklistItem[] = [];
+    for (let i = 0; i < items.length; i++) {
+      if (idSet.has(items[i].id)) {
+        items[i] = { ...items[i], ...updated };
+        updatedItems.push(items[i]);
+      }
+    }
+    this.saveChecklistItems(items);
+    updatedItems.forEach((item) => firebaseDataService.updateChecklistItem(item.id, updated));
+    return updatedItems;
+  },
+
   deleteChecklistItem(id: string): boolean {
     const items = this.getChecklistItems();
     const filtered = items.filter((item) => item.id !== id);

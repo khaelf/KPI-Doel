@@ -438,6 +438,18 @@ export default function App() {
     setChecklistItems([...storageService.getChecklistItems()]);
   };
 
+  // Handler: Checklist Item Update
+  const handleUpdateChecklistItem = (id: string, updated: Partial<ChecklistItem>) => {
+    storageService.updateChecklistItem(id, updated);
+    setChecklistItems([...storageService.getChecklistItems()]);
+  };
+
+  // Handler: Checklist Activity Group Update
+  const handleUpdateChecklistGroup = (ids: string[], updated: Partial<ChecklistItem>) => {
+    storageService.updateChecklistGroup(ids, updated);
+    setChecklistItems([...storageService.getChecklistItems()]);
+  };
+
   // Handler: Checklist Item Delete
   const handleDeleteChecklistItem = (id: string) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus item checklist ini?')) {
@@ -583,6 +595,8 @@ export default function App() {
             checklistItems={checklistItems}
             onAdd={handleSaveChecklistItem}
             onAddMany={handleSaveChecklistItems}
+            onUpdate={handleUpdateChecklistItem}
+            onUpdateGroup={handleUpdateChecklistGroup}
             onToggle={handleToggleChecklistItem}
             onDelete={handleDeleteChecklistItem}
             onDeleteGroup={handleDeleteChecklistGroup}
