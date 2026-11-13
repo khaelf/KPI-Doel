@@ -142,6 +142,40 @@
         }
       },
       "required": ["judul", "tanggal", "bidang", "status"]
+    },
+    "calendarNote": {
+      "title": "CalendarNote",
+      "description": "Calendar note / memo with optional date range and location",
+      "type": "object",
+      "properties": {
+        "judul": { "type": "string", "maxLength": 500 },
+        "isi": { "type": "string", "maxLength": 2000 },
+        "lokasi": { "type": "string", "maxLength": 500 },
+        "tanggal": { "type": "string", "description": "Start date YYYY-MM-DD" },
+        "tanggalSelesai": { "type": "string", "description": "End date YYYY-MM-DD" },
+        "waktu": { "type": "string" },
+        "kategori": { "type": "string", "enum": ["Pengingat", "Penting", "Koordinasi", "Tugas", "Umum"] },
+        "warna": { "type": "string", "enum": ["emerald", "blue", "amber", "rose", "purple"] },
+        "bidang": { "type": "string", "enum": ["Humas", "IT", "Semua", "Umum"] },
+        "isPinned": { "type": "boolean" },
+        "isCompleted": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["judul", "tanggal", "kategori", "warna", "isPinned", "isCompleted"]
+    },
+    "checklistItem": {
+      "title": "ChecklistItem",
+      "description": "Checklist sheet item grouped under an activity name",
+      "type": "object",
+      "properties": {
+        "namaKegiatan": { "type": "string", "maxLength": 500 },
+        "judul": { "type": "string", "maxLength": 500 },
+        "deskripsi": { "type": "string", "maxLength": 1000 },
+        "bidang": { "type": "string", "enum": ["Humas", "IT", "Semua", "Umum"] },
+        "selesai": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["judul", "selesai", "createdAt"]
     }
   },
   "firestore": {
@@ -156,6 +190,14 @@
     "/agendaItems/{agendaId}": {
       "schema": "agendaItem",
       "description": "Agenda and activity schedules for Parabek Humas & IT"
+    },
+    "/calendarNotes/{noteId}": {
+      "schema": "calendarNote",
+      "description": "Calendar notes and reminders"
+    },
+    "/checklists/{itemId}": {
+      "schema": "checklistItem",
+      "description": "Operational checklist items"
     }
   }
 }

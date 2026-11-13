@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CalendarNote, NoteCategory, NoteColor, Department } from '../types/kpi';
 import { autoCapitalizeText } from '../utils/textUtils';
 import { getHijriDateFull } from '../utils/hijriDate';
-import { X, Save, Calendar, Clock, Pin, Tag, Building2, CheckSquare } from 'lucide-react';
+import { X, Save, Calendar, Clock, Pin, Tag, Building2, CheckSquare, MapPin } from 'lucide-react';
 
 interface CalendarNoteModalProps {
   isOpen: boolean;
@@ -35,6 +35,7 @@ export const CalendarNoteModal: React.FC<CalendarNoteModalProps> = ({
 
   const [judul, setJudul] = useState('');
   const [isi, setIsi] = useState('');
+  const [lokasi, setLokasi] = useState('');
   const [tanggal, setTanggal] = useState(todayStr);
   const [tanggalSelesai, setTanggalSelesai] = useState('');
   const [waktu, setWaktu] = useState('');
@@ -49,7 +50,8 @@ export const CalendarNoteModal: React.FC<CalendarNoteModalProps> = ({
 
     if (editingNote) {
       setJudul(autoCapitalizeText(editingNote.judul || ''));
-      setIsi(editingNote.isi || '');
+      setIsi(autoCapitalizeText(editingNote.isi || ''));
+      setLokasi(autoCapitalizeText(editingNote.lokasi || ''));
       setTanggal(editingNote.tanggal || todayStr);
       setTanggalSelesai(editingNote.tanggalSelesai || '');
       setWaktu(editingNote.waktu || '');
@@ -61,6 +63,7 @@ export const CalendarNoteModal: React.FC<CalendarNoteModalProps> = ({
     } else {
       setJudul('');
       setIsi('');
+      setLokasi('');
       setTanggal(defaultDate || todayStr);
       setTanggalSelesai('');
       setWaktu('');
@@ -78,13 +81,17 @@ export const CalendarNoteModal: React.FC<CalendarNoteModalProps> = ({
     e.preventDefault();
     if (!judul.trim() || !tanggal) return;
 
+    const validEndDate =
+      tanggalSelesai && tanggalSelesai > tanggal ? tanggalSelesai : '';
+
     onSave(
       {
         judul: autoCapitalizeText(judul.trim()),
-        isi: isi.trim(),
+        isi: autoCapitalizeText(isi.trim()),
+        lokasi: autoCapitalizeText(lokasi.trim()),
         tanggal,
-        tanggalSelesai: tanggalSelesai || undefined,
-        waktu: waktu.trim() || undefined,
+        tanggalSelesai: validEndDate,
+        waktu: waktu.trim(),
         kategori,
         warna,
         bidang,
@@ -94,6 +101,17 @@ export const CalendarNoteModal: React.FC<CalendarNoteModalProps> = ({
       editingNote?.id
     );
   };
+
+  // Calculate total days if multi-day
+  const totalDays = React.useMemo(() => {
+    if (!tanggal || !tanggalSelesai || tanggalSelesai <= tanggal) return 1;
+    const [sy, sm, sd] = tanggal.split('-').map(Number);
+    const [ey, em, ed] = tanggalSelesai.split('-').map(Number);
+    const start = Date.UTC(sy, sm - 1, sd);
+    const end = Date.UTC(ey, em - 1, ed);
+    const diff = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    return diff > 1 ? diff : 1;
+  }, [tanggal, tanggalSelesai]);
 
   return (
     <div
@@ -140,7 +158,7 @@ export const CalendarNoteModal: React.FC<CalendarNoteModalProps> = ({
               />
             </div>
 
-            {/* Tanggal & Waktu */}
+            {/* Tanggal Mulai & Sampai Tanggal */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block font-semibold text-slate-900 mb-1 flex items-center gap-1">
@@ -151,7 +169,13 @@ export const CalendarNoteModal: React.FC<CalendarNoteModalProps> = ({
                   type="date"
                   required
                   value={tanggal}
-                  onChange={(e) => setTanggal(e.target.value)}
+                  onChange={(e) => {
+                    const nextVal = e.target.value;
+                    setTanggal(nextVal);
+                    if (tanggalSelesai && nextVal > tanggalSelesai) {
+                      setTanggalSelesai('');
+                    }
+                  }}
                   className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
                 />
                 {tanggal && (
@@ -169,12 +193,28 @@ export const CalendarNoteModal: React.FC<CalendarNoteModalProps> = ({
                 </label>
                 <input
                   type="date"
+                  min={tanggal || undefined}
                   value={tanggalSelesai}
                   onChange={(e) => setTanggalSelesai(e.target.value)}
                   className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
                 />
+                {tanggalSelesai && tanggalSelesai > tanggal && (
+                  <p className="text-[11px] font-medium text-emerald-800 mt-1 flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                    <span className="font-bold">☪</span>
+                    <span>{getHijriDateFull(tanggalSelesai)}</span>
+                  </p>
+                )}
               </div>
+            </div>
 
+            {totalDays >= 2 && (
+              <div className="text-[11px] text-emerald-800 bg-emerald-50/80 border border-emerald-200 rounded-lg px-3 py-1.5 font-medium">
+                Catatan ini berlangsung <strong>{totalDays} hari</strong> dan akan otomatis ditampilkan di semua tanggal pada kalender.
+              </div>
+            )}
+
+            {/* Waktu & Lokasi */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block font-semibold text-slate-900 mb-1 flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5 text-slate-600" />
@@ -184,6 +224,21 @@ export const CalendarNoteModal: React.FC<CalendarNoteModalProps> = ({
                   type="time"
                   value={waktu}
                   onChange={(e) => setWaktu(e.target.value)}
+                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-900 mb-1 flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-rose-500" />
+                  <span>Lokasi (Opsional)</span>
+                </label>
+                <input
+                  type="text"
+                  autoCapitalize="words"
+                  placeholder="Contoh: Lapangan Futsal, Aula Parabek..."
+                  value={lokasi}
+                  onChange={(e) => setLokasi(autoCapitalizeText(e.target.value))}
                   className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
                 />
               </div>
@@ -263,7 +318,7 @@ export const CalendarNoteModal: React.FC<CalendarNoteModalProps> = ({
                 rows={3}
                 placeholder="Tulis detail catatan, hasil diskusi, atau daftar poin pengingat..."
                 value={isi}
-                onChange={(e) => setIsi(e.target.value)}
+                onChange={(e) => setIsi(autoCapitalizeText(e.target.value))}
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none resize-none"
               />
             </div>

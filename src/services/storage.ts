@@ -635,13 +635,28 @@ export const storageService = {
     const items = this.getChecklistItems();
     const newItem: ChecklistItem = {
       ...item,
-      id: 'cl-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+      id: `cl-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       createdAt: new Date().toISOString(),
     };
-    items.unshift(newItem);
+    items.push(newItem);
     this.saveChecklistItems(items);
     firebaseDataService.saveChecklistItem(newItem);
     return newItem;
+  },
+
+  addChecklistItems(itemsToAdd: Omit<ChecklistItem, 'id' | 'createdAt'>[]): ChecklistItem[] {
+    if (itemsToAdd.length === 0) return [];
+    const items = this.getChecklistItems();
+    const baseTime = Date.now();
+    const created: ChecklistItem[] = itemsToAdd.map((item, idx) => ({
+      ...item,
+      id: `cl-${baseTime}-${idx}-${Math.random().toString(36).slice(2, 6)}`,
+      createdAt: new Date(baseTime + idx).toISOString(),
+    }));
+    items.push(...created);
+    this.saveChecklistItems(items);
+    created.forEach((newItem) => firebaseDataService.saveChecklistItem(newItem));
+    return created;
   },
 
   updateChecklistItem(id: string, updated: Partial<ChecklistItem>): ChecklistItem | null {
@@ -660,6 +675,17 @@ export const storageService = {
     if (filtered.length === items.length) return false;
     this.saveChecklistItems(filtered);
     firebaseDataService.deleteChecklistItem(id);
+    return true;
+  },
+
+  deleteChecklistGroup(ids: string[]): boolean {
+    if (ids.length === 0) return false;
+    const idSet = new Set(ids);
+    const items = this.getChecklistItems();
+    const filtered = items.filter((item) => !idSet.has(item.id));
+    if (filtered.length === items.length) return false;
+    this.saveChecklistItems(filtered);
+    ids.forEach((id) => firebaseDataService.deleteChecklistItem(id));
     return true;
   },
 

@@ -430,10 +430,30 @@ export default function App() {
     setChecklistItems([...storageService.getChecklistItems()]);
   };
 
+  // Handler: Checklist Batch Save (Add Multiple Items)
+  const handleSaveChecklistItems = (
+    items: Omit<ChecklistItem, 'id' | 'createdAt'>[]
+  ) => {
+    storageService.addChecklistItems(items);
+    setChecklistItems([...storageService.getChecklistItems()]);
+  };
+
   // Handler: Checklist Item Delete
   const handleDeleteChecklistItem = (id: string) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus item checklist ini?')) {
       storageService.deleteChecklistItem(id);
+      setChecklistItems([...storageService.getChecklistItems()]);
+    }
+  };
+
+  // Handler: Checklist Activity Group Delete
+  const handleDeleteChecklistGroup = (activityName: string, ids: string[]) => {
+    if (
+      window.confirm(
+        `Apakah Anda yakin ingin menghapus seluruh daftar checklist untuk kegiatan "${activityName}" (${ids.length} item)?`
+      )
+    ) {
+      storageService.deleteChecklistGroup(ids);
       setChecklistItems([...storageService.getChecklistItems()]);
     }
   };
@@ -562,8 +582,10 @@ export default function App() {
           <ChecklistView
             checklistItems={checklistItems}
             onAdd={handleSaveChecklistItem}
+            onAddMany={handleSaveChecklistItems}
             onToggle={handleToggleChecklistItem}
             onDelete={handleDeleteChecklistItem}
+            onDeleteGroup={handleDeleteChecklistGroup}
           />
         )}
 

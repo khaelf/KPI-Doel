@@ -192,6 +192,44 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   // Offset for Monday as the 1st column: (0->6, 1->0, 2->1, 3->2, 4->3, 5->4, 6->5)
   const startOffset = (firstDayOfWeek + 6) % 7;
 
+  // Helper: expand date range YYYY-MM-DD..YYYY-MM-DD (inclusive, max 366 days)
+  const getDateRangeStrings = (startStr: string, endStr?: string): string[] => {
+    if (!startStr) return [];
+    if (!endStr || endStr <= startStr) return [startStr];
+
+    const [sy, sm, sd] = startStr.split('-').map(Number);
+    const [ey, em, ed] = endStr.split('-').map(Number);
+    if (!sy || !sm || !sd || !ey || !em || !ed) return [startStr];
+
+    const dates: string[] = [];
+    const current = new Date(Date.UTC(sy, sm - 1, sd));
+    const end = new Date(Date.UTC(ey, em - 1, ed));
+
+    let safety = 0;
+    while (current <= end && safety < 366) {
+      const y = current.getUTCFullYear();
+      const m = String(current.getUTCMonth() + 1).padStart(2, '0');
+      const d = String(current.getUTCDate()).padStart(2, '0');
+      dates.push(`${y}-${m}-${d}`);
+      current.setUTCDate(current.getUTCDate() + 1);
+      safety++;
+    }
+    return dates.length > 0 ? dates : [startStr];
+  };
+
+  const formatNoteDateRange = (note: CalendarNote): string => {
+    if (!note.tanggal) return '';
+    if (note.tanggalSelesai && note.tanggalSelesai > note.tanggal) {
+      const [y1, m1, d1] = note.tanggal.split('-');
+      const [y2, m2] = note.tanggalSelesai.split('-');
+      if (y1 === y2 && m1 === m2) {
+        return `${parseInt(d1, 10)} – ${formatDateIndo(note.tanggalSelesai)}`;
+      }
+      return `${formatDateIndo(note.tanggal)} – ${formatDateIndo(note.tanggalSelesai)}`;
+    }
+    return formatDateIndo(note.tanggal);
+  };
+
   // Filter notes by department, category, and search query
   const filteredNotes = calendarNotes.filter((note) => {
     const isDeptMatch =
@@ -208,25 +246,32 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       !query ||
       note.judul.toLowerCase().includes(query) ||
       (note.isi && note.isi.toLowerCase().includes(query)) ||
+      (note.lokasi && note.lokasi.toLowerCase().includes(query)) ||
       note.kategori.toLowerCase().includes(query);
 
     return isDeptMatch && isCatMatch && isSearchMatch;
   });
 
-  // Filter notes for the selected month
-  const monthNotes = filteredNotes.filter(
-    (n) => n.tanggal && n.tanggal.startsWith(selectedMonth)
-  );
-
-  // Map notes by date (YYYY-MM-DD -> CalendarNote[])
-  const notesByDate = new Map<string, CalendarNote[]>();
-  filteredNotes.forEach((n) => {
-    const list = notesByDate.get(n.tanggal) || [];
-    list.push(n);
-    notesByDate.set(n.tanggal, list);
+  // Filter notes whose date range covers the selected month
+  const monthNotes = filteredNotes.filter((n) => {
+    if (!n.tanggal) return false;
+    const startMonth = n.tanggal.substring(0, 7);
+    const endMonth = (n.tanggalSelesai && n.tanggalSelesai > n.tanggal ? n.tanggalSelesai : n.tanggal).substring(0, 7);
+    return startMonth <= selectedMonth && endMonth >= selectedMonth;
   });
 
-  // Map agendas by date
+  // Map notes by date (YYYY-MM-DD -> CalendarNote[]), expanding multi-day notes across all dates
+  const notesByDate = new Map<string, CalendarNote[]>();
+  filteredNotes.forEach((n) => {
+    const dates = getDateRangeStrings(n.tanggal, n.tanggalSelesai);
+    dates.forEach((dStr) => {
+      const list = notesByDate.get(dStr) || [];
+      list.push(n);
+      notesByDate.set(dStr, list);
+    });
+  });
+
+  // Map agendas by date, expanding multi-day agendas across all dates
   const agendasByDate = new Map<string, AgendaItem[]>();
   agendaItems.forEach((ag) => {
     if (!ag.tanggal) return;
@@ -236,9 +281,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       ag.bidang === selectedDepartment;
     if (!isDeptMatch) return;
 
-    const list = agendasByDate.get(ag.tanggal) || [];
-    list.push(ag);
-    agendasByDate.set(ag.tanggal, list);
+    const dates = getDateRangeStrings(ag.tanggal, ag.tanggalSelesaiAgenda);
+    dates.forEach((dStr) => {
+      const list = agendasByDate.get(dStr) || [];
+      list.push(ag);
+      agendasByDate.set(dStr, list);
+    });
   });
 
 
@@ -568,13 +616,20 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                       {/* Notes Preview Badges */}
                       {dayNotes.slice(0, 2).map((note) => {
                         const style = COLOR_STYLES[note.warna || 'emerald'];
+                        const tooltipParts = [note.judul];
+                        if (note.tanggalSelesai && note.tanggalSelesai > note.tanggal) {
+                          tooltipParts.push(`(${formatNoteDateRange(note)})`);
+                        }
+                        if (note.lokasi) {
+                          tooltipParts.push(`📍 ${note.lokasi}`);
+                        }
                         return (
                           <div
                             key={note.id}
                             className={`text-[9px] sm:text-[10px] truncate px-1.5 py-0.5 rounded border font-medium flex items-center gap-1 ${
                               note.isCompleted ? 'line-through opacity-60 ' : ''
                             } ${style.badge}`}
-                            title={note.judul}
+                            title={tooltipParts.join(' ')}
                           >
                             {note.isPinned && (
                               <Pin className="w-2.5 h-2.5 text-amber-600 shrink-0" />
@@ -727,6 +782,23 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                               >
                                 {note.judul}
                               </h4>
+
+                              {(note.lokasi || (note.tanggalSelesai && note.tanggalSelesai > note.tanggal)) && (
+                                <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 mt-1 text-[10px] text-slate-600">
+                                  {note.tanggalSelesai && note.tanggalSelesai > note.tanggal && (
+                                    <span className="flex items-center gap-1 font-medium text-emerald-700">
+                                      <CalendarDays className="w-3 h-3 text-emerald-600 shrink-0" />
+                                      <span>{formatNoteDateRange(note)}</span>
+                                    </span>
+                                  )}
+                                  {note.lokasi && (
+                                    <span className="flex items-center gap-1 font-medium text-slate-600">
+                                      <MapPin className="w-3 h-3 text-rose-500 shrink-0" />
+                                      <span>{note.lokasi}</span>
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           </div>
 
@@ -842,7 +914,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredNotes
+              {[...filteredNotes]
                 .sort((a, b) => {
                   if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
                   return b.tanggal.localeCompare(a.tanggal);
@@ -864,7 +936,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                           <div className="flex flex-wrap items-center gap-1.5">
                             <span className="text-[11px] font-mono font-bold text-slate-700 flex items-center gap-1">
                               <CalendarDays className="w-3.5 h-3.5 text-slate-400" />
-                              <span>{formatDateIndo(note.tanggal)}</span>
+                              <span>{formatNoteDateRange(note)}</span>
                             </span>
                             <span className="text-[10px] font-semibold text-emerald-850 bg-emerald-50 border border-emerald-200/90 text-emerald-800 px-1.5 py-0.2 rounded-md">
                               ☪ {getHijriDateFull(note.tanggal, hijriOffset)}
@@ -904,6 +976,14 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                             {note.judul}
                           </h4>
                         </div>
+
+                        {/* Location */}
+                        {note.lokasi && (
+                          <div className="flex items-center gap-1.5 text-[11px] text-slate-600 pl-6 font-medium">
+                            <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                            <span>{note.lokasi}</span>
+                          </div>
+                        )}
 
                         {/* Content text */}
                         {note.isi && (

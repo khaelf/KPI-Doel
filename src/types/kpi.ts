@@ -76,6 +76,7 @@ export interface CalendarNote {
   tanggalSelesai?: string; // YYYY-MM-DD (Opsional)
   judul: string;
   isi?: string;
+  lokasi?: string;
   waktu?: string; // HH:mm
   kategori: NoteCategory;
   warna: NoteColor;
@@ -87,6 +88,7 @@ export interface CalendarNote {
 
 export interface ChecklistItem {
   id: string;
+  namaKegiatan?: string;
   judul: string;
   selesai: boolean;
   bidang: Department | 'Semua';
