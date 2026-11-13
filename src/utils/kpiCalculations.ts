@@ -17,6 +17,22 @@ export function calculateIndicatorAchievement(indicator: KpiIndicator): {
   };
 }
 
+export function doesWorkEntryMatchKpi(
+  entry: WorkEntry,
+  indicatorName: string,
+  indicatorBidang?: Department
+): boolean {
+  if (indicatorBidang && entry.bidang !== indicatorBidang) {
+    return false;
+  }
+  const indName = indicatorName.trim().toLowerCase();
+  if (!indName) return false;
+  return (
+    (!!entry.indikatorKpi && entry.indikatorKpi.trim().toLowerCase() === indName) ||
+    (!!entry.namaPekerjaan && entry.namaPekerjaan.toLowerCase().includes(indName))
+  );
+}
+
 /**
  * Determines whether a work entry belongs to or carries over to the selected month.
  * Rule: "semua pekerjaan yang belum selesai maka berlanjut ke bulan selanjutnya"

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { WorkEntry, Department, TaskStatus } from '../types/kpi';
-import { isWorkEntryInMonth } from '../utils/kpiCalculations';
+import { isWorkEntryInMonth, doesWorkEntryMatchKpi } from '../utils/kpiCalculations';
 import {
   Search,
   Plus,
@@ -16,6 +16,8 @@ import {
   Bell,
   AlertCircle,
   CalendarDays,
+  Target,
+  ArrowLeft,
 } from 'lucide-react';
 
 interface WorkLogViewProps {
@@ -24,6 +26,9 @@ interface WorkLogViewProps {
   selectedDepartment: 'Semua' | Department;
   statusFilter?: 'Semua' | TaskStatus;
   setStatusFilter?: (status: 'Semua' | TaskStatus) => void;
+  kpiFilter?: { namaIndikator: string; bidang: Department } | null;
+  setKpiFilter?: (filter: { namaIndikator: string; bidang: Department } | null) => void;
+  onBackToKpi?: () => void;
   showDeadlineOnly?: boolean;
   setShowDeadlineOnly?: (show: boolean) => void;
   onAddEntry: () => void;
@@ -52,6 +57,9 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
   selectedDepartment,
   statusFilter,
   setStatusFilter,
+  kpiFilter,
+  setKpiFilter,
+  onBackToKpi,
   showDeadlineOnly: propShowDeadlineOnly,
   setShowDeadlineOnly: propSetShowDeadlineOnly,
   onAddEntry,
@@ -137,6 +145,8 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
     const isMonthMatch = !selectedMonth || isWorkEntryInMonth(entry, selectedMonth);
     const isDeptMatch = selectedDepartment === 'Semua' || entry.bidang === selectedDepartment;
     const isStatusMatch = activeStatusFilter === 'Semua' || entry.status === activeStatusFilter;
+    const isKpiMatch =
+      !kpiFilter || doesWorkEntryMatchKpi(entry, kpiFilter.namaIndikator, kpiFilter.bidang);
     const isSearchMatch =
       !searchTerm ||
       entry.namaPekerjaan.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -145,7 +155,7 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
 
     const isDeadlineMatch = !showDeadline || (entry.status !== 'Selesai' && !!entry.tanggalAcara && entry.tanggalAcara <= todayStr);
 
-    return isMonthMatch && isDeptMatch && isStatusMatch && isSearchMatch && isDeadlineMatch;
+    return isMonthMatch && isDeptMatch && isStatusMatch && isKpiMatch && isSearchMatch && isDeadlineMatch;
   });
 
   // Sorted list by selected sort field & direction (Supports sorting by Tanggal Acara)
@@ -175,11 +185,13 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
     return 0;
   });
 
-  // Summary counts for current month & department selection (including carry-over tasks)
+  // Summary counts for current month & department selection (scoped to kpiFilter when active)
   const monthEntries = workEntries.filter((entry) => {
     const isMonthMatch = !selectedMonth || isWorkEntryInMonth(entry, selectedMonth);
     const isDeptMatch = selectedDepartment === 'Semua' || entry.bidang === selectedDepartment;
-    return isMonthMatch && isDeptMatch;
+    const isKpiMatch =
+      !kpiFilter || doesWorkEntryMatchKpi(entry, kpiFilter.namaIndikator, kpiFilter.bidang);
+    return isMonthMatch && isDeptMatch && isKpiMatch;
   });
 
   const totalJobs = monthEntries.length;
@@ -237,6 +249,47 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
       </div>
 
 
+
+      {/* Active KPI Indicator Banner */}
+      {kpiFilter && (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs shadow-2xs">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-emerald-700 text-white flex items-center justify-center shrink-0">
+              <Target className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold text-emerald-700">
+                Menampilkan Pekerjaan Indikator KPI ({kpiFilter.bidang})
+              </p>
+              <p className="text-sm font-bold text-slate-900">
+                {kpiFilter.namaIndikator}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            {onBackToKpi && (
+              <button
+                type="button"
+                onClick={onBackToKpi}
+                className="px-3 py-1.5 bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Kembali ke KPI</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setKpiFilter?.(null);
+                handleStatusFilterChange('Semua');
+              }}
+              className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-semibold transition-colors cursor-pointer"
+            >
+              Tampilkan Semua Pekerjaan
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Summary Stat Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
@@ -350,6 +403,22 @@ export const WorkLogView: React.FC<WorkLogViewProps> = ({
                 onClick={() => setDeadlineOnly(false)}
                 className="hover:text-rose-900 font-extrabold ml-1 cursor-pointer"
                 title="Tampilkan semua"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
+          {kpiFilter && (
+            <div className="flex items-center gap-1.5 text-xs bg-blue-50 text-blue-800 border border-blue-200 px-2.5 py-1 rounded-xl">
+              <span className="font-semibold">
+                KPI: {kpiFilter.namaIndikator} ({kpiFilter.bidang})
+              </span>
+              <button
+                type="button"
+                onClick={() => setKpiFilter?.(null)}
+                className="hover:text-rose-600 font-extrabold ml-1 cursor-pointer"
+                title="Hapus filter indikator KPI"
               >
                 ✕
               </button>

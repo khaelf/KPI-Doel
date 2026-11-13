@@ -24,6 +24,7 @@ export default function App() {
   const [selectedDepartment, setSelectedDepartment] = useState<'Semua' | Department>('Semua');
   const [selectedMonth, setSelectedMonth] = useState<string>(() => getCurrentMonthString());
   const [catatanStatusFilter, setCatatanStatusFilter] = useState<'Semua' | TaskStatus>('Semua');
+  const [catatanKpiFilter, setCatatanKpiFilter] = useState<{ namaIndikator: string; bidang: Department } | null>(null);
   const [showDeadlineOnly, setShowDeadlineOnly] = useState<boolean>(false);
 
   // Data State
@@ -148,14 +149,27 @@ export default function App() {
 
   const handleNavigateToCatatanWithStatus = (filter: 'Semua' | TaskStatus) => {
     setCatatanStatusFilter(filter);
+    setCatatanKpiFilter(null);
     setShowDeadlineOnly(false);
     changeTab('catatan');
   };
 
   const handleNavigateToDeadline = () => {
     setShowDeadlineOnly(true);
+    setCatatanKpiFilter(null);
     setCatatanStatusFilter('Semua');
     changeTab('catatan');
+  };
+
+  const handleViewKpiWorks = (indicator: KpiIndicator) => {
+    setCatatanKpiFilter({
+      namaIndikator: indicator.namaIndikator,
+      bidang: indicator.bidang,
+    });
+    setCatatanStatusFilter('Selesai');
+    setShowDeadlineOnly(false);
+    changeTab('catatan');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Load initial data & subscribe to real-time Firestore updates
@@ -539,6 +553,12 @@ export default function App() {
             selectedDepartment={selectedDepartment}
             statusFilter={catatanStatusFilter}
             setStatusFilter={setCatatanStatusFilter}
+            kpiFilter={catatanKpiFilter}
+            setKpiFilter={setCatatanKpiFilter}
+            onBackToKpi={() => {
+              setCatatanKpiFilter(null);
+              changeTab('kpi');
+            }}
             showDeadlineOnly={showDeadlineOnly}
             setShowDeadlineOnly={setShowDeadlineOnly}
             onAddEntry={() => openWorkModal(null)}
@@ -558,6 +578,7 @@ export default function App() {
             onEditIndicator={(ind) => openKpiModal(ind.bidang, ind)}
             onDeleteIndicator={handleDeleteKpiIndicator}
             onQuickUpdateRealisasi={handleQuickUpdateRealisasi}
+            onViewIndicatorWorks={handleViewKpiWorks}
           />
         )}
 

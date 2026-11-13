@@ -2,6 +2,7 @@ import React from 'react';
 import { WorkEntry, KpiIndicator, Department } from '../types/kpi';
 import {
   calculateIndicatorAchievement,
+  doesWorkEntryMatchKpi,
   formatMonthLabel,
   getKpiStatusBadge,
   isWorkEntryInMonth,
@@ -13,6 +14,7 @@ import {
   Megaphone,
   Monitor,
   Briefcase,
+  Eye,
 } from 'lucide-react';
 
 interface KpiMonthlyViewProps {
@@ -23,6 +25,7 @@ interface KpiMonthlyViewProps {
   onEditIndicator: (indicator: KpiIndicator) => void;
   onDeleteIndicator: (id: string) => void;
   onQuickUpdateRealisasi?: (id: string, newRealisasi: number) => void;
+  onViewIndicatorWorks?: (indicator: KpiIndicator) => void;
   workEntries?: WorkEntry[];
 }
 
@@ -33,20 +36,20 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
   onAddIndicator,
   onEditIndicator,
   onDeleteIndicator,
+  onViewIndicatorWorks,
   workEntries = [],
 }) => {
   const monthLabel = formatMonthLabel(selectedMonth);
 
   const getEffectiveIndicator = (ind: KpiIndicator): KpiIndicator => {
     if (!workEntries || workEntries.length === 0) return ind;
-    const indName = ind.namaIndikator.trim().toLowerCase();
     const completedCount = workEntries.filter((e) => {
-      const isDeptMatch = e.bidang === ind.bidang;
-      const isKpiMatch =
-        (e.indikatorKpi && e.indikatorKpi.trim().toLowerCase() === indName) ||
-        (e.namaPekerjaan && e.namaPekerjaan.toLowerCase().includes(indName));
       const isDone = e.status === 'Selesai';
-      return isDeptMatch && isKpiMatch && isDone && isWorkEntryInMonth(e, ind.periodeBulan);
+      return (
+        isDone &&
+        doesWorkEntryMatchKpi(e, ind.namaIndikator, ind.bidang) &&
+        isWorkEntryInMonth(e, ind.periodeBulan)
+      );
     }).length;
 
     return {
@@ -218,7 +221,7 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                       <th className="py-3 px-3 text-left whitespace-nowrap">Target</th>
                       <th className="py-3 px-3 text-center w-24 whitespace-nowrap">Realisasi</th>
                       <th className="py-3 px-4 text-center w-28 whitespace-nowrap">Pencapaian (%)</th>
-                      <th className="py-3 px-4 text-right w-24 whitespace-nowrap">Aksi</th>
+                      <th className="py-3 px-4 text-right w-36 whitespace-nowrap">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -243,7 +246,14 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                             </button>
                           </td>
                           <td className="py-3.5 px-3 text-center font-mono font-extrabold text-slate-900 whitespace-nowrap bg-slate-50/60">
-                            {ind.realisasi}
+                            <button
+                              type="button"
+                              onClick={() => onViewIndicatorWorks?.(ind)}
+                              className="inline-flex items-center justify-center px-2.5 py-1 rounded-lg hover:bg-emerald-100 hover:text-emerald-800 transition-colors cursor-pointer"
+                              title={`Lihat pekerjaan selesai untuk ${ind.namaIndikator}`}
+                            >
+                              {ind.realisasi}
+                            </button>
                           </td>
                           <td className="py-3.5 px-4 text-center font-mono font-bold text-slate-900 whitespace-nowrap">
                             <span
@@ -260,6 +270,17 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                           </td>
                           <td className="py-3.5 px-4 text-right whitespace-nowrap">
                             <div className="flex items-center justify-end gap-1">
+                              {onViewIndicatorWorks && (
+                                <button
+                                  type="button"
+                                  onClick={() => onViewIndicatorWorks(ind)}
+                                  className="px-2.5 py-1 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors inline-flex items-center gap-1 font-semibold text-[11px] cursor-pointer"
+                                  title={`Lihat pekerjaan selesai untuk ${ind.namaIndikator}`}
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                  <span>Lihat</span>
+                                </button>
+                              )}
                               <button
                                 onClick={() => onEditIndicator(ind)}
                                 className="p-1.5 text-slate-600 hover:text-emerald-700 rounded-md hover:bg-emerald-50 transition-colors"
@@ -336,7 +357,7 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                       <th className="py-3 px-3 text-left whitespace-nowrap">Target</th>
                       <th className="py-3 px-3 text-center w-24 whitespace-nowrap">Realisasi</th>
                       <th className="py-3 px-4 text-center w-28 whitespace-nowrap">Pencapaian (%)</th>
-                      <th className="py-3 px-4 text-right w-24 whitespace-nowrap">Aksi</th>
+                      <th className="py-3 px-4 text-right w-36 whitespace-nowrap">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -361,7 +382,14 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                             </button>
                           </td>
                           <td className="py-3.5 px-3 text-center font-mono font-extrabold text-slate-900 whitespace-nowrap bg-slate-50/60">
-                            {ind.realisasi}
+                            <button
+                              type="button"
+                              onClick={() => onViewIndicatorWorks?.(ind)}
+                              className="inline-flex items-center justify-center px-2.5 py-1 rounded-lg hover:bg-blue-100 hover:text-blue-800 transition-colors cursor-pointer"
+                              title={`Lihat pekerjaan selesai untuk ${ind.namaIndikator}`}
+                            >
+                              {ind.realisasi}
+                            </button>
                           </td>
                           <td className="py-3.5 px-4 text-center font-mono font-bold text-slate-900 whitespace-nowrap">
                             <span
@@ -378,6 +406,17 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                           </td>
                           <td className="py-3.5 px-4 text-right whitespace-nowrap">
                             <div className="flex items-center justify-end gap-1">
+                              {onViewIndicatorWorks && (
+                                <button
+                                  type="button"
+                                  onClick={() => onViewIndicatorWorks(ind)}
+                                  className="px-2.5 py-1 text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors inline-flex items-center gap-1 font-semibold text-[11px] cursor-pointer"
+                                  title={`Lihat pekerjaan selesai untuk ${ind.namaIndikator}`}
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                  <span>Lihat</span>
+                                </button>
+                              )}
                               <button
                                 onClick={() => onEditIndicator(ind)}
                                 className="p-1.5 text-slate-600 hover:text-blue-700 rounded-md hover:bg-blue-50 transition-colors"
@@ -454,7 +493,7 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                       <th className="py-3 px-3 text-left whitespace-nowrap">Target</th>
                       <th className="py-3 px-3 text-center w-24 whitespace-nowrap">Realisasi</th>
                       <th className="py-3 px-4 text-center w-28 whitespace-nowrap">Pencapaian (%)</th>
-                      <th className="py-3 px-4 text-right w-24 whitespace-nowrap">Aksi</th>
+                      <th className="py-3 px-4 text-right w-36 whitespace-nowrap">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -479,7 +518,14 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                             </button>
                           </td>
                           <td className="py-3.5 px-3 text-center font-mono font-extrabold text-slate-900 whitespace-nowrap bg-slate-50/60">
-                            {ind.realisasi}
+                            <button
+                              type="button"
+                              onClick={() => onViewIndicatorWorks?.(ind)}
+                              className="inline-flex items-center justify-center px-2.5 py-1 rounded-lg hover:bg-purple-100 hover:text-purple-800 transition-colors cursor-pointer"
+                              title={`Lihat pekerjaan selesai untuk ${ind.namaIndikator}`}
+                            >
+                              {ind.realisasi}
+                            </button>
                           </td>
                           <td className="py-3.5 px-4 text-center font-mono font-bold text-slate-900 whitespace-nowrap">
                             <span
@@ -496,6 +542,17 @@ export const KpiMonthlyView: React.FC<KpiMonthlyViewProps> = ({
                           </td>
                           <td className="py-3.5 px-4 text-right whitespace-nowrap">
                             <div className="flex items-center justify-end gap-1">
+                              {onViewIndicatorWorks && (
+                                <button
+                                  type="button"
+                                  onClick={() => onViewIndicatorWorks(ind)}
+                                  className="px-2.5 py-1 text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg transition-colors inline-flex items-center gap-1 font-semibold text-[11px] cursor-pointer"
+                                  title={`Lihat pekerjaan selesai untuk ${ind.namaIndikator}`}
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                  <span>Lihat</span>
+                                </button>
+                              )}
                               <button
                                 onClick={() => onEditIndicator(ind)}
                                 className="p-1.5 text-slate-600 hover:text-purple-700 rounded-md hover:bg-purple-50 transition-colors cursor-pointer"
