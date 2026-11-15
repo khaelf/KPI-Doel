@@ -89,6 +89,8 @@ export interface CalendarNote {
 export interface ChecklistItem {
   id: string;
   namaKegiatan?: string;
+  tanggal?: string; // YYYY-MM-DD
+  lokasi?: string;
   judul: string;
   selesai: boolean;
   bidang: Department | 'Semua';

@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ChecklistItem, Department } from '../types/kpi';
 import { autoCapitalizeText } from '../utils/textUtils';
+import { formatDateIndo } from '../utils/kpiCalculations';
 import {
   CheckSquare,
   ClipboardList,
@@ -15,6 +16,8 @@ import {
   Building2,
   Edit2,
   Check,
+  Calendar,
+  MapPin,
 } from 'lucide-react';
 
 interface ChecklistViewProps {
@@ -32,6 +35,8 @@ interface ActivityGroup {
   key: string;
   namaKegiatan: string;
   bidang: Department | 'Semua';
+  tanggal?: string;
+  lokasi?: string;
   items: ChecklistItem[];
 }
 
@@ -47,6 +52,8 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
 }) => {
   const [namaKegiatan, setNamaKegiatan] = useState('');
   const [bidang, setBidang] = useState<Department | 'Semua'>('Semua');
+  const [tanggal, setTanggal] = useState('');
+  const [lokasi, setLokasi] = useState('');
   const [draftItemInput, setDraftItemInput] = useState('');
   const [draftItems, setDraftItems] = useState<string[]>([]);
 
@@ -56,6 +63,8 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
   const [editingGroupKey, setEditingGroupKey] = useState<string | null>(null);
   const [editingGroupName, setEditingGroupName] = useState('');
   const [editingGroupBidang, setEditingGroupBidang] = useState<Department | 'Semua'>('Semua');
+  const [editingGroupTanggal, setEditingGroupTanggal] = useState('');
+  const [editingGroupLokasi, setEditingGroupLokasi] = useState('');
 
   const [quickAddByGroup, setQuickAddByGroup] = useState<Record<string, string>>({});
   const [searchQuery, setSearchQuery] = useState('');
@@ -65,13 +74,25 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
 
   // Existing distinct activity names for quick-pick suggestions
   const existingActivities = useMemo(() => {
-    const map = new Map<string, { name: string; bidang: Department | 'Semua' }>();
+    const map = new Map<
+      string,
+      { name: string; bidang: Department | 'Semua'; tanggal?: string; lokasi?: string }
+    >();
     checklistItems.forEach((item) => {
       const name = (item.namaKegiatan || '').trim();
       if (name) {
         const key = name.toLowerCase();
-        if (!map.has(key)) {
-          map.set(key, { name, bidang: item.bidang || 'Semua' });
+        const existing = map.get(key);
+        if (!existing) {
+          map.set(key, {
+            name,
+            bidang: item.bidang || 'Semua',
+            tanggal: item.tanggal || '',
+            lokasi: item.lokasi || '',
+          });
+        } else {
+          if (!existing.tanggal && item.tanggal) existing.tanggal = item.tanggal;
+          if (!existing.lokasi && item.lokasi) existing.lokasi = item.lokasi;
         }
       }
     });
@@ -101,8 +122,13 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
     const finalItems = pendingText ? [...draftItems, pendingText] : [...draftItems];
     if (finalItems.length === 0) return;
 
+    const cleanLokasi = autoCapitalizeText(lokasi.trim());
+    const cleanTanggal = tanggal.trim();
+
     const payload: Omit<ChecklistItem, 'id' | 'createdAt'>[] = finalItems.map((judul) => ({
       namaKegiatan: activityName,
+      tanggal: cleanTanggal,
+      lokasi: cleanLokasi,
       judul,
       selesai: false,
       bidang,
@@ -115,6 +141,8 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
     }
 
     setNamaKegiatan('');
+    setTanggal('');
+    setLokasi('');
     setDraftItemInput('');
     setDraftItems([]);
   };
@@ -122,22 +150,22 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
   // Inline quick add inside an existing Activity Card
   const handleQuickAddToGroup = (
     e: React.FormEvent,
-    groupKey: string,
-    groupName: string,
-    groupBidang: Department | 'Semua'
+    group: ActivityGroup
   ) => {
     e.preventDefault();
-    const raw = (quickAddByGroup[groupKey] || '').trim();
+    const raw = (quickAddByGroup[group.key] || '').trim();
     if (!raw) return;
 
     onAdd({
-      namaKegiatan: groupName === 'Checklist Umum' ? '' : groupName,
+      namaKegiatan: group.namaKegiatan === 'Checklist Umum' ? '' : group.namaKegiatan,
+      tanggal: group.tanggal || '',
+      lokasi: group.lokasi || '',
       judul: autoCapitalizeText(raw),
       selesai: false,
-      bidang: groupBidang,
+      bidang: group.bidang,
     });
 
-    setQuickAddByGroup((prev) => ({ ...prev, [groupKey]: '' }));
+    setQuickAddByGroup((prev) => ({ ...prev, [group.key]: '' }));
   };
 
   // Start & save editing individual item
@@ -161,26 +189,30 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
     setEditingGroupKey(group.key);
     setEditingGroupName(group.namaKegiatan === 'Checklist Umum' ? '' : group.namaKegiatan);
     setEditingGroupBidang(group.bidang || 'Semua');
+    setEditingGroupTanggal(group.tanggal || '');
+    setEditingGroupLokasi(group.lokasi || '');
   };
 
   const handleSaveEditGroup = (ids: string[]) => {
     const cleanName = autoCapitalizeText(editingGroupName.trim());
     if (!cleanName) return;
+    const cleanLokasi = autoCapitalizeText(editingGroupLokasi.trim());
+    const cleanTanggal = editingGroupTanggal.trim();
+    const updatedPayload: Partial<ChecklistItem> = {
+      namaKegiatan: cleanName,
+      bidang: editingGroupBidang,
+      tanggal: cleanTanggal,
+      lokasi: cleanLokasi,
+    };
     if (onUpdateGroup) {
-      onUpdateGroup(ids, {
-        namaKegiatan: cleanName,
-        bidang: editingGroupBidang,
-      });
+      onUpdateGroup(ids, updatedPayload);
     } else if (onUpdate) {
-      ids.forEach((id) =>
-        onUpdate(id, {
-          namaKegiatan: cleanName,
-          bidang: editingGroupBidang,
-        })
-      );
+      ids.forEach((id) => onUpdate(id, updatedPayload));
     }
     setEditingGroupKey(null);
     setEditingGroupName('');
+    setEditingGroupTanggal('');
+    setEditingGroupLokasi('');
   };
 
   // Group items by Nama Kegiatan and apply search/status filters
@@ -197,8 +229,14 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
           key,
           namaKegiatan: activityName,
           bidang: item.bidang || 'Semua',
+          tanggal: item.tanggal || '',
+          lokasi: item.lokasi || '',
           items: [],
         });
+      } else {
+        const grp = groupMap.get(key)!;
+        if (!grp.tanggal && item.tanggal) grp.tanggal = item.tanggal;
+        if (!grp.lokasi && item.lokasi) grp.lokasi = item.lokasi;
       }
       groupMap.get(key)!.items.push(item);
     });
@@ -221,7 +259,10 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
 
     return groups
       .map((group) => {
-        const groupNameMatches = !query || group.namaKegiatan.toLowerCase().includes(query);
+        const groupNameMatches =
+          !query ||
+          group.namaKegiatan.toLowerCase().includes(query) ||
+          (group.lokasi && group.lokasi.toLowerCase().includes(query));
         const filteredItems = group.items.filter((item) => {
           const matchesQuery =
             groupNameMatches || item.judul.toLowerCase().includes(query);
@@ -299,8 +340,8 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
         </div>
 
         <div className="p-4 sm:p-5 space-y-5 text-xs">
-          {/* STEP 1: Nama Kegiatan & Bidang */}
-          <div className="space-y-2.5">
+          {/* STEP 1: Nama Kegiatan, Bidang, Tanggal & Lokasi */}
+          <div className="space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
               <div className="md:col-span-9">
                 <label className="block font-bold text-slate-900 mb-1.5 flex items-center gap-1.5">
@@ -314,6 +355,7 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
                 <input
                   type="text"
                   autoCapitalize="words"
+                  maxLength={500}
                   value={namaKegiatan}
                   onChange={(e) => setNamaKegiatan(autoCapitalizeText(e.target.value))}
                   onKeyDown={(e) => {
@@ -344,6 +386,43 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
               </div>
             </div>
 
+            {/* Tanggal & Lokasi */}
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+              <div className="sm:col-span-5">
+                <label className="block font-bold text-slate-900 mb-1.5 flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-emerald-700" />
+                  <span>Tanggal Kegiatan</span>
+                </label>
+                <input
+                  type="date"
+                  value={tanggal}
+                  onChange={(e) => setTanggal(e.target.value)}
+                  className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
+                />
+              </div>
+
+              <div className="sm:col-span-7">
+                <label className="block font-bold text-slate-900 mb-1.5 flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-emerald-700" />
+                  <span>Lokasi Kegiatan</span>
+                </label>
+                <input
+                  type="text"
+                  autoCapitalize="words"
+                  maxLength={500}
+                  value={lokasi}
+                  onChange={(e) => setLokasi(autoCapitalizeText(e.target.value))}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                    }
+                  }}
+                  placeholder="Contoh: Aula Pondok, Lapangan Utama, Masjid..."
+                  className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
+                />
+              </div>
+            </div>
+
             {/* Quick pick existing activities */}
             {existingActivities.length > 0 && (
               <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
@@ -357,6 +436,8 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
                     onClick={() => {
                       setNamaKegiatan(act.name);
                       setBidang(act.bidang);
+                      setTanggal(act.tanggal || '');
+                      setLokasi(act.lokasi || '');
                     }}
                     className={`px-2.5 py-1 rounded-lg border text-[11px] font-semibold transition-colors cursor-pointer ${
                       namaKegiatan.trim().toLowerCase() === act.name.toLowerCase()
@@ -495,7 +576,7 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Cari nama kegiatan atau item kebutuhan..."
+              placeholder="Cari nama kegiatan, lokasi, atau item kebutuhan..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-3 py-1.5 border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
@@ -558,6 +639,7 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
                           type="text"
                           autoFocus
                           autoCapitalize="words"
+                          maxLength={500}
                           value={editingGroupName}
                           onChange={(e) => setEditingGroupName(autoCapitalizeText(e.target.value))}
                           onKeyDown={(e) => {
@@ -583,6 +665,31 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
                           <option value="IT">IT</option>
                           <option value="Umum">UMUM</option>
                         </select>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
+                        <input
+                          type="date"
+                          value={editingGroupTanggal}
+                          onChange={(e) => setEditingGroupTanggal(e.target.value)}
+                          className="sm:col-span-5 px-3 py-1.5 text-xs border border-slate-300 rounded-lg bg-white text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                        />
+                        <input
+                          type="text"
+                          autoCapitalize="words"
+                          maxLength={500}
+                          value={editingGroupLokasi}
+                          onChange={(e) => setEditingGroupLokasi(autoCapitalizeText(e.target.value))}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleSaveEditGroup(group.items.map((i) => i.id));
+                            } else if (e.key === 'Escape') {
+                              setEditingGroupKey(null);
+                            }
+                          }}
+                          placeholder="Lokasi kegiatan..."
+                          className="sm:col-span-7 px-3 py-1.5 text-xs border border-slate-300 rounded-lg bg-white text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                        />
                       </div>
                       <div className="flex items-center justify-end gap-1.5">
                         <button
@@ -623,6 +730,18 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
                             <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-600">
                               {group.bidang === 'Semua' ? 'Humas & IT' : group.bidang}
                             </span>
+                            {group.tanggal && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700">
+                                <Calendar className="w-3 h-3 text-emerald-700" />
+                                {formatDateIndo(group.tanggal)}
+                              </span>
+                            )}
+                            {group.lokasi && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700">
+                                <MapPin className="w-3 h-3 text-rose-600" />
+                                {group.lokasi}
+                              </span>
+                            )}
                             <span
                               className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
                                 isAllDone
@@ -771,9 +890,7 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
 
                 {/* Quick Inline Add Need to This Activity */}
                 <form
-                  onSubmit={(e) =>
-                    handleQuickAddToGroup(e, group.key, group.namaKegiatan, group.bidang)
-                  }
+                  onSubmit={(e) => handleQuickAddToGroup(e, group)}
                   className="p-3 bg-slate-50/60 border-t border-slate-100 flex items-center gap-2"
                 >
                   <input

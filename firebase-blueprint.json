@@ -169,6 +169,8 @@
       "type": "object",
       "properties": {
         "namaKegiatan": { "type": "string", "maxLength": 500 },
+        "tanggal": { "type": "string", "description": "Activity date YYYY-MM-DD" },
+        "lokasi": { "type": "string", "maxLength": 500 },
         "judul": { "type": "string", "maxLength": 500 },
         "deskripsi": { "type": "string", "maxLength": 1000 },
         "bidang": { "type": "string", "enum": ["Humas", "IT", "Semua", "Umum"] },
