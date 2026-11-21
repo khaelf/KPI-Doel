@@ -46,12 +46,19 @@ export const Navbar: React.FC<NavbarProps> = ({
     return () => clearInterval(timer);
   }, []);
 
-  const timeString = currentTime.toLocaleDateString('id-ID', {
-    weekday: 'short',
+  const weekdayLabel =
+    currentTime.getDay() === 0
+      ? 'Ahad'
+      : currentTime.toLocaleDateString('id-ID', { weekday: 'short' });
+  const datePart = currentTime.toLocaleDateString('id-ID', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
-  }) + ' • ' + currentTime.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  });
+  const timeString =
+    `${weekdayLabel}, ${datePart}` +
+    ' • ' +
+    currentTime.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   const hijriString = getHijriDateFull(currentTime);
 
   return (

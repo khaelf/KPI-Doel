@@ -189,8 +189,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const daysInMonth = new Date(year, month, 0).getDate();
   // Day of week of the 1st day of month (0 = Sun, 1 = Mon, ..., 6 = Sat)
   const firstDayOfWeek = new Date(year, month - 1, 1).getDay();
-  // Offset for Monday as the 1st column: (0->6, 1->0, 2->1, 3->2, 4->3, 5->4, 6->5)
-  const startOffset = (firstDayOfWeek + 6) % 7;
+  // Offset for Sunday as the 1st column: (0->0, 1->1, 2->2, 3->3, 4->4, 5->5, 6->6)
+  const startOffset = firstDayOfWeek;
 
   // Helper: expand date range YYYY-MM-DD..YYYY-MM-DD (inclusive, max 366 days)
   const getDateRangeStrings = (startStr: string, endStr?: string): string[] => {
@@ -520,13 +520,13 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
             {/* Weekday Names Header */}
             <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-100/60 text-center text-[11px] font-bold text-slate-600 py-2.5">
+              <span className="text-rose-600">Ahad</span>
               <span>Sen</span>
               <span>Sel</span>
               <span>Rab</span>
               <span>Kam</span>
               <span>Jum</span>
               <span className="text-emerald-700">Sab</span>
-              <span className="text-rose-600">Min</span>
             </div>
 
             {/* Calendar Days Matrix */}
