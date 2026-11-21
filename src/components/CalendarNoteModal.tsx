@@ -75,6 +75,17 @@ export const CalendarNoteModal: React.FC<CalendarNoteModalProps> = ({
     }
   }, [editingNote, isOpen, defaultDate, defaultDepartment, todayStr]);
 
+  // Calculate total days if multi-day (must stay before early return to respect Rules of Hooks)
+  const totalDays = React.useMemo(() => {
+    if (!tanggal || !tanggalSelesai || tanggalSelesai <= tanggal) return 1;
+    const [sy, sm, sd] = tanggal.split('-').map(Number);
+    const [ey, em, ed] = tanggalSelesai.split('-').map(Number);
+    const start = Date.UTC(sy, sm - 1, sd);
+    const end = Date.UTC(ey, em - 1, ed);
+    const diff = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    return diff > 1 ? diff : 1;
+  }, [tanggal, tanggalSelesai]);
+
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -101,17 +112,6 @@ export const CalendarNoteModal: React.FC<CalendarNoteModalProps> = ({
       editingNote?.id
     );
   };
-
-  // Calculate total days if multi-day
-  const totalDays = React.useMemo(() => {
-    if (!tanggal || !tanggalSelesai || tanggalSelesai <= tanggal) return 1;
-    const [sy, sm, sd] = tanggal.split('-').map(Number);
-    const [ey, em, ed] = tanggalSelesai.split('-').map(Number);
-    const start = Date.UTC(sy, sm - 1, sd);
-    const end = Date.UTC(ey, em - 1, ed);
-    const diff = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
-    return diff > 1 ? diff : 1;
-  }, [tanggal, tanggalSelesai]);
 
   return (
     <div

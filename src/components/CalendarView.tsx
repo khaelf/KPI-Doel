@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   CalendarNote,
   AgendaItem,
@@ -135,6 +135,23 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     }
     return selectedMonth ? `${selectedMonth}-01` : todayStr;
   });
+  const lastDateTapRef = useRef<{ date: string; time: number } | null>(null);
+
+  const handleDateCellClick = (dateStr: string) => {
+    const now = Date.now();
+    setSelectedDate(dateStr);
+
+    if (
+      lastDateTapRef.current &&
+      lastDateTapRef.current.date === dateStr &&
+      now - lastDateTapRef.current.time < 350
+    ) {
+      lastDateTapRef.current = null;
+      onAddNote(dateStr);
+    } else {
+      lastDateTapRef.current = { date: dateStr, time: now };
+    }
+  };
 
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
   const [searchQuery, setSearchQuery] = useState('');
@@ -556,7 +573,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 return (
                   <div
                     key={dateStr}
-                    onClick={() => setSelectedDate(dateStr)}
+                    onClick={() => handleDateCellClick(dateStr)}
+                    title="Klik untuk lihat detail, klik 2x untuk tambah catatan baru"
                     className={`min-h-[78px] sm:min-h-[102px] p-1.5 sm:p-2 cursor-pointer transition-all flex flex-col justify-between group ${
                       isSelected
                         ? 'bg-emerald-50/70 ring-2 ring-emerald-600 z-10'
