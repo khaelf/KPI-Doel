@@ -5,7 +5,6 @@ import { formatDateIndo } from '../utils/kpiCalculations';
 import {
   CheckSquare,
   ClipboardList,
-  Plus,
   Trash2,
   CheckCircle2,
   Circle,
@@ -18,6 +17,10 @@ import {
   Check,
   Calendar,
   MapPin,
+  ChevronDown,
+  ChevronUp,
+  ChevronsDown,
+  ChevronsUp,
 } from 'lucide-react';
 
 interface ChecklistViewProps {
@@ -38,12 +41,12 @@ interface ActivityGroup {
   tanggal?: string;
   lokasi?: string;
   items: ChecklistItem[];
+  realItems: ChecklistItem[];
 }
 
 export const ChecklistView: React.FC<ChecklistViewProps> = ({
   checklistItems,
   onAdd,
-  onAddMany,
   onUpdate,
   onUpdateGroup,
   onToggle,
@@ -54,8 +57,6 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
   const [bidang, setBidang] = useState<Department | 'Semua'>('Semua');
   const [tanggal, setTanggal] = useState('');
   const [lokasi, setLokasi] = useState('');
-  const [draftItemInput, setDraftItemInput] = useState('');
-  const [draftItems, setDraftItems] = useState<string[]>([]);
 
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [editingItemText, setEditingItemText] = useState('');
@@ -69,82 +70,48 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
   const [quickAddByGroup, setQuickAddByGroup] = useState<Record<string, string>>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'Semua' | 'Belum' | 'Selesai'>('Semua');
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
 
   const isActivityReady = namaKegiatan.trim().length > 0;
 
-  // Existing distinct activity names for quick-pick suggestions
-  const existingActivities = useMemo(() => {
-    const map = new Map<
-      string,
-      { name: string; bidang: Department | 'Semua'; tanggal?: string; lokasi?: string }
-    >();
-    checklistItems.forEach((item) => {
-      const name = (item.namaKegiatan || '').trim();
-      if (name) {
-        const key = name.toLowerCase();
-        const existing = map.get(key);
-        if (!existing) {
-          map.set(key, {
-            name,
-            bidang: item.bidang || 'Semua',
-            tanggal: item.tanggal || '',
-            lokasi: item.lokasi || '',
-          });
-        } else {
-          if (!existing.tanggal && item.tanggal) existing.tanggal = item.tanggal;
-          if (!existing.lokasi && item.lokasi) existing.lokasi = item.lokasi;
-        }
-      }
-    });
-    return Array.from(map.values());
-  }, [checklistItems]);
-
-  // Add item into Step 2 draft list
-  const handleAddDraftItem = () => {
-    if (!isActivityReady) return;
-    const clean = autoCapitalizeText(draftItemInput.trim());
-    if (!clean) return;
-    setDraftItems((prev) => [...prev, clean]);
-    setDraftItemInput('');
-  };
-
-  const handleRemoveDraftItem = (idx: number) => {
-    setDraftItems((prev) => prev.filter((_, i) => i !== idx));
-  };
-
-  // Save entire checklist batch for Nama Kegiatan
+  // Save new activity card (or update metadata if activity already exists)
   const handleSubmitActivityChecklist = (e: React.FormEvent) => {
     e.preventDefault();
     const activityName = autoCapitalizeText(namaKegiatan.trim());
     if (!activityName) return;
 
-    const pendingText = autoCapitalizeText(draftItemInput.trim());
-    const finalItems = pendingText ? [...draftItems, pendingText] : [...draftItems];
-    if (finalItems.length === 0) return;
-
     const cleanLokasi = autoCapitalizeText(lokasi.trim());
     const cleanTanggal = tanggal.trim();
 
-    const payload: Omit<ChecklistItem, 'id' | 'createdAt'>[] = finalItems.map((judul) => ({
-      namaKegiatan: activityName,
-      tanggal: cleanTanggal,
-      lokasi: cleanLokasi,
-      judul,
-      selesai: false,
-      bidang,
-    }));
+    const existingIds = checklistItems
+      .filter(
+        (item) =>
+          ((item.namaKegiatan || '').trim() || 'Checklist Umum').toLowerCase() ===
+          activityName.toLowerCase()
+      )
+      .map((item) => item.id);
 
-    if (onAddMany) {
-      onAddMany(payload);
+    if (existingIds.length > 0 && onUpdateGroup) {
+      onUpdateGroup(existingIds, {
+        namaKegiatan: activityName,
+        bidang,
+        tanggal: cleanTanggal,
+        lokasi: cleanLokasi,
+      });
     } else {
-      payload.forEach((p) => onAdd(p));
+      onAdd({
+        namaKegiatan: activityName,
+        tanggal: cleanTanggal,
+        lokasi: cleanLokasi,
+        judul: '',
+        selesai: false,
+        bidang,
+      });
     }
 
     setNamaKegiatan('');
     setTanggal('');
     setLokasi('');
-    setDraftItemInput('');
-    setDraftItems([]);
   };
 
   // Inline quick add inside an existing Activity Card
@@ -232,6 +199,7 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
           tanggal: item.tanggal || '',
           lokasi: item.lokasi || '',
           items: [],
+          realItems: [],
         });
       } else {
         const grp = groupMap.get(key)!;
@@ -239,13 +207,19 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
         if (!grp.lokasi && item.lokasi) grp.lokasi = item.lokasi;
       }
       groupMap.get(key)!.items.push(item);
+      if ((item.judul || '').trim() !== '') {
+        groupMap.get(key)!.realItems.push(item);
+      }
     });
 
     const groups = Array.from(groupMap.values()).map((group) => {
       const sortedItems = [...group.items].sort((a, b) =>
         (a.createdAt || '').localeCompare(b.createdAt || '')
       );
-      return { ...group, items: sortedItems };
+      const sortedRealItems = [...group.realItems].sort((a, b) =>
+        (a.createdAt || '').localeCompare(b.createdAt || '')
+      );
+      return { ...group, items: sortedItems, realItems: sortedRealItems };
     });
 
     // Sort groups newest activity first (by latest createdAt), keeping Checklist Umum last if mixed
@@ -263,7 +237,7 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
           !query ||
           group.namaKegiatan.toLowerCase().includes(query) ||
           (group.lokasi && group.lokasi.toLowerCase().includes(query));
-        const filteredItems = group.items.filter((item) => {
+        const filteredItems = group.realItems.filter((item) => {
           const matchesQuery =
             groupNameMatches || item.judul.toLowerCase().includes(query);
           const matchesStatus =
@@ -273,9 +247,13 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
           return matchesQuery && matchesStatus;
         });
 
-        return { ...group, filteredItems };
+        return { ...group, filteredItems, groupNameMatches };
       })
-      .filter((group) => group.filteredItems.length > 0);
+      .filter(
+        (group) =>
+          group.filteredItems.length > 0 ||
+          (group.realItems.length === 0 && group.groupNameMatches && statusFilter === 'Semua')
+      );
   }, [checklistItems, searchQuery, statusFilter]);
 
   const totalActivitiesCount = useMemo(() => {
@@ -285,9 +263,35 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
     return keys.size;
   }, [checklistItems]);
 
-  const completedCount = checklistItems.filter((i) => i.selesai).length;
-  const totalItemsCount = checklistItems.length;
-  const totalDraftReady = draftItems.length + (draftItemInput.trim() ? 1 : 0);
+  const realChecklistItems = useMemo(
+    () => checklistItems.filter((i) => (i.judul || '').trim() !== ''),
+    [checklistItems]
+  );
+  const completedCount = realChecklistItems.filter((i) => i.selesai).length;
+  const totalItemsCount = realChecklistItems.length;
+
+  const toggleGroupExpand = (key: string) => {
+    setExpandedGroups((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
+  const handleExpandAllGroups = () => {
+    const next: Record<string, boolean> = {};
+    groupedActivities.forEach((g) => {
+      next[g.key] = true;
+    });
+    setExpandedGroups(next);
+  };
+
+  const handleCollapseAllGroups = () => {
+    setExpandedGroups({});
+  };
+
+  const areAllGroupsExpanded =
+    groupedActivities.length > 0 && groupedActivities.every((g) => !!expandedGroups[g.key]);
+  const areAnyGroupsExpanded = groupedActivities.some((g) => !!expandedGroups[g.key]);
 
   return (
     <div className="space-y-6 pb-20 md:pb-8">
@@ -324,7 +328,7 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
         </div>
       </div>
 
-      {/* Form Builder: Step 1 Nama Kegiatan -> Step 2 List Kebutuhan */}
+      {/* Form Builder: Buat Daftar Checklist Baru */}
       <form
         onSubmit={handleSubmitActivityChecklist}
         className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden"
@@ -334,245 +338,92 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
             <ListPlus className="w-5 h-5 text-emerald-300" />
             <h3 className="text-sm sm:text-base font-bold">Buat Daftar Checklist Baru</h3>
           </div>
-          <span className="text-[11px] text-emerald-200 font-medium hidden sm:inline">
-            2 Langkah Mudah
-          </span>
         </div>
 
-        <div className="p-4 sm:p-5 space-y-5 text-xs">
-          {/* STEP 1: Nama Kegiatan, Bidang, Tanggal & Lokasi */}
-          <div className="space-y-3">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-              <div className="md:col-span-9">
-                <label className="block font-bold text-slate-900 mb-1.5 flex items-center gap-1.5">
-                  <span className="w-5 h-5 rounded-full bg-emerald-700 text-white text-[11px] font-bold inline-flex items-center justify-center shrink-0">
-                    1
-                  </span>
-                  <span>
-                    Nama Kegiatan <span className="text-rose-500">*</span>
-                  </span>
-                </label>
-                <input
-                  type="text"
-                  autoCapitalize="words"
-                  maxLength={500}
-                  value={namaKegiatan}
-                  onChange={(e) => setNamaKegiatan(autoCapitalizeText(e.target.value))}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                    }
-                  }}
-                  placeholder="Contoh: Futsal Championship, Penerimaan Santri Baru, Kajian Akbar..."
-                  className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-sm text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
-                />
-              </div>
-
-              <div className="md:col-span-3">
-                <label className="block font-bold text-slate-900 mb-1.5 flex items-center gap-1">
-                  <Building2 className="w-3.5 h-3.5 text-slate-600" />
-                  <span>Bidang</span>
-                </label>
-                <select
-                  value={bidang}
-                  onChange={(e) => setBidang(e.target.value as Department | 'Semua')}
-                  className="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
-                >
-                  <option value="Semua">Semua (Humas & IT)</option>
-                  <option value="Humas">HUMAS</option>
-                  <option value="IT">IT</option>
-                  <option value="Umum">UMUM</option>
-                </select>
-              </div>
+        <div className="p-4 sm:p-5 space-y-4 text-xs">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+            <div className="md:col-span-9">
+              <label className="block font-bold text-slate-900 mb-1.5">
+                Nama Kegiatan <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                autoCapitalize="words"
+                maxLength={500}
+                value={namaKegiatan}
+                onChange={(e) => setNamaKegiatan(autoCapitalizeText(e.target.value))}
+                placeholder="Contoh: Futsal Championship, Penerimaan Santri Baru, Kajian Akbar..."
+                className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-sm text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
+              />
             </div>
 
-            {/* Tanggal & Lokasi */}
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-              <div className="sm:col-span-5">
-                <label className="block font-bold text-slate-900 mb-1.5 flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-emerald-700" />
-                  <span>Tanggal Kegiatan</span>
-                </label>
-                <input
-                  type="date"
-                  value={tanggal}
-                  onChange={(e) => setTanggal(e.target.value)}
-                  className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
-                />
-              </div>
-
-              <div className="sm:col-span-7">
-                <label className="block font-bold text-slate-900 mb-1.5 flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-emerald-700" />
-                  <span>Lokasi Kegiatan</span>
-                </label>
-                <input
-                  type="text"
-                  autoCapitalize="words"
-                  maxLength={500}
-                  value={lokasi}
-                  onChange={(e) => setLokasi(autoCapitalizeText(e.target.value))}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                    }
-                  }}
-                  placeholder="Contoh: Aula Pondok, Lapangan Utama, Masjid..."
-                  className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
-                />
-              </div>
+            <div className="md:col-span-3">
+              <label className="block font-bold text-slate-900 mb-1.5 flex items-center gap-1">
+                <Building2 className="w-3.5 h-3.5 text-slate-600" />
+                <span>Bidang</span>
+              </label>
+              <select
+                value={bidang}
+                onChange={(e) => setBidang(e.target.value as Department | 'Semua')}
+                className="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
+              >
+                <option value="Semua">Semua (Humas & IT)</option>
+                <option value="Humas">HUMAS</option>
+                <option value="IT">IT</option>
+                <option value="Umum">UMUM</option>
+              </select>
             </div>
-
-            {/* Quick pick existing activities */}
-            {existingActivities.length > 0 && (
-              <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                <span className="text-[11px] text-slate-500 font-medium">
-                  Kegiatan tersedia:
-                </span>
-                {existingActivities.slice(0, 6).map((act) => (
-                  <button
-                    key={act.name}
-                    type="button"
-                    onClick={() => {
-                      setNamaKegiatan(act.name);
-                      setBidang(act.bidang);
-                      setTanggal(act.tanggal || '');
-                      setLokasi(act.lokasi || '');
-                    }}
-                    className={`px-2.5 py-1 rounded-lg border text-[11px] font-semibold transition-colors cursor-pointer ${
-                      namaKegiatan.trim().toLowerCase() === act.name.toLowerCase()
-                        ? 'bg-emerald-700 text-white border-emerald-700'
-                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-emerald-50 hover:border-emerald-300'
-                    }`}
-                  >
-                    {act.name}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
 
-          {/* STEP 2: List Kebutuhan untuk Kegiatan */}
-          <div
-            className={`rounded-xl border p-4 transition-all ${
-              isActivityReady
-                ? 'border-emerald-200 bg-emerald-50/40'
-                : 'border-dashed border-slate-300 bg-slate-50/70'
-            }`}
-          >
-            <div className="flex items-center justify-between gap-2 mb-2.5">
-              <label className="font-bold text-slate-900 flex items-center gap-1.5">
-                <span
-                  className={`w-5 h-5 rounded-full text-[11px] font-bold inline-flex items-center justify-center shrink-0 ${
-                    isActivityReady
-                      ? 'bg-emerald-700 text-white'
-                      : 'bg-slate-300 text-slate-600'
-                  }`}
-                >
-                  2
-                </span>
-                <span>
-                  Daftar Kebutuhan{' '}
-                  {isActivityReady && (
-                    <span className="text-emerald-800">untuk &ldquo;{namaKegiatan.trim()}&rdquo;</span>
-                  )}
-                </span>
+          {/* Tanggal & Lokasi */}
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+            <div className="sm:col-span-5">
+              <label className="block font-bold text-slate-900 mb-1.5 flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-emerald-700" />
+                <span>Tanggal Kegiatan</span>
               </label>
-
-              {draftItems.length > 0 && (
-                <span className="text-[11px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-md">
-                  {draftItems.length} item dalam antrean
-                </span>
-              )}
+              <input
+                type="date"
+                value={tanggal}
+                onChange={(e) => setTanggal(e.target.value)}
+                className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
+              />
             </div>
 
-            {!isActivityReady ? (
-              <p className="text-xs text-slate-500 py-2">
-                Isi <strong>Nama Kegiatan</strong> pada langkah 1 terlebih dahulu untuk mulai memasukkan list kebutuhan.
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {/* Input row to add each needed item */}
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <input
-                    type="text"
-                    autoCapitalize="words"
-                    value={draftItemInput}
-                    onChange={(e) => setDraftItemInput(autoCapitalizeText(e.target.value))}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleAddDraftItem();
-                      }
-                    }}
-                    placeholder="Masukkan item yang dibutuhkan (misal: Kamera DSLR, Spanduk, Mic Wireless)..."
-                    className="flex-1 px-3.5 py-2 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddDraftItem}
-                    disabled={!draftItemInput.trim()}
-                    className="px-4 py-2 bg-white border border-emerald-600 text-emerald-700 hover:bg-emerald-50 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl font-bold flex items-center justify-center gap-1.5 transition-colors shrink-0 cursor-pointer"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>Tambah ke List</span>
-                  </button>
-                </div>
+            <div className="sm:col-span-7">
+              <label className="block font-bold text-slate-900 mb-1.5 flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-emerald-700" />
+                <span>Lokasi Kegiatan</span>
+              </label>
+              <input
+                type="text"
+                autoCapitalize="words"
+                maxLength={500}
+                value={lokasi}
+                onChange={(e) => setLokasi(autoCapitalizeText(e.target.value))}
+                placeholder="Contoh: Aula Pondok, Lapangan Utama, Masjid..."
+                className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
+              />
+            </div>
+          </div>
 
-                {/* Draft List Preview */}
-                {draftItems.length > 0 && (
-                  <div className="bg-white rounded-xl border border-emerald-200/80 divide-y divide-slate-100 overflow-hidden">
-                    {draftItems.map((itemText, idx) => (
-                      <div
-                        key={`${itemText}-${idx}`}
-                        className="flex items-center justify-between gap-2 px-3.5 py-2 text-xs"
-                      >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="font-mono text-[11px] font-bold text-emerald-700 w-5 shrink-0">
-                            {idx + 1}.
-                          </span>
-                          <span className="font-semibold text-slate-800 break-words">
-                            {itemText}
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveDraftItem(idx)}
-                          className="p-1 text-slate-400 hover:text-rose-600 rounded-md transition-colors shrink-0"
-                          title="Hapus dari daftar sementara"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
-                  <p className="text-[11px] text-slate-500">
-                    Tips: Tekan <strong>Enter</strong> atau klik <strong>+ Tambah ke List</strong> untuk memasukkan banyak kebutuhan sekaligus sebelum disimpan.
-                  </p>
-                  <button
-                    type="submit"
-                    disabled={totalDraftReady === 0}
-                    className="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-xl font-bold text-xs shadow-sm flex items-center justify-center gap-1.5 transition-colors shrink-0 cursor-pointer"
-                  >
-                    <CheckSquare className="w-4 h-4" />
-                    <span>
-                      Simpan Daftar Checklist {totalDraftReady > 0 ? `(${totalDraftReady} Item)` : ''}
-                    </span>
-                  </button>
-                </div>
-              </div>
-            )}
+          <div className="flex justify-end pt-1">
+            <button
+              type="submit"
+              disabled={!isActivityReady}
+              className="w-full sm:w-auto px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-xl font-bold text-xs shadow-sm flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <CheckSquare className="w-4 h-4" />
+              <span>Simpan Daftar Checklist</span>
+            </button>
           </div>
         </div>
       </form>
 
       {/* Search & Filter Bar */}
       {checklistItems.length > 0 && (
-        <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 text-xs">
-          <div className="relative flex-1 sm:max-w-sm">
+        <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 text-xs">
+          <div className="relative flex-1 lg:max-w-sm">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
@@ -583,21 +434,48 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
             />
           </div>
 
-          <div className="flex items-center gap-1.5">
-            {(['Semua', 'Belum', 'Selesai'] as const).map((st) => (
-              <button
-                key={st}
-                type="button"
-                onClick={() => setStatusFilter(st)}
-                className={`px-3 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${
-                  statusFilter === st
-                    ? 'bg-emerald-700 text-white shadow-xs'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                {st === 'Belum' ? 'Belum Selesai' : st}
-              </button>
-            ))}
+          <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2">
+            <div className="flex items-center gap-1.5">
+              {(['Semua', 'Belum', 'Selesai'] as const).map((st) => (
+                <button
+                  key={st}
+                  type="button"
+                  onClick={() => setStatusFilter(st)}
+                  className={`px-3 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${
+                    statusFilter === st
+                      ? 'bg-emerald-700 text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  {st === 'Belum' ? 'Belum Selesai' : st}
+                </button>
+              ))}
+            </div>
+
+            {groupedActivities.length > 0 && (
+              <div className="flex items-center gap-1.5 sm:border-l sm:border-slate-200 sm:pl-2">
+                <button
+                  type="button"
+                  onClick={handleExpandAllGroups}
+                  disabled={areAllGroupsExpanded}
+                  className="px-2.5 py-1.5 rounded-xl font-semibold border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1 cursor-pointer"
+                  title="Tampilkan semua daftar checklist"
+                >
+                  <ChevronsDown className="w-3.5 h-3.5" />
+                  <span>Tampilkan Semua</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCollapseAllGroups}
+                  disabled={!areAnyGroupsExpanded}
+                  className="px-2.5 py-1.5 rounded-xl font-semibold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1 cursor-pointer"
+                  title="Sembunyikan semua daftar checklist"
+                >
+                  <ChevronsUp className="w-3.5 h-3.5" />
+                  <span>Sembunyikan Semua</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -618,10 +496,11 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
           {groupedActivities.map((group) => {
-            const totalInGroup = group.items.length;
-            const doneInGroup = group.items.filter((i) => i.selesai).length;
+            const totalInGroup = group.realItems.length;
+            const doneInGroup = group.realItems.filter((i) => i.selesai).length;
             const progressPct = totalInGroup > 0 ? Math.round((doneInGroup / totalInGroup) * 100) : 0;
             const isAllDone = totalInGroup > 0 && doneInGroup === totalInGroup;
+            const isCollapsed = !expandedGroups[group.key];
 
             return (
               <div
@@ -631,7 +510,11 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
                 }`}
               >
                 {/* Activity Card Header */}
-                <div className="p-4 bg-slate-50/80 border-b border-slate-200/80 space-y-2.5">
+                <div
+                  className={`p-4 bg-slate-50/80 space-y-2.5 ${
+                    !isCollapsed ? 'border-b border-slate-200/80' : ''
+                  }`}
+                >
                   {editingGroupKey === group.key ? (
                     <div className="space-y-2.5">
                       <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
@@ -712,9 +595,18 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
                     </div>
                   ) : (
                     <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-start gap-2.5 min-w-0">
+                      <button
+                        type="button"
+                        onClick={() => toggleGroupExpand(group.key)}
+                        className="flex items-start gap-2.5 min-w-0 flex-1 text-left cursor-pointer group/header"
+                        title={
+                          isCollapsed
+                            ? `Tampilkan daftar ${group.namaKegiatan}`
+                            : `Sembunyikan daftar ${group.namaKegiatan}`
+                        }
+                      >
                         <div
-                          className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                          className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                             isAllDone
                               ? 'bg-emerald-100 text-emerald-700'
                               : 'bg-emerald-800 text-white'
@@ -722,8 +614,8 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
                         >
                           <FolderOpen className="w-4 h-4" />
                         </div>
-                        <div className="min-w-0">
-                          <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-snug break-words">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-sm sm:text-base font-bold text-slate-900 group-hover/header:text-emerald-800 leading-snug break-words transition-colors">
                             {group.namaKegiatan}
                           </h3>
                           <div className="flex flex-wrap items-center gap-1.5 mt-1">
@@ -753,7 +645,7 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
                             </span>
                           </div>
                         </div>
-                      </div>
+                      </button>
 
                       <div className="flex items-center gap-1 shrink-0">
                         <button
@@ -779,6 +671,23 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
+                        <button
+                          type="button"
+                          onClick={() => toggleGroupExpand(group.key)}
+                          className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
+                            isCollapsed
+                              ? 'bg-white border-slate-200 text-slate-600 hover:text-emerald-800 hover:border-emerald-300 hover:bg-emerald-50'
+                              : 'bg-emerald-100 border-emerald-200 text-emerald-800 hover:bg-emerald-200/70'
+                          }`}
+                          title={isCollapsed ? 'Tampilkan list' : 'Sembunyikan list'}
+                          aria-expanded={!isCollapsed}
+                        >
+                          {isCollapsed ? (
+                            <ChevronDown className="w-4 h-4" />
+                          ) : (
+                            <ChevronUp className="w-4 h-4" />
+                          )}
+                        </button>
                       </div>
                     </div>
                   )}
@@ -792,128 +701,138 @@ export const ChecklistView: React.FC<ChecklistViewProps> = ({
                   </div>
                 </div>
 
-                {/* Checklist Items List */}
-                <ul className="divide-y divide-slate-100">
-                  {group.filteredItems.map((item) => {
-                    const isEditingThisItem = editingItemId === item.id;
-                    return (
-                      <li
-                        key={item.id}
-                        className="flex items-center gap-2.5 px-4 py-3 hover:bg-slate-50/70 transition-colors group"
-                      >
-                        <button
-                          type="button"
-                          onClick={() => onToggle(item.id)}
-                          className="text-slate-400 hover:text-emerald-700 transition-colors shrink-0 cursor-pointer"
-                          title={item.selesai ? 'Tandai belum selesai' : 'Tandai selesai'}
-                        >
-                          {item.selesai ? (
-                            <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                          ) : (
-                            <Circle className="w-5 h-5 text-slate-300 hover:text-emerald-600" />
-                          )}
-                        </button>
-
-                        {isEditingThisItem ? (
-                          <div className="flex-1 flex items-center gap-1.5 min-w-0">
-                            <input
-                              type="text"
-                              autoFocus
-                              autoCapitalize="words"
-                              value={editingItemText}
-                              onChange={(e) =>
-                                setEditingItemText(autoCapitalizeText(e.target.value))
-                              }
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault();
-                                  handleSaveEditItem(item.id);
-                                } else if (e.key === 'Escape') {
-                                  setEditingItemId(null);
-                                }
-                              }}
-                              className="flex-1 min-w-0 px-2.5 py-1 text-xs sm:text-sm border border-emerald-400 rounded-lg bg-white text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                            />
+                {/* Checklist Items List & Quick Add (Collapsible Dropdown) */}
+                {!isCollapsed && (
+                  <>
+                    {group.filteredItems.length === 0 ? (
+                      <div className="px-4 py-4 text-xs text-slate-400 text-center">
+                        Belum ada item kebutuhan. Tambahkan di bawah ini.
+                      </div>
+                    ) : (
+                      <ul className="divide-y divide-slate-100">
+                        {group.filteredItems.map((item) => {
+                        const isEditingThisItem = editingItemId === item.id;
+                        return (
+                          <li
+                            key={item.id}
+                            className="flex items-center gap-2.5 px-4 py-3 hover:bg-slate-50/70 transition-colors group"
+                          >
                             <button
                               type="button"
-                              onClick={() => handleSaveEditItem(item.id)}
-                              disabled={!editingItemText.trim()}
-                              className="p-1.5 bg-emerald-700 hover:bg-emerald-800 disabled:bg-slate-300 text-white rounded-lg transition-colors shrink-0 cursor-pointer"
-                              title="Simpan perubahan"
-                            >
-                              <Check className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setEditingItemId(null)}
-                              className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-200/70 rounded-lg transition-colors shrink-0 cursor-pointer"
-                              title="Batal edit"
-                            >
-                              <X className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        ) : (
-                          <>
-                            <span
                               onClick={() => onToggle(item.id)}
-                              className={`flex-1 text-xs sm:text-sm font-semibold leading-snug break-words cursor-pointer select-none ${
-                                item.selesai ? 'line-through text-slate-400' : 'text-slate-800'
-                              }`}
+                              className="text-slate-400 hover:text-emerald-700 transition-colors shrink-0 cursor-pointer"
+                              title={item.selesai ? 'Tandai belum selesai' : 'Tandai selesai'}
                             >
-                              {item.judul}
-                            </span>
+                              {item.selesai ? (
+                                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                              ) : (
+                                <Circle className="w-5 h-5 text-slate-300 hover:text-emerald-600" />
+                              )}
+                            </button>
 
-                            <div className="flex items-center gap-1 shrink-0">
-                              <button
-                                type="button"
-                                onClick={() => handleStartEditItem(item)}
-                                className="p-1 text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 rounded-md transition-colors cursor-pointer"
-                                title="Edit poin ini"
-                              >
-                                <Edit2 className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => onDelete(item.id)}
-                                className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors cursor-pointer"
-                                title="Hapus poin ini"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
+                            {isEditingThisItem ? (
+                              <div className="flex-1 flex items-center gap-1.5 min-w-0">
+                                <input
+                                  type="text"
+                                  autoFocus
+                                  autoCapitalize="words"
+                                  value={editingItemText}
+                                  onChange={(e) =>
+                                    setEditingItemText(autoCapitalizeText(e.target.value))
+                                  }
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault();
+                                      handleSaveEditItem(item.id);
+                                    } else if (e.key === 'Escape') {
+                                      setEditingItemId(null);
+                                    }
+                                  }}
+                                  className="flex-1 min-w-0 px-2.5 py-1 text-xs sm:text-sm border border-emerald-400 rounded-lg bg-white text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => handleSaveEditItem(item.id)}
+                                  disabled={!editingItemText.trim()}
+                                  className="p-1.5 bg-emerald-700 hover:bg-emerald-800 disabled:bg-slate-300 text-white rounded-lg transition-colors shrink-0 cursor-pointer"
+                                  title="Simpan perubahan"
+                                >
+                                  <Check className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingItemId(null)}
+                                  className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-200/70 rounded-lg transition-colors shrink-0 cursor-pointer"
+                                  title="Batal edit"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            ) : (
+                              <>
+                                <span
+                                  onClick={() => onToggle(item.id)}
+                                  className={`flex-1 text-xs sm:text-sm font-semibold leading-snug break-words cursor-pointer select-none ${
+                                    item.selesai ? 'line-through text-slate-400' : 'text-slate-800'
+                                  }`}
+                                >
+                                  {item.judul}
+                                </span>
 
-                {/* Quick Inline Add Need to This Activity */}
-                <form
-                  onSubmit={(e) => handleQuickAddToGroup(e, group)}
-                  className="p-3 bg-slate-50/60 border-t border-slate-100 flex items-center gap-2"
-                >
-                  <input
-                    type="text"
-                    autoCapitalize="words"
-                    value={quickAddByGroup[group.key] || ''}
-                    onChange={(e) =>
-                      setQuickAddByGroup((prev) => ({
-                        ...prev,
-                        [group.key]: autoCapitalizeText(e.target.value),
-                      }))
-                    }
-                    placeholder={`+ Tambah kebutuhan untuk ${group.namaKegiatan}...`}
-                    className="flex-1 px-3 py-1.5 text-xs border border-slate-200 rounded-lg bg-white text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  />
-                  <button
-                    type="submit"
-                    disabled={!(quickAddByGroup[group.key] || '').trim()}
-                    className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-lg text-xs font-bold transition-colors shrink-0 cursor-pointer"
-                  >
-                    Tambah
-                  </button>
-                </form>
+                                <div className="flex items-center gap-1 shrink-0">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleStartEditItem(item)}
+                                    className="p-1 text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 rounded-md transition-colors cursor-pointer"
+                                    title="Edit poin ini"
+                                  >
+                                    <Edit2 className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => onDelete(item.id)}
+                                    className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors cursor-pointer"
+                                    title="Hapus poin ini"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </>
+                            )}
+                          </li>
+                        );
+                      })}
+                      </ul>
+                    )}
+
+                    {/* Quick Inline Add Need to This Activity */}
+                    <form
+                      onSubmit={(e) => handleQuickAddToGroup(e, group)}
+                      className="p-3 bg-slate-50/60 border-t border-slate-100 flex items-center gap-2"
+                    >
+                      <input
+                        type="text"
+                        autoCapitalize="words"
+                        value={quickAddByGroup[group.key] || ''}
+                        onChange={(e) =>
+                          setQuickAddByGroup((prev) => ({
+                            ...prev,
+                            [group.key]: autoCapitalizeText(e.target.value),
+                          }))
+                        }
+                        placeholder={`+ Tambah kebutuhan untuk ${group.namaKegiatan}...`}
+                        className="flex-1 px-3 py-1.5 text-xs border border-slate-200 rounded-lg bg-white text-slate-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                      />
+                      <button
+                        type="submit"
+                        disabled={!(quickAddByGroup[group.key] || '').trim()}
+                        className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-lg text-xs font-bold transition-colors shrink-0 cursor-pointer"
+                      >
+                        Tambah
+                      </button>
+                    </form>
+                  </>
+                )}
               </div>
             );
           })}
